@@ -1,0 +1,19 @@
+{
+	"name": "ESP-IDF",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"settings": {
+		"idf.showOnboardingOnInit": false,
+		"idf.toolsPath": "/opt/esp",
+		"idf.espIdfPath": "opt/esp/idf"
+	},
+
+	// "extensions": [
+	// 	"twxs.cmake"
+	// ],
+
+	"runArgs": [
+		"--privileged"
+	]
+}
