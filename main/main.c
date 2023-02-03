@@ -1,14 +1,8 @@
-/*
- * SPDX-FileCopyrightText: 2010-2022 Espressif Systems (Shanghai) CO LTD
- *
- * SPDX-License-Identifier: CC0-1.0
- */
-
+// Copyright 2022 PWrInSpace, Kuba
 #include <stdio.h>
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_chip_info.h"
 #include "esp_flash.h"
 #include "esp_log.h"
 #include "test.h"
