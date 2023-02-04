@@ -12,9 +12,9 @@ jobs:
         submodules: 'recursive'
     - name: esp-idf build
       uses: espressif/esp-idf-ci-action@v1
-      with: 
+      with:
         esp_idf_version: v5.0
-        
+
   lint:
     runs-on: ubuntu-latest
 
