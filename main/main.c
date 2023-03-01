@@ -19,7 +19,7 @@ sd_card_t sd;
 
 void app_main(void) {
     while (1) {
-        ESP_LOGI(TAG, "Hello world!");
+        ESP_LOGI(TAG, "Hello world! 1234");
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
