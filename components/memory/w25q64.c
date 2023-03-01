@@ -1,16 +1,16 @@
+// copyrights to do
+#include "w25q64.h"
+
+#include <driver/gpio.h>
+#include <driver/spi_master.h>
 #include <string.h>
 
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include <driver/spi_master.h>
-#include <driver/gpio.h>
-#include "esp_log.h"
-
-#include "w25q64.h"
-
 #define TAG "W25Q64"
-#define _DEBUG_	1
+#define _DEBUG_ 1
 
 // SPI Stuff
 #if CONFIG_SPI2_HOST
@@ -19,64 +19,59 @@
 #define HOST_ID SPI3_HOST
 #endif
 
-//static const int SPI_Command_Mode = 0;
-//static const int SPI_Data_Mode = 1;
+// static const int SPI_Command_Mode = 0;
+// static const int SPI_Data_Mode = 1;
 static const int SPI_Frequency = 1000000;
 
-void W25Q64_dump(char *id, int ret, uint8_t *data, int len)
-{
-	int i;
-	printf("[%s] = %d\n",id, ret);
-	for(i=0;i<len;i++) {
-		printf("%0x ",data[i]);
-		if ( (i % 10) == 9) printf("\n");
-	}
-	printf("\n");
+void W25Q64_dump(char *id, int ret, uint8_t *data, int len) {
+  int i;
+  printf("[%s] = %d\n", id, ret);
+  for (i = 0; i < len; i++) {
+    printf("%0x ", data[i]);
+    if ((i % 10) == 9) printf("\n");
+  }
+  printf("\n");
 }
 
-
-void W25Q64_init(W25Q64_t * dev)
-{
+void W25Q64_init(W25Q64_t *dev) {
   ESP_LOGI(TAG, "MISO_GPIO=%d", 19);
   ESP_LOGI(TAG, "MOSI_GPIO=%d", 23);
   ESP_LOGI(TAG, "SCLK_GPIO=%d", 18);
   ESP_LOGI(TAG, "CS_GPIO=%d", 33);
 
-	esp_err_t ret;
+  esp_err_t ret;
 
-	//gpio_pad_select_gpio( 33 );
-	gpio_reset_pin( 33 );
-	gpio_set_direction( 33, GPIO_MODE_OUTPUT );
-	gpio_set_level( 33, 0 );
+  // gpio_pad_select_gpio( 33 );
+  gpio_reset_pin(33);
+  gpio_set_direction(33, GPIO_MODE_OUTPUT);
+  gpio_set_level(33, 0);
 
-	spi_bus_config_t spi_bus_config = {
-		.sclk_io_num = 18,
-		.mosi_io_num = 23,
-		.miso_io_num = 19,
-		.quadwp_io_num = -1,
-		.quadhd_io_num = -1
-	};
+  spi_bus_config_t spi_bus_config = {.sclk_io_num = 18,
+                                     .mosi_io_num = 23,
+                                     .miso_io_num = 19,
+                                     .quadwp_io_num = -1,
+                                     .quadhd_io_num = -1};
 
-	ret = spi_bus_initialize( SPI2_HOST, &spi_bus_config, SPI_DMA_CH_AUTO );
-	if(_DEBUG_)ESP_LOGI(TAG, "spi_bus_initialize=%d",ret);
-	assert(ret==ESP_OK);
+  ret = spi_bus_initialize(SPI2_HOST, &spi_bus_config, SPI_DMA_CH_AUTO);
+  if (_DEBUG_) ESP_LOGI(TAG, "spi_bus_initialize=%d", ret);
+  assert(ret == ESP_OK);
 
-	spi_device_interface_config_t devcfg;
-	memset( &devcfg, 0, sizeof( spi_device_interface_config_t ) );
-	devcfg.clock_speed_hz = SPI_Frequency;
-	devcfg.spics_io_num = 33;
-	devcfg.queue_size = 7;
-	devcfg.mode = 0;
+  spi_device_interface_config_t devcfg;
+  memset(&devcfg, 0, sizeof(spi_device_interface_config_t));
+  devcfg.clock_speed_hz = SPI_Frequency;
+  devcfg.spics_io_num = 33;
+  devcfg.queue_size = 7;
+  devcfg.mode = 0;
 
-	spi_device_handle_t handle;
-	ret = spi_bus_add_device( SPI2_HOST, &devcfg, &handle);
-	if(_DEBUG_)ESP_LOGI(TAG, "spi_bus_add_device=%d",ret);
-	assert(ret==ESP_OK);
-	dev->_SPIHandle = handle;
-	dev->_4bmode = false;
+  spi_device_handle_t handle;
+  ret = spi_bus_add_device(SPI2_HOST, &devcfg, &handle);
+  if (_DEBUG_) ESP_LOGI(TAG, "spi_bus_add_device=%d", ret);
+  assert(ret == ESP_OK);
+  dev->_SPIHandle = handle;
+  dev->_4bmode = false;
 #if CONFIG_4B_MODE
-	ESP_LOGW(TAG, "4-Byte Address Mode");
-	dev->_4bmode = true;
+  ESP_LOGW(TAG, "4-Byte Address Mode");
+  dev->_4bmode = true;
 #endif
 }
 
@@ -84,154 +79,143 @@ void W25Q64_init(W25Q64_t * dev)
 // Get status register 1
 // reg1(out):Value of status register 1
 //
-esp_err_t W25Q64_readStatusReg1(W25Q64_t * dev, uint8_t * reg1)
-{
-	spi_transaction_t SPITransaction;
-	uint8_t data[2];
-	data[0] = CMD_READ_STATUS_R1;
-	memset( &SPITransaction, 0, sizeof( spi_transaction_t ) );
-	SPITransaction.length = 2 * 8;
-	SPITransaction.tx_buffer = data;
-	SPITransaction.rx_buffer = data;
-	esp_err_t ret = spi_device_transmit( dev->_SPIHandle, &SPITransaction );
-	assert(ret==ESP_OK);
-	if(_DEBUG_)ESP_LOGI(TAG, "W25Q64_readStatusReg1=%x",data[1]);
-	*reg1 = data[1];
-	return ret;
+esp_err_t W25Q64_readStatusReg1(W25Q64_t *dev, uint8_t *reg1) {
+  spi_transaction_t SPITransaction;
+  uint8_t data[2];
+  data[0] = CMD_READ_STATUS_R1;
+  memset(&SPITransaction, 0, sizeof(spi_transaction_t));
+  SPITransaction.length = 2 * 8;
+  SPITransaction.tx_buffer = data;
+  SPITransaction.rx_buffer = data;
+  esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
+  assert(ret == ESP_OK);
+  if (_DEBUG_) ESP_LOGI(TAG, "W25Q64_readStatusReg1=%x", data[1]);
+  *reg1 = data[1];
+  return ret;
 }
 
 //
 // Get status register 2
 // reg2(out):Value of status register 2
 //
-esp_err_t W25Q64_readStatusReg2(W25Q64_t * dev, uint8_t * reg2)
-{
-	spi_transaction_t SPITransaction;
-	uint8_t data[2];
-	data[0] = CMD_READ_STATUS_R2;
-	memset( &SPITransaction, 0, sizeof( spi_transaction_t ) );
-	SPITransaction.length = 2 * 8;
-	SPITransaction.tx_buffer = data;
-	SPITransaction.rx_buffer = data;
-	esp_err_t ret = spi_device_transmit( dev->_SPIHandle, &SPITransaction );
-	assert(ret==ESP_OK);
-	if(_DEBUG_)ESP_LOGI(TAG, "W25Q64_readStatusReg2=%x",data[1]);
-	*reg2 = data[1];
-	return ret;
+esp_err_t W25Q64_readStatusReg2(W25Q64_t *dev, uint8_t *reg2) {
+  spi_transaction_t SPITransaction;
+  uint8_t data[2];
+  data[0] = CMD_READ_STATUS_R2;
+  memset(&SPITransaction, 0, sizeof(spi_transaction_t));
+  SPITransaction.length = 2 * 8;
+  SPITransaction.tx_buffer = data;
+  SPITransaction.rx_buffer = data;
+  esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
+  assert(ret == ESP_OK);
+  if (_DEBUG_) ESP_LOGI(TAG, "W25Q64_readStatusReg2=%x", data[1]);
+  *reg2 = data[1];
+  return ret;
 }
 
 //
 // Get Unique ID
-// id(out):Unique ID 8 bytes	
+// id(out):Unique ID 8 bytes
 //
-esp_err_t W25Q64_readUniqieID(W25Q64_t * dev, uint8_t * id)
-{
-	spi_transaction_t SPITransaction;
-	uint8_t data[13];
-	data[0] = CMD_READ_UNIQUE_ID;
-	memset( &SPITransaction, 0, sizeof( spi_transaction_t ) );
-	SPITransaction.length = 13 * 8;
-	SPITransaction.tx_buffer = data;
-	SPITransaction.rx_buffer = data;
-	esp_err_t ret = spi_device_transmit( dev->_SPIHandle, &SPITransaction );
-	assert(ret==ESP_OK);
-	if(_DEBUG_)W25Q64_dump("readUniqieID", ret, data, 13);
-	memcpy(id, &data[5], 8);
-	return ret ;
+esp_err_t W25Q64_readUniqieID(W25Q64_t *dev, uint8_t *id) {
+  spi_transaction_t SPITransaction;
+  uint8_t data[13];
+  data[0] = CMD_READ_UNIQUE_ID;
+  memset(&SPITransaction, 0, sizeof(spi_transaction_t));
+  SPITransaction.length = 13 * 8;
+  SPITransaction.tx_buffer = data;
+  SPITransaction.rx_buffer = data;
+  esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
+  assert(ret == ESP_OK);
+  if (_DEBUG_) W25Q64_dump("readUniqieID", ret, data, 13);
+  memcpy(id, &data[5], 8);
+  return ret;
 }
 
 //
 // Get JEDEC ID(Manufacture, Memory Type,Capacity)
 // d(out):Stores 3 bytes of Manufacture, Memory Type, Capacity
 //
-esp_err_t W25Q64_readManufacturer(W25Q64_t * dev, uint8_t * id)
-{
-	spi_transaction_t SPITransaction;
-	uint8_t data[4];
-	data[0] = CMD_JEDEC_ID;
-	memset( &SPITransaction, 0, sizeof( spi_transaction_t ) );
-	SPITransaction.length = 4 * 8;
-	SPITransaction.tx_buffer = data;
-	SPITransaction.rx_buffer = data;
-	esp_err_t ret = spi_device_transmit( dev->_SPIHandle, &SPITransaction );
-	assert(ret==ESP_OK);
-	if(_DEBUG_)W25Q64_dump("readManufacturer", ret, data, 4);
-	memcpy(id, &data[1], 3);
-	return ret ;
+esp_err_t W25Q64_readManufacturer(W25Q64_t *dev, uint8_t *id) {
+  spi_transaction_t SPITransaction;
+  uint8_t data[4];
+  data[0] = CMD_JEDEC_ID;
+  memset(&SPITransaction, 0, sizeof(spi_transaction_t));
+  SPITransaction.length = 4 * 8;
+  SPITransaction.tx_buffer = data;
+  SPITransaction.rx_buffer = data;
+  esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
+  assert(ret == ESP_OK);
+  if (_DEBUG_) W25Q64_dump("readManufacturer", ret, data, 4);
+  memcpy(id, &data[1], 3);
+  return ret;
 }
 
 //
 // Check during processing such as writing
 // Return value: true:processing false:idle
 //
-bool W25Q64_IsBusy(W25Q64_t * dev)
-{
-	spi_transaction_t SPITransaction;
-	uint8_t data[2];
-	data[0] = CMD_READ_STATUS_R1;
-	memset( &SPITransaction, 0, sizeof( spi_transaction_t ) );
-	SPITransaction.length = 2 * 8;
-	SPITransaction.tx_buffer = data;
-	SPITransaction.rx_buffer = data;
-	esp_err_t ret = spi_device_transmit( dev->_SPIHandle, &SPITransaction );
-	assert(ret==ESP_OK);
-	if (ret != ESP_OK) return false;
-	if( (data[1] & SR1_BUSY_MASK) != 0) return true;
-	return false;
+bool W25Q64_IsBusy(W25Q64_t *dev) {
+  spi_transaction_t SPITransaction;
+  uint8_t data[2];
+  data[0] = CMD_READ_STATUS_R1;
+  memset(&SPITransaction, 0, sizeof(spi_transaction_t));
+  SPITransaction.length = 2 * 8;
+  SPITransaction.tx_buffer = data;
+  SPITransaction.rx_buffer = data;
+  esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
+  assert(ret == ESP_OK);
+  if (ret != ESP_OK) return false;
+  if ((data[1] & SR1_BUSY_MASK) != 0) return true;
+  return false;
 }
 
-
 //
-// Power down 
+// Power down
 //
-esp_err_t W25Q64_powerDown(W25Q64_t * dev)
-{
-	spi_transaction_t SPITransaction;
-	uint8_t data[1];
-	data[0] = CMD_POWER_DOWN;
-	memset( &SPITransaction, 0, sizeof( spi_transaction_t ) );
-	SPITransaction.length = 1 * 8;
-	SPITransaction.tx_buffer = data;
-	SPITransaction.rx_buffer = data;
-	esp_err_t ret = spi_device_transmit( dev->_SPIHandle, &SPITransaction );
-	assert(ret==ESP_OK);
-	return ret;
+esp_err_t W25Q64_powerDown(W25Q64_t *dev) {
+  spi_transaction_t SPITransaction;
+  uint8_t data[1];
+  data[0] = CMD_POWER_DOWN;
+  memset(&SPITransaction, 0, sizeof(spi_transaction_t));
+  SPITransaction.length = 1 * 8;
+  SPITransaction.tx_buffer = data;
+  SPITransaction.rx_buffer = data;
+  esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
+  assert(ret == ESP_OK);
+  return ret;
 }
-
 
 //
 // Write permission setting
 //
-esp_err_t W25Q64_WriteEnable(W25Q64_t * dev)
-{
-	spi_transaction_t SPITransaction;
-	uint8_t data[1];
-	data[0] = CMD_WRITE_ENABLE;
-	memset( &SPITransaction, 0, sizeof( spi_transaction_t ) );
-	SPITransaction.length = 1 * 8;
-	SPITransaction.tx_buffer = data;
-	SPITransaction.rx_buffer = data;
-	esp_err_t ret = spi_device_transmit( dev->_SPIHandle, &SPITransaction );
-	assert(ret==ESP_OK);
-	return ret;
+esp_err_t W25Q64_WriteEnable(W25Q64_t *dev) {
+  spi_transaction_t SPITransaction;
+  uint8_t data[1];
+  data[0] = CMD_WRITE_ENABLE;
+  memset(&SPITransaction, 0, sizeof(spi_transaction_t));
+  SPITransaction.length = 1 * 8;
+  SPITransaction.tx_buffer = data;
+  SPITransaction.rx_buffer = data;
+  esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
+  assert(ret == ESP_OK);
+  return ret;
 }
-
 
 //
 // Write-protected setting
 //
-esp_err_t W25Q64_WriteDisable(W25Q64_t * dev)
-{
-	spi_transaction_t SPITransaction;
-	uint8_t data[1];
-	data[0] = CMD_WRITE_DISABLE;
-	memset( &SPITransaction, 0, sizeof( spi_transaction_t ) );
-	SPITransaction.length = 1 * 8;
-	SPITransaction.tx_buffer = data;
-	SPITransaction.rx_buffer = data;
-	esp_err_t ret = spi_device_transmit( dev->_SPIHandle, &SPITransaction );
-	assert(ret==ESP_OK);
-	return ret;
+esp_err_t W25Q64_WriteDisable(W25Q64_t *dev) {
+  spi_transaction_t SPITransaction;
+  uint8_t data[1];
+  data[0] = CMD_WRITE_DISABLE;
+  memset(&SPITransaction, 0, sizeof(spi_transaction_t));
+  SPITransaction.length = 1 * 8;
+  SPITransaction.tx_buffer = data;
+  SPITransaction.rx_buffer = data;
+  esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
+  assert(ret == ESP_OK);
+  return ret;
 }
 
 //
@@ -241,36 +225,35 @@ esp_err_t W25Q64_WriteDisable(W25Q64_t * dev)
 //          4 Bytes Address Mode : 32 Bits 0x00000000 - 0xFFFFFFFF
 // n(in):Number of read data
 //
-uint16_t W25Q64_read(W25Q64_t * dev, uint32_t addr, uint8_t *buf, uint16_t n)
-{ 
-	spi_transaction_t SPITransaction;
-	uint8_t *data;
-	data = (uint8_t *)malloc(n+5);
-	size_t offset;
-	if (dev->_4bmode) {
-		data[0] = CMD_READ_DATA4B;
-		data[1] = (addr>>24) & 0xFF; // A31-A24
-		data[2] = (addr>>16) & 0xFF; // A23-A16
-		data[3] = (addr>>8) & 0xFF; // A15-A08
-		data[4] = addr & 0xFF; // A07-A00
-		offset = 5;
-	} else {
-		data[0] = CMD_READ_DATA;
-		data[1] = (addr>>16) & 0xFF; // A23-A16
-		data[2] = (addr>>8) & 0xFF; // A15-A08
-		data[3] = addr & 0xFF; // A07-A00
-		offset = 4;
-	}
-	memset( &SPITransaction, 0, sizeof( spi_transaction_t ) );
-	SPITransaction.length = (n+offset) * 8;
-	SPITransaction.tx_buffer = data;
-	SPITransaction.rx_buffer = data;
-	esp_err_t ret = spi_device_transmit( dev->_SPIHandle, &SPITransaction );
-	assert(ret==ESP_OK);
-	memcpy(buf, &data[offset], n);
-	free(data);
-	if (ret != ESP_OK) return 0;
-	return n;
+uint16_t W25Q64_read(W25Q64_t *dev, uint32_t addr, uint8_t *buf, uint16_t n) {
+  spi_transaction_t SPITransaction;
+  uint8_t *data;
+  data = (uint8_t *)malloc(n + 5);
+  size_t offset;
+  if (dev->_4bmode) {
+    data[0] = CMD_READ_DATA4B;
+    data[1] = (addr >> 24) & 0xFF;  // A31-A24
+    data[2] = (addr >> 16) & 0xFF;  // A23-A16
+    data[3] = (addr >> 8) & 0xFF;   // A15-A08
+    data[4] = addr & 0xFF;          // A07-A00
+    offset = 5;
+  } else {
+    data[0] = CMD_READ_DATA;
+    data[1] = (addr >> 16) & 0xFF;  // A23-A16
+    data[2] = (addr >> 8) & 0xFF;   // A15-A08
+    data[3] = addr & 0xFF;          // A07-A00
+    offset = 4;
+  }
+  memset(&SPITransaction, 0, sizeof(spi_transaction_t));
+  SPITransaction.length = (n + offset) * 8;
+  SPITransaction.tx_buffer = data;
+  SPITransaction.rx_buffer = data;
+  esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
+  assert(ret == ESP_OK);
+  memcpy(buf, &data[offset], n);
+  free(data);
+  if (ret != ESP_OK) return 0;
+  return n;
 }
 
 //
@@ -280,40 +263,38 @@ uint16_t W25Q64_read(W25Q64_t * dev, uint32_t addr, uint8_t *buf, uint16_t n)
 //          4 Bytes Address Mode : 32 Bits 0x00000000 - 0xFFFFFFFF
 // n(in):Number of read data
 //
-uint16_t W25Q64_fastread(W25Q64_t * dev, uint32_t addr, uint8_t *buf, uint16_t n)
-{
-	spi_transaction_t SPITransaction;
-	uint8_t *data;
-	data = (uint8_t *)malloc(n+6);
-	size_t offset;
-	if (dev->_4bmode) {
-		data[0] = CMD_FAST_READ4B;
-		data[1] = (addr>>24) & 0xFF; // A31-A24
-		data[2] = (addr>>16) & 0xFF; // A23-A16
-		data[3] = (addr>>8) & 0xFF; // A15-A08
-		data[4] = addr & 0xFF; // A07-A00
-		data[5] = 0; // Dummy
-		offset = 6;
-	} else {
-		data[0] = CMD_FAST_READ;
-		data[1] = (addr>>16) & 0xFF; // A23-A16
-		data[2] = (addr>>8) & 0xFF; // A15-A08
-		data[3] = addr & 0xFF; // A07-A00
-		data[4] = 0; // Dummy
-		offset = 5;
-	}
-	memset( &SPITransaction, 0, sizeof( spi_transaction_t ) );
-	SPITransaction.length = (n+offset) * 8;
-	SPITransaction.tx_buffer = data;
-	SPITransaction.rx_buffer = data;
-	esp_err_t ret = spi_device_transmit( dev->_SPIHandle, &SPITransaction );
-	assert(ret==ESP_OK);
-	memcpy(buf, &data[offset], n);
-	free(data);
-	if (ret != ESP_OK) return 0;
-	return n;
+uint16_t W25Q64_fastread(W25Q64_t *dev, uint32_t addr, uint8_t *buf, uint16_t n) {
+  spi_transaction_t SPITransaction;
+  uint8_t *data;
+  data = (uint8_t *)malloc(n + 6);
+  size_t offset;
+  if (dev->_4bmode) {
+    data[0] = CMD_FAST_READ4B;
+    data[1] = (addr >> 24) & 0xFF;  // A31-A24
+    data[2] = (addr >> 16) & 0xFF;  // A23-A16
+    data[3] = (addr >> 8) & 0xFF;   // A15-A08
+    data[4] = addr & 0xFF;          // A07-A00
+    data[5] = 0;                    // Dummy
+    offset = 6;
+  } else {
+    data[0] = CMD_FAST_READ;
+    data[1] = (addr >> 16) & 0xFF;  // A23-A16
+    data[2] = (addr >> 8) & 0xFF;   // A15-A08
+    data[3] = addr & 0xFF;          // A07-A00
+    data[4] = 0;                    // Dummy
+    offset = 5;
+  }
+  memset(&SPITransaction, 0, sizeof(spi_transaction_t));
+  SPITransaction.length = (n + offset) * 8;
+  SPITransaction.tx_buffer = data;
+  SPITransaction.rx_buffer = data;
+  esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
+  assert(ret == ESP_OK);
+  memcpy(buf, &data[offset], n);
+  free(data);
+  if (ret != ESP_OK) return 0;
+  return n;
 }
-
 
 //
 // Erasing data in 4kb space units
@@ -331,35 +312,34 @@ uint16_t W25Q64_fastread(W25Q64_t * dev, uint32_t addr, uint8_t *buf, uint16_t n
 // アドレス23ビットのうち上位 11ビットがセクタ番号の相当する。
 // 下位12ビットはセクタ内アドレスとなる。
 //
-bool W25Q64_eraseSector(W25Q64_t * dev, uint16_t sect_no, bool flgwait)
-{
-	spi_transaction_t SPITransaction;
-	uint8_t data[4];
-	uint32_t addr = sect_no;
-	addr<<=12;
+bool W25Q64_eraseSector(W25Q64_t *dev, uint16_t sect_no, bool flgwait) {
+  spi_transaction_t SPITransaction;
+  uint8_t data[4];
+  uint32_t addr = sect_no;
+  addr <<= 12;
 
-	// Write permission setting
-	esp_err_t ret;
-	ret = W25Q64_WriteEnable(dev);
-	if (ret != ESP_OK) return false;
+  // Write permission setting
+  esp_err_t ret;
+  ret = W25Q64_WriteEnable(dev);
+  if (ret != ESP_OK) return false;
 
-	data[0] = CMD_SECTOR_ERASE;
-	data[1] = (addr>>16) & 0xff;
-	data[2] = (addr>>8) & 0xff;
-	data[3] = addr & 0xff;
-	memset( &SPITransaction, 0, sizeof( spi_transaction_t ) );
-	SPITransaction.length = 4 * 8;
-	SPITransaction.tx_buffer = data;
-	SPITransaction.rx_buffer = data;
-	ret = spi_device_transmit( dev->_SPIHandle, &SPITransaction );
-	assert(ret==ESP_OK);
-	if (ret != ESP_OK) return false;
+  data[0] = CMD_SECTOR_ERASE;
+  data[1] = (addr >> 16) & 0xff;
+  data[2] = (addr >> 8) & 0xff;
+  data[3] = addr & 0xff;
+  memset(&SPITransaction, 0, sizeof(spi_transaction_t));
+  SPITransaction.length = 4 * 8;
+  SPITransaction.tx_buffer = data;
+  SPITransaction.rx_buffer = data;
+  ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
+  assert(ret == ESP_OK);
+  if (ret != ESP_OK) return false;
 
-	// Busy check
-	while( W25Q64_IsBusy(dev) & flgwait) {
-		vTaskDelay(1);
-	}
-	return true;
+  // Busy check
+  while (W25Q64_IsBusy(dev) & flgwait) {
+    vTaskDelay(1);
+  }
+  return true;
 }
 
 //
@@ -377,35 +357,34 @@ bool W25Q64_eraseSector(W25Q64_t * dev, uint16_t sect_no, bool flgwait)
 // データシートでは消去に通常 150ms 、最大1000msかかると記載されている
 // アドレス23ビットのうち上位 7ビットがブロックの相当する。下位16ビットはブロック内アドレスとなる。
 //
-bool W25Q64_erase64Block(W25Q64_t * dev, uint16_t blk_no, bool flgwait)
-{
-	spi_transaction_t SPITransaction;
-	uint8_t data[4];
-	uint32_t addr = blk_no;
-	addr<<=16;
+bool W25Q64_erase64Block(W25Q64_t *dev, uint16_t blk_no, bool flgwait) {
+  spi_transaction_t SPITransaction;
+  uint8_t data[4];
+  uint32_t addr = blk_no;
+  addr <<= 16;
 
-	// Write permission setting
-	esp_err_t ret;
-	ret = W25Q64_WriteEnable(dev);
-	if (ret != ESP_OK) return false;
+  // Write permission setting
+  esp_err_t ret;
+  ret = W25Q64_WriteEnable(dev);
+  if (ret != ESP_OK) return false;
 
-	data[0] = CMD_BLOCK_ERASE64KB;
-	data[1] = (addr>>16) & 0xff;
-	data[2] = (addr>>8) & 0xff;
-	data[3] = addr & 0xff;
-	memset( &SPITransaction, 0, sizeof( spi_transaction_t ) );
-	SPITransaction.length = 4 * 8;
-	SPITransaction.tx_buffer = data;
-	SPITransaction.rx_buffer = data;
-	ret = spi_device_transmit( dev->_SPIHandle, &SPITransaction );
-	assert(ret==ESP_OK);
-	if (ret != ESP_OK) return false;
+  data[0] = CMD_BLOCK_ERASE64KB;
+  data[1] = (addr >> 16) & 0xff;
+  data[2] = (addr >> 8) & 0xff;
+  data[3] = addr & 0xff;
+  memset(&SPITransaction, 0, sizeof(spi_transaction_t));
+  SPITransaction.length = 4 * 8;
+  SPITransaction.tx_buffer = data;
+  SPITransaction.rx_buffer = data;
+  ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
+  assert(ret == ESP_OK);
+  if (ret != ESP_OK) return false;
 
-	// Busy check
-	while( W25Q64_IsBusy(dev) & flgwait) {
-		vTaskDelay(1);
-	}
-	return true;
+  // Busy check
+  while (W25Q64_IsBusy(dev) & flgwait) {
+    vTaskDelay(1);
+  }
+  return true;
 }
 
 //
@@ -423,37 +402,35 @@ bool W25Q64_erase64Block(W25Q64_t * dev, uint16_t blk_no, bool flgwait)
 // データシートでは消去に通常 120ms 、最大800msかかると記載されている
 // アドレス23ビットのうち上位 8ビットがブロックの相当する。下位15ビットはブロック内アドレスとなる。
 //
-bool W25Q64_erase32Block(W25Q64_t * dev, uint16_t blk_no, bool flgwait)
-{
-	spi_transaction_t SPITransaction;
-	uint8_t data[4];
-	uint32_t addr = blk_no;
-	addr<<=15;
+bool W25Q64_erase32Block(W25Q64_t *dev, uint16_t blk_no, bool flgwait) {
+  spi_transaction_t SPITransaction;
+  uint8_t data[4];
+  uint32_t addr = blk_no;
+  addr <<= 15;
 
-	// Write permission setting
-	esp_err_t ret;
-	ret = W25Q64_WriteEnable(dev);
-	if (ret != ESP_OK) return false;
+  // Write permission setting
+  esp_err_t ret;
+  ret = W25Q64_WriteEnable(dev);
+  if (ret != ESP_OK) return false;
 
-	data[0] = CMD_BLOCK_ERASE32KB;
-	data[1] = (addr>>16) & 0xff;
-	data[2] = (addr>>8) & 0xff;
-	data[3] = addr & 0xff;
-	memset( &SPITransaction, 0, sizeof( spi_transaction_t ) );
-	SPITransaction.length = 4 * 8;
-	SPITransaction.tx_buffer = data;
-	SPITransaction.rx_buffer = data;
-	ret = spi_device_transmit( dev->_SPIHandle, &SPITransaction );
-	assert(ret==ESP_OK);
-	if (ret != ESP_OK) return false;
+  data[0] = CMD_BLOCK_ERASE32KB;
+  data[1] = (addr >> 16) & 0xff;
+  data[2] = (addr >> 8) & 0xff;
+  data[3] = addr & 0xff;
+  memset(&SPITransaction, 0, sizeof(spi_transaction_t));
+  SPITransaction.length = 4 * 8;
+  SPITransaction.tx_buffer = data;
+  SPITransaction.rx_buffer = data;
+  ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
+  assert(ret == ESP_OK);
+  if (ret != ESP_OK) return false;
 
-	// Busy check
-	while( W25Q64_IsBusy(dev) & flgwait) {
-		vTaskDelay(1);
-	}
-	return true;
+  // Busy check
+  while (W25Q64_IsBusy(dev) & flgwait) {
+    vTaskDelay(1);
+  }
+  return true;
 }
-
 
 //
 // Erase all data
@@ -466,76 +443,74 @@ bool W25Q64_erase32Block(W25Q64_t * dev, uint16_t blk_no, bool flgwait)
 // 補足:
 // データシートでは消去に通常 15s 、最大30sかかると記載されている
 //
-bool W25Q64_eraseAll(W25Q64_t * dev, bool flgwait)
-{
-	spi_transaction_t SPITransaction;
-	uint8_t data[1];
+bool W25Q64_eraseAll(W25Q64_t *dev, bool flgwait) {
+  spi_transaction_t SPITransaction;
+  uint8_t data[1];
 
-	// Write permission setting
-	esp_err_t ret;
-	ret = W25Q64_WriteEnable(dev);
-	if (ret != ESP_OK) return false;
+  // Write permission setting
+  esp_err_t ret;
+  ret = W25Q64_WriteEnable(dev);
+  if (ret != ESP_OK) return false;
 
-	data[0] = CMD_CHIP_ERASE;
-	memset( &SPITransaction, 0, sizeof( spi_transaction_t ) );
-	SPITransaction.length = 1 * 8;
-	SPITransaction.tx_buffer = data;
-	SPITransaction.rx_buffer = data;
-	ret = spi_device_transmit( dev->_SPIHandle, &SPITransaction );
-	assert(ret==ESP_OK);
-	if (ret != ESP_OK) return false;
+  data[0] = CMD_CHIP_ERASE;
+  memset(&SPITransaction, 0, sizeof(spi_transaction_t));
+  SPITransaction.length = 1 * 8;
+  SPITransaction.tx_buffer = data;
+  SPITransaction.rx_buffer = data;
+  ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
+  assert(ret == ESP_OK);
+  if (ret != ESP_OK) return false;
 
-	// Busy check
-	while( W25Q64_IsBusy(dev) & flgwait) {
-		vTaskDelay(1);
-	}
-	return true;
+  // Busy check
+  while (W25Q64_IsBusy(dev) & flgwait) {
+    vTaskDelay(1);
+  }
+  return true;
 }
 
 //
 // Page write
-// sect_no(in):Sector number(0x00 - 0x7FF) 
+// sect_no(in):Sector number(0x00 - 0x7FF)
 // inaddr(in):In-sector address(0x00-0xFFF)
 // data(in):Write data
 // n(in):Number of bytes to write(0～256)
 //
-int16_t W25Q64_pageWrite(W25Q64_t * dev, uint16_t sect_no, uint16_t inaddr, uint8_t* buf, int16_t n)
-{
-	if (n > 256) return 0;
-	spi_transaction_t SPITransaction;
-	uint8_t *data;
+int16_t W25Q64_pageWrite(W25Q64_t *dev, uint16_t sect_no, uint16_t inaddr, uint8_t *buf,
+                         int16_t n) {
+  if (n > 256) return 0;
+  spi_transaction_t SPITransaction;
+  uint8_t *data;
 
-	uint32_t addr = sect_no;
-	addr<<=12;
-	addr += inaddr;
+  uint32_t addr = sect_no;
+  addr <<= 12;
+  addr += inaddr;
 
-	// Write permission setting
-	esp_err_t ret;
-	ret = W25Q64_WriteEnable(dev);
-	if (ret != ESP_OK) return 0;
+  // Write permission setting
+  esp_err_t ret;
+  ret = W25Q64_WriteEnable(dev);
+  if (ret != ESP_OK) return 0;
 
-	// Busy check
-	if (W25Q64_IsBusy(dev)) return 0;  
+  // Busy check
+  if (W25Q64_IsBusy(dev)) return 0;
 
-	data = (unsigned char*)malloc(n+4);
-	data[0] = CMD_PAGE_PROGRAM;
-	data[1] = (addr>>16) & 0xff;
-	data[2] = (addr>>8) & 0xff;
-	data[3] = addr & 0xFF;
-	memcpy( &data[4], buf, n );
-	memset( &SPITransaction, 0, sizeof( spi_transaction_t ) );
-	SPITransaction.length = (n+4) * 8;
-	SPITransaction.tx_buffer = data;
-	SPITransaction.rx_buffer = data;
-	ret = spi_device_transmit( dev->_SPIHandle, &SPITransaction );
-	free(data);
-	assert(ret==ESP_OK);
-	if (ret != ESP_OK) return 0;
+  data = (unsigned char *)malloc(n + 4);
+  data[0] = CMD_PAGE_PROGRAM;
+  data[1] = (addr >> 16) & 0xff;
+  data[2] = (addr >> 8) & 0xff;
+  data[3] = addr & 0xFF;
+  memcpy(&data[4], buf, n);
+  memset(&SPITransaction, 0, sizeof(spi_transaction_t));
+  SPITransaction.length = (n + 4) * 8;
+  SPITransaction.tx_buffer = data;
+  SPITransaction.rx_buffer = data;
+  ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
+  free(data);
+  assert(ret == ESP_OK);
+  if (ret != ESP_OK) return 0;
 
-	// Busy check
-	while( W25Q64_IsBusy(dev) ) {
-		vTaskDelay(1);
-	}
-	return n;
+  // Busy check
+  while (W25Q64_IsBusy(dev)) {
+    vTaskDelay(1);
+  }
+  return n;
 }
-
