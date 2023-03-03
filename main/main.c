@@ -1,52 +1,46 @@
 // Copyright 2022 PWrInSpace, Kuba
 #include <stdio.h>
+
+#include "driver/gpio.h"
+#include "esp_log.h"
+#include "esp_now_api.h"
+#include "esp_timer.h"
+#include "flash.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_log.h"
+#include "i2c.h"
 #include "sdcard.h"
 #include "spi.h"
-#include "esp_timer.h"
-#include "i2c.h"
-#include "flash.h"
-#include "driver/gpio.h"
-#include "esp_now_api.h"
 spi_t spi;
 i2c_t i2c;
 sd_card_t sd;
 
-
 #define TAG "AURORA"
 
-static void on_rec(uint8_t *data, size_t len) {
-    ESP_LOGI(TAG, "RECEIVED MESSAGE :D");
-}
+static void on_rec(uint8_t *data, size_t len) { ESP_LOGI(TAG, "RECEIVED MESSAGE :D"); }
 
-static void on_err(ENA_ERROR err) {
-    ESP_LOGE(TAG, "ERROR :C %d", err);
-}
+static void on_err(ENA_ERROR err) { ESP_LOGE(TAG, "ERROR :C %d", err); }
 
 ENA_device_t test_dev = {
-    .peer = {.peer_addr = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, .channel=0},
+    .peer = {.peer_addr = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, .channel = 0},
     .on_receive = on_rec,
 };
 
 void app_main(void) {
-    ENA_config_t cfg = {
-        .mac_address = {0x04, 0x20, 0x04, 0x20, 0x04, 0x20},
-        .stack_depth = 8000,
-        .priority = 3,
-        .core_id = APP_CPU_NUM,
-    };
-    ENA_init(&cfg);
-    ENA_register_device(&test_dev);
-  
-    while (1) {
-        ESP_LOGI(TAG, "Hello world! 1234");
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
+  ENA_config_t cfg = {
+      .mac_address = {0x04, 0x20, 0x04, 0x20, 0x04, 0x20},
+      .stack_depth = 8000,
+      .priority = 3,
+      .core_id = APP_CPU_NUM,
+  };
+  ENA_init(&cfg);
+  ENA_register_device(&test_dev);
+
+  while (1) {
+    ESP_LOGI(TAG, "Hello world! 1234");
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+  }
 }
-
-
 
 // esp_err_t spi_initialize(void) {
 //     esp_err_t ret;
@@ -79,7 +73,6 @@ void app_main(void) {
 //     return ret;
 // }
 
-
 // void app_main(void) {
 //     spi_device_handle_t spi;
 //     sd_card_t sd;
@@ -101,7 +94,6 @@ void app_main(void) {
 //         vTaskDelay(1000 / portTICK_PERIOD_MS);
 //     }
 // }
-
 
 // // #include "console.h"
 // // #include "esp_log.h"

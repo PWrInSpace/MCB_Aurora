@@ -3,58 +3,57 @@
 #ifndef ESP_NOW_API_H
 #define ESP_NOW_API_H
 
+#include "esp_now.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
-#include "esp_now.h"
 
 #define MAC_ADDRESS_SIZE 6
 #define MAX_DATA_SIZE 250
 
 typedef enum {
-    ENA_OK = 0,
-    ENA_REC,
-    ENA_SEND,
-    ENA_SEND_REPLY,
-    ENA_REC_CB_QUEUE,
-    ENA_SEND_CB_QUEUE,
-    ENA_DEVICES_NULL,
-    ENA_UNKNOWN_DEV,
+  ENA_OK = 0,
+  ENA_REC,
+  ENA_SEND,
+  ENA_SEND_REPLY,
+  ENA_REC_CB_QUEUE,
+  ENA_SEND_CB_QUEUE,
+  ENA_DEVICES_NULL,
+  ENA_UNKNOWN_DEV,
 } ENA_ERROR;
 
-typedef void(*ENA_on_receive)(uint8_t *data, size_t len);
-typedef void(*ENA_on_error)(ENA_ERROR error);
+typedef void (*ENA_on_receive)(uint8_t *data, size_t len);
+typedef void (*ENA_on_error)(ENA_ERROR error);
 
 typedef struct {
-    esp_now_peer_info_t peer;
-    ENA_on_receive on_receive;
+  esp_now_peer_info_t peer;
+  ENA_on_receive on_receive;
 } ENA_device_t;
 
-typedef struct{
-    uint8_t mac_address[MAC_ADDRESS_SIZE];
-    uint32_t stack_depth;
-    BaseType_t core_id;
-    UBaseType_t priority;
+typedef struct {
+  uint8_t mac_address[MAC_ADDRESS_SIZE];
+  uint32_t stack_depth;
+  BaseType_t core_id;
+  UBaseType_t priority;
 } ENA_config_t;
 
 typedef struct {
-    bool broadcast;
-    uint8_t* mac;
-    uint8_t count;
-    uint8_t buffer[MAX_DATA_SIZE]; // malloc???
-    size_t len;
+  bool broadcast;
+  uint8_t *mac;
+  uint8_t count;
+  uint8_t buffer[MAX_DATA_SIZE];  // malloc???
+  size_t len;
 } ENA_transmit_param_t;
 
-
 typedef struct {
-    esp_now_send_status_t status;
-    uint8_t mac[MAC_ADDRESS_SIZE];
+  esp_now_send_status_t status;
+  uint8_t mac[MAC_ADDRESS_SIZE];
 } ENA_send_cb_t;
 
 typedef struct {
-    uint8_t src_mac[MAC_ADDRESS_SIZE];
-    uint8_t buffer[MAX_DATA_SIZE];  // malloc???
-    size_t len;
+  uint8_t src_mac[MAC_ADDRESS_SIZE];
+  uint8_t buffer[MAX_DATA_SIZE];  // malloc???
+  size_t len;
 } ENA_receive_cb_t;
 
 esp_err_t ENA_init(ENA_config_t *ena_cfg);
