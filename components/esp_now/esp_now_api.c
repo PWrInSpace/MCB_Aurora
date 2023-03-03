@@ -4,9 +4,7 @@
 
 #include "esp_now_api.h"
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/queue.h"
-#include "freertos/task.h"
+
 #include "esp_event.h"
 #include "esp_mac.h"
 #include "esp_netif.h"
@@ -14,11 +12,12 @@
 #include "esp_now.h"
 #include "nvs_flash.h"
 #include "esp_log.h"
+#include "esp_check.h"
 
 #define TAG "ENA"
 
 static struct {
-    ENA_device_t *devices;
+    ENA_device_t **devices;
     size_t number_of_devices;
     ENA_on_error error_fnc;
 
@@ -29,10 +28,20 @@ static struct {
     QueueHandle_t transmit_queue;  // queue for transmiting data
     QueueHandle_t send_cb_queue;  // queue for handling send callback
     QueueHandle_t receive_cb_queue;  // queue for handling receive callback
-} gb;
+} gb = {
+    .devices = NULL,
+    .number_of_devices = 0,
+    .error_fnc = NULL,
+    .last_packet = {0},
+    .is_packet_transmiting = false,
+    .api_task = NULL,
+    .transmit_queue = NULL,
+    .send_cb_queue = NULL,
+    .receive_cb_queue = NULL
+};
 
 static void now_receive_cb(const uint8_t *mac, const uint8_t *data, int data_len) {
-    ESP_LOGI(TAG, "Packet received, RSSI" MACSTR, MAC2STR(mac));
+    ESP_LOGI(TAG, "Packet received, RSSI, MAC: " MACSTR, MAC2STR(mac));
     if (mac == NULL || data == NULL || data_len == 0) {
         ESP_LOGE(TAG, "Argument error :C");
         gb.error_fnc(ENA_REC);
@@ -40,7 +49,7 @@ static void now_receive_cb(const uint8_t *mac, const uint8_t *data, int data_len
     }
 
     ENA_receive_cb_t rec_cb_data;
-    memcpy(&rec_cb_data.src_mac, mac, sizeof(MAC_ADRESS_SIZE));
+    memcpy(&rec_cb_data.src_mac, mac, sizeof(MAC_ADDRESS_SIZE));
     memcpy(&rec_cb_data.buffer, data, data_len);
     rec_cb_data.len = data_len;
 
@@ -54,7 +63,7 @@ static void now_send_cb(const uint8_t *mac_addres, esp_now_send_status_t status)
     ENA_send_cb_t info;
 
     info.status = status;
-    memcpy(&info.mac, mac_addres, MAC_ADRESS_SIZE);
+    memcpy(&info.mac, mac_addres, MAC_ADDRESS_SIZE);
 
     if (xQueueSend(gb.send_cb_queue, &info, 0) != pdTRUE){
         ESP_LOGE(TAG, "Send callback queeu error");
@@ -64,7 +73,7 @@ static void now_send_cb(const uint8_t *mac_addres, esp_now_send_status_t status)
 
 
 static bool address_compare(const uint8_t *addr1, const uint8_t *addr2) {
-    for (size_t i = 0; i < MAC_ADRESS_SIZE; ++i) {
+    for (size_t i = 0; i < MAC_ADDRESS_SIZE; ++i) {
         if (addr1[i] != addr2[i]) {
             return false;
         }
@@ -86,10 +95,18 @@ static void now_task(void *arg) {
 
     while (1) {
         if (xQueueReceive(gb.receive_cb_queue, &rec_cb_data, 10) == pdTRUE) {
+            if (gb.devices == NULL) {
+                gb.error_fnc(ENA_DEVICES_NULL);
+            }
+
             for (size_t i = 0; i < gb.number_of_devices; ++i) {
-                if (address_compare(gb.devices[i].mac, rec_cb_data.src_mac) == true) {
-                    gb.devices[i].on_receive(rec_cb_data.buffer, rec_cb_data.len);
+                if (address_compare(gb.devices[i]->peer.peer_addr, rec_cb_data.src_mac) == true) {
+                    if (gb.devices[i]->on_receive != NULL) {
+                        gb.devices[i]->on_receive(rec_cb_data.buffer, rec_cb_data.len);
+                    }
                     break;
+                } else if (i == (gb.number_of_devices - 1)) {
+                    gb.error_fnc(ENA_UNKNOWN_DEV);
                 }
             }
         }
@@ -119,39 +136,78 @@ static void now_task(void *arg) {
     }
 }
 
-esp_err_t ENA_init(uint8_t *mac_address) {
-    esp_base_mac_addr_set(mac_address);
+esp_err_t ENA_init(ENA_config_t *ena_cfg) {
+    ESP_RETURN_ON_ERROR(esp_base_mac_addr_set(ena_cfg->mac_address), TAG, "MAC SET");
 
     // wifi setup
-    nvs_flash_init();
-    esp_netif_init();
-    esp_event_loop_create_default();
+    ESP_RETURN_ON_ERROR(nvs_flash_init(), TAG, "NVS FLASH");
+    ESP_RETURN_ON_ERROR(esp_netif_init(), TAG, "NETIF");
+    ESP_RETURN_ON_ERROR(esp_event_loop_create_default(), TAG, "EVENT LOOP");
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    esp_wifi_init(&cfg);
-    esp_wifi_set_storage(WIFI_STORAGE_RAM);
-    esp_wifi_set_mode(WIFI_MODE_STA);
-    esp_wifi_start();
+    ESP_RETURN_ON_ERROR(esp_wifi_init(&cfg), TAG, "WIFI INIT");
+    ESP_RETURN_ON_ERROR(esp_wifi_set_storage(WIFI_STORAGE_RAM), TAG, "WIFI STORAGE");
+    ESP_RETURN_ON_ERROR(esp_wifi_set_mode(WIFI_MODE_STA), TAG, "WIFI MODE");
+    ESP_RETURN_ON_ERROR(esp_wifi_start(), TAG, "WIFI START");
 
-    esp_now_init();
+    ESP_RETURN_ON_ERROR(esp_now_init(), TAG, "ESP NOW INIT");
 
-    esp_now_register_recv_cb(now_receive_cb);
-    esp_now_register_send_cb(now_send_cb);
+    ESP_RETURN_ON_ERROR(esp_now_register_recv_cb(now_receive_cb), TAG, "REC CB");
+    ESP_RETURN_ON_ERROR(esp_now_register_send_cb(now_send_cb), TAG, "SEND CB");
 
     gb.transmit_queue = xQueueCreate(5, sizeof(ENA_transmit_param_t));
     gb.send_cb_queue = xQueueCreate(5, sizeof(ENA_send_cb_t));
     gb.receive_cb_queue = xQueueCreate(5, sizeof(ENA_receive_cb_t));
 
+    if (gb.transmit_queue == NULL ||
+        gb.send_cb_queue == NULL ||
+        gb.receive_cb_queue == NULL) {
+        return ESP_FAIL;
+    }
+
+
+    xTaskCreatePinnedToCore(
+        now_task,
+        "now_task",
+        ena_cfg->stack_depth,
+        NULL,
+        ena_cfg->priority,
+        &gb.api_task,
+        ena_cfg->priority
+    );
+
+    if (gb.api_task == NULL) {
+        return ESP_FAIL;
+    }
+
     return ESP_OK;
 }
 
-esp_err_t ENA_register_devices(ENA_device_t *devices, size_t number_of_devices) {
-  assert(devices == NULL);
-  assert(number_of_devices == 0);
+esp_err_t ENA_register_device(ENA_device_t *dev) {
+    assert(dev == NULL);
 
-  gb.devices = devices;
-  gb.number_of_devices = number_of_devices;
+    if (esp_now_add_peer(&dev->peer) != ESP_OK) {
+        ESP_LOGE(TAG, "ADD PEER ERROR, MAC: "MACSTR, MAC2STR(dev->peer.peer_addr));
+        return ESP_FAIL;
+    }
 
-  return ESP_OK;
+    if (gb.number_of_devices == 0) {
+        gb.devices = malloc(sizeof(ENA_device_t*));
+        if (gb.devices == NULL) {
+            ESP_LOGE(TAG, "PEER ERRROR MEMORY");
+            return ESP_ERR_NO_MEM;
+        }
+        gb.devices[0] = dev;
+    } else {
+        gb.devices = realloc(gb.devices, sizeof(ENA_device_t*) * (gb.number_of_devices + 1));
+        if (gb.devices == NULL) {
+            ESP_LOGE(TAG, "PEER ERRROR MEMORY");
+            return ESP_ERR_NO_MEM;
+        }
+        gb.devices[gb.number_of_devices] = dev;
+    }
+
+    gb.number_of_devices += 1;
+    return ESP_OK;
 }
 
 esp_err_t ENA_register_error_handler(ENA_on_error error_fnc) {
@@ -174,7 +230,7 @@ esp_err_t ENA_send(ENA_device_t *device, void *data, size_t data_size, uint8_t r
         send_param.broadcast = false;
     }
 
-    memcpy(&send_param.mac, &device->mac, MAC_ADRESS_SIZE);
+    send_param.mac = device->peer.peer_addr;
     memcpy(send_param.buffer, data, data_size);
     send_param.len = data_size;
     send_param.count = retakes;
@@ -190,5 +246,14 @@ esp_err_t ENA_send(ENA_device_t *device, void *data, size_t data_size, uint8_t r
         gb.is_packet_transmiting = true;
     }
 
+    return ESP_OK;
+}
+
+esp_err_t ENA_get_dev_info(ENA_device_t *dev, size_t nb) {
+    if (nb > gb.number_of_devices) {
+        return ESP_FAIL;
+    }
+
+    memcpy(dev, gb.devices[nb], MAC_ADDRESS_SIZE);
     return ESP_OK;
 }
