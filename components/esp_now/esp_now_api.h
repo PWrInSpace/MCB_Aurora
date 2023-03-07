@@ -44,7 +44,7 @@ typedef struct {
 } ENA_config_t;
 
 typedef struct {
-  uint8_t *mac;
+  const uint8_t *mac;
   uint8_t count;
   uint8_t buffer[MAX_DATA_SIZE];  // malloc???
   size_t len;
@@ -61,13 +61,43 @@ typedef struct {
   size_t len;
 } ENA_receive_cb_t;
 
+/**
+ * @brief Initialize esp_now api, wifi, now init, creation of api task
+ * 
+ * @param ena_cfg pointer to struct with esp now api configturation
+ * @return esp_err_t status
+ */
 esp_err_t ENA_init(ENA_config_t *ena_cfg);
-esp_err_t ENA_register_device(ENA_device_t *device);
-esp_err_t ENA_register_error_handler(ENA_on_error error_fnc);
-esp_err_t ENA_send(ENA_device_t *device, void *data, size_t data_size, uint8_t retakes);
 
 /**
- * @brief Function for unit testing, return saved device info
+ * @brief Add device to network and api
+ *
+ * @param device pointer to device struct
+ * @return esp_err_t status
+ */
+esp_err_t ENA_register_device(const ENA_device_t *device);
+
+/**
+ * @brief Register error handling function
+ * 
+ * @param error_fnc pointer to function
+ * @return esp_err_t status
+ */
+esp_err_t ENA_register_error_handler(ENA_on_error error_fnc);
+
+/**
+ * @brief Send data via esp_now, data are queued
+ * 
+ * @param device pointer to receiver struct
+ * @param data pointer to data
+ * @param data_size data size
+ * @param retakes number of retakes, can be 0
+ * @return esp_err_t status
+ */
+esp_err_t ENA_send(const ENA_device_t *device, uint8_t *data, size_t data_size, uint8_t retakes);
+
+/**
+ * @brief Function for UNIT TESTING, return saved device info
  *
  * @param dev pointer to dev struct
  * @param nb number of device

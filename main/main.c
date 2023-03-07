@@ -35,12 +35,12 @@ static void on_rec(uint8_t *data, size_t len) {
 
 static void on_err(ENA_ERROR err) { ESP_LOGE(TAG, "ERROR :C %d", err); }
 
-ENA_device_t test_dev = {
+const ENA_device_t test_dev = {
     .peer = {.peer_addr = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, .channel = 0},
     .on_receive = on_rec,
 };
 
-ENA_device_t test_dev2 = {
+const ENA_device_t test_dev2 = {
     .peer = {.peer_addr = {0x78, 0x21, 0x84, 0x8d, 0x7e, 0xd0}, .channel = 0},
     .on_receive = on_rec,
 };
@@ -59,7 +59,7 @@ void app_main(void) {
 
   while (1) {
     ESP_LOGI(TAG, "Hello world! 1234");
-    int x = 4;
+    uint8_t x = 4;
     ENA_send(&test_dev2, &x, sizeof(x), 3);
     ENA_send(&test_dev, &x, sizeof(x), 0);
     vTaskDelay(10000 / portTICK_PERIOD_MS);
