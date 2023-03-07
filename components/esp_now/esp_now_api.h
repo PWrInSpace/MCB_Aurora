@@ -12,11 +12,6 @@
 #define MAX_DATA_SIZE 250
 
 typedef enum {
-    ENA_NOT_SENDING,
-    ENA_SENDING,
-} ENA_TRANSMITING_STATUS;
-
-typedef enum {
   ENA_OK = 0,
   ENA_REC,
   ENA_SEND,
@@ -62,7 +57,7 @@ typedef struct {
 
 /**
  * @brief Initialize esp_now api, wifi, now init, creation of api task
- * 
+ *
  * @param ena_cfg pointer to struct with esp now api configturation
  * @return esp_err_t status
  */
@@ -78,7 +73,7 @@ esp_err_t ENA_register_device(const ENA_device_t *device);
 
 /**
  * @brief Register error handling function
- * 
+ *
  * @param error_fnc pointer to function
  * @return esp_err_t status
  */
@@ -86,7 +81,7 @@ esp_err_t ENA_register_error_handler(ENA_on_error error_fnc);
 
 /**
  * @brief Send data via esp_now, data are queued
- * 
+ *
  * @param device pointer to receiver struct
  * @param data pointer to data
  * @param data_size data size

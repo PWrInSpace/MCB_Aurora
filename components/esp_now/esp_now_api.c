@@ -15,46 +15,30 @@
 
 #define TAG "ENA"
 
-// TO DO, think about, ENA_send only add to queue, task is sending new package, and queued package,
-// will be better for esp_now_send failure
-
-// how sending works
-// ENA_send
-// -> packet is transmiting -> the packet is added to queue,
-// -> packet is not transmiting -> acquire transmiting flag, add data to transmit param, send data
-// On_receive
-// -> packet transmit succes -> check data on queue (*)
-//                              -> more data -> send_data
-//                              -> no more data -> relese transmit flag
-// -> packet transmit fail -> check retry
-//                              -> more retry -> send_data again
-//                              -> no more retry ->check data on queue (*)
-
 static struct {
     const ENA_device_t **devices;
     size_t number_of_devices;
     ENA_on_error error_fnc;
 
-    // ENA_transmit_param_t last_packet;
-    // indicate if packet is transmiting, it also block last packet overwrite
-    uint32_t is_packet_transmiting;
+    bool is_packet_transmiting;
 
     TaskHandle_t api_task;           // task for handling callbacks
     QueueHandle_t transmit_queue;    // queue for transmiting data
     QueueHandle_t send_cb_queue;     // queue for handling send callback
     QueueHandle_t receive_cb_queue;  // queue for handling receive callback
-} gb = {.devices = NULL,
-        .number_of_devices = 0,
-        .error_fnc = NULL,
-        // .last_packet = {0},
-        .is_packet_transmiting = ENA_NOT_SENDING,
-        .api_task = NULL,
-        .transmit_queue = NULL,
-        .send_cb_queue = NULL,
-        .receive_cb_queue = NULL};
+} gb = {
+    .devices = NULL,
+    .number_of_devices = 0,
+    .error_fnc = NULL,
+    .is_packet_transmiting = false,
+    .api_task = NULL,
+    .transmit_queue = NULL,
+    .send_cb_queue = NULL,
+    .receive_cb_queue = NULL
+};
 
 static void now_receive_cb(const uint8_t *mac, const uint8_t *data, int data_len) {
-  ESP_LOGI(TAG, "Packet received, RSSI, MAC: " MACSTR, MAC2STR(mac));
+  ESP_LOGI(TAG, "Packet received, RSSI: " MACSTR, MAC2STR(mac));
   if (mac == NULL || data == NULL || data_len == 0) {
     ESP_LOGE(TAG, "Argument error :C");
     gb.error_fnc(ENA_REC);
@@ -93,19 +77,16 @@ static bool address_compare(const uint8_t *addr1, const uint8_t *addr2) {
   return true;
 }
 
-static void transmiting_acquire(void) {
-    gb.is_packet_transmiting = ENA_SENDING;
+inline static void transmiting_acquire(void) {
+    gb.is_packet_transmiting = true;
 }
 
-static void transmiting_release(void) {
-    gb.is_packet_transmiting = ENA_NOT_SENDING;
+inline static void transmiting_release(void) {
+    gb.is_packet_transmiting = false;
 }
 
-static bool is_packet_transmiting(void) {
-    if (gb.is_packet_transmiting == ENA_SENDING) {;
-        return true;
-    }
-    return false;
+inline static bool is_packet_transmiting(void) {
+    return gb.is_packet_transmiting;
 }
 
 static bool send_packet(ENA_transmit_param_t *packet) {
