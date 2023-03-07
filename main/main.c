@@ -58,7 +58,7 @@ void app_main(void) {
   ENA_register_error_handler(on_err);
 
   while (1) {
-    ESP_LOGI(TAG, "Hello world! 1234");
+    // ESP_LOGI(TAG, "Hello world! 1234");
     uint8_t x = 4;
     ENA_send(&test_dev2, &x, sizeof(x), 3);
     ENA_send(&test_dev, &x, sizeof(x), 0);
