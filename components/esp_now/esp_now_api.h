@@ -7,9 +7,15 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
+#include "freertos/atomic.h"
 
 #define MAC_ADDRESS_SIZE 6
 #define MAX_DATA_SIZE 250
+
+typedef enum {
+    ENA_NOT_SENDING,
+    ENA_SENDING,
+} ENA_TRANSMITING_STATUS;
 
 typedef enum {
   ENA_OK = 0,
@@ -38,7 +44,6 @@ typedef struct {
 } ENA_config_t;
 
 typedef struct {
-  bool broadcast;
   uint8_t *mac;
   uint8_t count;
   uint8_t buffer[MAX_DATA_SIZE];  // malloc???
@@ -60,6 +65,14 @@ esp_err_t ENA_init(ENA_config_t *ena_cfg);
 esp_err_t ENA_register_device(ENA_device_t *device);
 esp_err_t ENA_register_error_handler(ENA_on_error error_fnc);
 esp_err_t ENA_send(ENA_device_t *device, void *data, size_t data_size, uint8_t retakes);
+
+/**
+ * @brief Function for unit testing, return saved device info
+ *
+ * @param dev pointer to dev struct
+ * @param nb number of device
+ * @return esp_err_t status
+ */
 esp_err_t ENA_get_dev_info(ENA_device_t *dev, size_t nb);
 
 #endif

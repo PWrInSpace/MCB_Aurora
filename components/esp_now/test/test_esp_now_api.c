@@ -34,6 +34,6 @@ TEST_CASE("Check peer", "[ENA]") {
     TEST_ASSERT_EQUAL(ESP_OK, ENA_get_dev_info(&dev, 0));
     TEST_ASSERT_EQUAL_HEX_ARRAY(dev_one.peer.peer_addr, dev.peer.peer_addr, MAC_ADDRESS_SIZE);
 
-    TEST_ASSERT_EQUAL(ESP_OK, ENA_get_dev_info(&dev, 0));
+    TEST_ASSERT_EQUAL(ESP_OK, ENA_get_dev_info(&dev, 1));
     TEST_ASSERT_EQUAL_HEX_ARRAY(dev_two.peer.peer_addr, dev.peer.peer_addr, MAC_ADDRESS_SIZE);
 }

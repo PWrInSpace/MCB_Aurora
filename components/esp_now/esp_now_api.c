@@ -15,23 +15,37 @@
 
 #define TAG "ENA"
 
+
+// how sending works
+// ENA_send
+// -> packet is transmiting -> the packet is added to queue,
+// -> packet is not transmiting -> acquire transmiting flag, add data to transmit param, send data
+// On_receive
+// -> packet transmit succes -> check data on queue (*)
+//                              -> more data -> send_data
+//                              -> no more data -> relese transmit flag
+// -> packet transmit fail -> check retry
+//                              -> more retry -> send_data again
+//                              -> no more retry ->check data on queue (*)
+
 static struct {
-  ENA_device_t **devices;
-  size_t number_of_devices;
-  ENA_on_error error_fnc;
+    ENA_device_t **devices;
+    size_t number_of_devices;
+    ENA_on_error error_fnc;
 
-  ENA_transmit_param_t last_packet;
-  bool is_packet_transmiting;
+    ENA_transmit_param_t last_packet;
+    // indicate if packet is transmiting, it also block last packet overwrite
+    uint32_t is_packet_transmiting;
 
-  TaskHandle_t api_task;           // task for handling callbacks
-  QueueHandle_t transmit_queue;    // queue for transmiting data
-  QueueHandle_t send_cb_queue;     // queue for handling send callback
-  QueueHandle_t receive_cb_queue;  // queue for handling receive callback
+    TaskHandle_t api_task;           // task for handling callbacks
+    QueueHandle_t transmit_queue;    // queue for transmiting data
+    QueueHandle_t send_cb_queue;     // queue for handling send callback
+    QueueHandle_t receive_cb_queue;  // queue for handling receive callback
 } gb = {.devices = NULL,
         .number_of_devices = 0,
         .error_fnc = NULL,
         .last_packet = {0},
-        .is_packet_transmiting = false,
+        .is_packet_transmiting = ENA_NOT_SENDING,
         .api_task = NULL,
         .transmit_queue = NULL,
         .send_cb_queue = NULL,
@@ -46,7 +60,7 @@ static void now_receive_cb(const uint8_t *mac, const uint8_t *data, int data_len
   }
 
   ENA_receive_cb_t rec_cb_data;
-  memcpy(&rec_cb_data.src_mac, mac, sizeof(MAC_ADDRESS_SIZE));
+  memcpy(&rec_cb_data.src_mac, mac, MAC_ADDRESS_SIZE);
   memcpy(&rec_cb_data.buffer, data, data_len);
   rec_cb_data.len = data_len;
 
@@ -61,7 +75,6 @@ static void now_send_cb(const uint8_t *mac_addres, esp_now_send_status_t status)
 
   info.status = status;
   memcpy(&info.mac, mac_addres, MAC_ADDRESS_SIZE);
-
   if (xQueueSend(gb.send_cb_queue, &info, 0) != pdTRUE) {
     ESP_LOGE(TAG, "Send callback queeu error");
     gb.error_fnc(ENA_SEND_CB_QUEUE);
@@ -78,62 +91,103 @@ static bool address_compare(const uint8_t *addr1, const uint8_t *addr2) {
   return true;
 }
 
-static void send_last_packet(void) {
-  if (esp_now_send(gb.last_packet.mac, gb.last_packet.buffer, gb.last_packet.len) != ESP_OK) {
-    ESP_LOGE(TAG, "Send error");
-    gb.error_fnc(ENA_SEND);
-  }
+static void transmiting_acquire(void) {
+    if (Atomic_CompareAndSwap_u32(&gb.is_packet_transmiting, ENA_SENDING, ENA_NOT_SENDING) ==
+            ATOMIC_COMPARE_AND_SWAP_FAILURE) {
+                // debug purpose
+                ESP_LOGW(TAG, "Transmiting acquire error, flag val %d", gb.is_packet_transmiting);
+    }
 }
+
+static void transmiting_release(void) {
+    if (Atomic_CompareAndSwap_u32(&gb.is_packet_transmiting, ENA_NOT_SENDING, ENA_SENDING) ==
+            ATOMIC_COMPARE_AND_SWAP_FAILURE) {
+                // debug purpose
+                ESP_LOGW(TAG, "Transmiting release error, flag val %d", gb.is_packet_transmiting);
+    }
+}
+
+static bool is_packet_transmiting(void) {
+    // if is_packet_transmiting == ENA_SENDING, the functions return ...SWAP_SUCCESS,
+    // which means that the packet is transmiting ^
+    if (Atomic_CompareAndSwap_u32(&gb.is_packet_transmiting, gb.is_packet_transmiting, ENA_SENDING)
+            == ATOMIC_COMPARE_AND_SWAP_SUCCESS) {
+        return true;
+    }
+    return false;
+}
+
+static void send_last_packet(void) {
+    ESP_LOGI(TAG, "SENDING MESSAGE TO: " MACSTR, MAC2STR(gb.last_packet.mac));
+    gb.last_packet.count -= 1;
+    if (esp_now_send(gb.last_packet.mac, gb.last_packet.buffer, gb.last_packet.len) != ESP_OK) {
+        ESP_LOGE(TAG, "Send error");
+        gb.error_fnc(ENA_SEND);
+        transmiting_release();
+    }
+}
+
+static void transmit_new_packet(void) {
+    if (xQueueReceive(gb.transmit_queue, &gb.last_packet, 0) == pdTRUE) {
+        send_last_packet();  // clean or not :W
+    } else {
+        // if there is no more packet release transmiting flag
+        transmiting_release();
+    }
+}
+
 
 static void now_task(void *arg) {
   ENA_receive_cb_t rec_cb_data;
   ENA_send_cb_t send_cb_data;
 
-  while (1) {
-    if (xQueueReceive(gb.receive_cb_queue, &rec_cb_data, 10) == pdTRUE) {
-      if (gb.devices == NULL) {
-        gb.error_fnc(ENA_DEVICES_NULL);
-      }
+  ESP_LOGI(TAG, "Running now task");
 
-      for (size_t i = 0; i < gb.number_of_devices; ++i) {
-        if (address_compare(gb.devices[i]->peer.peer_addr, rec_cb_data.src_mac) == true) {
-          if (gb.devices[i]->on_receive != NULL) {
-            gb.devices[i]->on_receive(rec_cb_data.buffer, rec_cb_data.len);
-          }
-          break;
-        } else if (i == (gb.number_of_devices - 1)) {
-          gb.error_fnc(ENA_UNKNOWN_DEV);
-        }
-      }
-    }
+    while (1) {
+        // on receive
+        if (xQueueReceive(gb.receive_cb_queue, &rec_cb_data, 10) == pdTRUE) {
+            if (gb.devices == NULL) {
+                gb.error_fnc(ENA_DEVICES_NULL);
+            }
 
-    if (xQueueReceive(gb.send_cb_queue, &send_cb_data, 10) == pdTRUE) {
-      if (send_cb_data.status == ESP_NOW_SEND_SUCCESS) {
-        // there is more data to transmit
-        if (xQueueReceive(gb.transmit_queue, &gb.last_packet, 0) == pdTRUE) {
-          send_last_packet();  // clean or not :W
-        } else {
-          gb.is_packet_transmiting = false;
+            for (size_t i = 0; i < gb.number_of_devices; ++i) {
+                if (address_compare(gb.devices[i]->peer.peer_addr, rec_cb_data.src_mac) == true) {
+                    if (gb.devices[i]->on_receive != NULL) {
+                        gb.devices[i]->on_receive(rec_cb_data.buffer, rec_cb_data.len);
+                    }
+                    break;
+                } else if (i == (gb.number_of_devices - 1)) {
+                    gb.error_fnc(ENA_UNKNOWN_DEV);
+                }
+            }
         }
-      } else {
-        if (gb.last_packet.count != 0) {
-          gb.last_packet.count -= 1;
-          send_last_packet();
-        } else {
-          gb.error_fnc(ENA_SEND_REPLY);
-          if (xQueueReceive(gb.transmit_queue, &gb.last_packet, 0) == pdTRUE) {
-            send_last_packet();
-          } else {
-            gb.is_packet_transmiting = false;
-          }
+
+        // on send
+        if (xQueueReceive(gb.send_cb_queue, &send_cb_data, 10) == pdTRUE) {
+            ESP_LOGI(TAG, "SEND CB STATUS %d", send_cb_data.status);
+            if (is_packet_transmiting() == false) {
+                ESP_LOGE(TAG, "PACKET NOT TRANSMITING");
+            } else if (send_cb_data.status == ESP_NOW_SEND_SUCCESS) {
+                transmit_new_packet();
+            } else {
+                if (gb.last_packet.count != 0) {
+                    send_last_packet();
+                } else {
+                    gb.error_fnc(ENA_SEND_REPLY);
+                    transmit_new_packet();
+                }
+            }
         }
-      }
+        vTaskDelay(pdMS_TO_TICKS(1));
     }
-  }
 }
 
 esp_err_t ENA_init(ENA_config_t *ena_cfg) {
   ESP_RETURN_ON_ERROR(esp_base_mac_addr_set(ena_cfg->mac_address), TAG, "MAC SET");
+
+  uint8_t mac[6] = {0};
+  esp_base_mac_addr_get(mac);
+  ESP_LOGI(TAG, "MAC ADDRESS" MACSTR, MAC2STR(mac));
 
   // wifi setup
   ESP_RETURN_ON_ERROR(nvs_flash_init(), TAG, "NVS FLASH");
@@ -159,7 +213,7 @@ esp_err_t ENA_init(ENA_config_t *ena_cfg) {
   }
 
   xTaskCreatePinnedToCore(now_task, "now_task", ena_cfg->stack_depth, NULL, ena_cfg->priority,
-                          &gb.api_task, ena_cfg->priority);
+                          &gb.api_task, ena_cfg->core_id);
 
   if (gb.api_task == NULL) {
     return ESP_FAIL;
@@ -169,7 +223,10 @@ esp_err_t ENA_init(ENA_config_t *ena_cfg) {
 }
 
 esp_err_t ENA_register_device(ENA_device_t *dev) {
-  assert(dev == NULL);
+  assert(dev != NULL);
+  if (dev == NULL) {
+    return ESP_FAIL;
+  }
 
   if (esp_now_add_peer(&dev->peer) != ESP_OK) {
     ESP_LOGE(TAG, "ADD PEER ERROR, MAC: " MACSTR, MAC2STR(dev->peer.peer_addr));
@@ -197,48 +254,47 @@ esp_err_t ENA_register_device(ENA_device_t *dev) {
 }
 
 esp_err_t ENA_register_error_handler(ENA_on_error error_fnc) {
-  assert(error_fnc == NULL);
+    assert(error_fnc != NULL);
+    if (error_fnc == NULL) {
+        return ESP_FAIL;
+    }
 
-  gb.error_fnc = error_fnc;
+    gb.error_fnc = error_fnc;
 
-  return ESP_OK;
+    return ESP_OK;
 }
 
-// esp_err_t ENA_run(void);
 esp_err_t ENA_send(ENA_device_t *device, void *data, size_t data_size, uint8_t retakes) {
-  assert(data == NULL);
-  assert(data_size == 0);
-  ENA_transmit_param_t send_param;
-
-  if (device == NULL) {
-    send_param.broadcast = true;
-  } else {
-    send_param.broadcast = false;
-  }
-
-  send_param.mac = device->peer.peer_addr;
-  memcpy(send_param.buffer, data, data_size);
-  send_param.len = data_size;
-  send_param.count = retakes;
-
-  if (gb.is_packet_transmiting == true) {
-    if (xQueueSend(gb.transmit_queue, &send_param, 10) == pdFALSE) {
-      return ESP_FAIL;
+    assert(data != NULL);
+    assert(data_size != 0);
+    if (data == NULL || data_size == 0) {
+        return ESP_FAIL;
     }
-  } else {
-    gb.last_packet = send_param;
-    send_last_packet();
-    gb.is_packet_transmiting = true;
-  }
 
-  return ESP_OK;
+    ENA_transmit_param_t send_param;
+    send_param.mac = device->peer.peer_addr;
+    memcpy(send_param.buffer, data, data_size);
+    send_param.len = data_size;
+    send_param.count = retakes;
+
+    if (is_packet_transmiting() == true) {
+        if (xQueueSend(gb.transmit_queue, &send_param, 10) == pdFALSE) {
+            return ESP_FAIL;
+        }
+    } else {
+        gb.last_packet = send_param;
+        transmiting_acquire();
+        send_last_packet();
+    }
+
+    return ESP_OK;
 }
 
 esp_err_t ENA_get_dev_info(ENA_device_t *dev, size_t nb) {
-  if (nb > gb.number_of_devices) {
-    return ESP_FAIL;
-  }
+    if (nb > gb.number_of_devices) {
+        return ESP_FAIL;
+    }
 
-  memcpy(dev, gb.devices[nb], MAC_ADDRESS_SIZE);
-  return ESP_OK;
+    memcpy(dev, gb.devices[nb], MAC_ADDRESS_SIZE);
+    return ESP_OK;
 }
