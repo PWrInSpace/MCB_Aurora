@@ -1,3 +1,4 @@
+// Copyright 2022 PWrInSpace, Kuba
 #include "state_machine_wrapper.h"
 #include <stddef.h>
 #include "esp_log.h"
@@ -9,62 +10,50 @@ static void on_init(void *arg) {
 
 static void on_idle(void *arg) {
     ESP_LOGI(TAG, "ON IDLE");
-
 }
 
 static void on_recovery_arm(void *arg) {
     ESP_LOGI(TAG, "ON ARM");
-
 }
 
 static void on_fueling(void *arg) {
     ESP_LOGI(TAG, "ON FUELING");
-
 }
 
 static void on_armed_to_launch(void *arg) {
     ESP_LOGI(TAG, "ON ARMED TO LAUNCH");
-
 }
 
 static void on_ready_to_lauch(void *arg) {
     ESP_LOGI(TAG, "ON READY_TO_LAUNCH");
-
 }
 
 static void on_countdown(void *arg) {
     ESP_LOGI(TAG, "ON COUNTDOWN");
-
 }
 
 static void on_flight(void *arg) {
     ESP_LOGI(TAG, "ON FLIGHT");
-
 }
 
 static void on_first_stage_recovery(void *arg) {
     ESP_LOGI(TAG, "ON FIRST_STAGE_RECOV");
-
 }
 
 static void on_second_stage_recovery(void *arg) {
     ESP_LOGI(TAG, "ON SECOND_STAGE_RECOV");
-
 }
 
 static void on_ground(void *arg) {
     ESP_LOGI(TAG, "ON GROUND");
-
 }
 
 static void on_hold(void *arg) {
     ESP_LOGI(TAG, "ON INIT");
-
 }
 
 static void on_abort(void *arg) {
     ESP_LOGI(TAG, "ON INIT");
-
 }
 
 static state_config_t states_cfg[] = {

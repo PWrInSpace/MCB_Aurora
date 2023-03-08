@@ -1,3 +1,4 @@
+// Copyright 2022 PWrInSpace, Kuba
 #ifndef STATE_MACHINE_WRAPPER_H
 #define STATE_MACHINE_WRAPPER_H
 

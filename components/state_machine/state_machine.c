@@ -196,8 +196,7 @@ SM_Response SM_run(state_machine_task_cfg_t *cfg) {
         NULL,
         cfg->priority,
         &sm.state_task,
-        cfg->core_id
-    );
+        cfg->core_id);
 
     assert(sm.state_task != NULL);
     if (sm.state_task == NULL) {
