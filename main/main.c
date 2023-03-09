@@ -10,17 +10,91 @@
 #include "flash.h"
 #include "driver/gpio.h"
 #include "w25q64.h"
-spi_t spi;
-i2c_t i2c;
-sd_card_t sd;
+#include "console.h"
+#include "flash_task.h"
 
 #define TAG "AURORA"
 
+static bool flag = false;
+
+typedef struct {
+    float x;
+    uint32_t time_stamp;
+} data;
+
+static int read_flash(int argc, char** argv) {
+    esp_log_level_set("*", ESP_LOG_NONE);
+    FILE *file = NULL;
+    file = fopen(FLASH_PATH, "r");
+    if (file == NULL) {
+        CONSOLE_WRITE_E("Unable to open file");
+        return -1;
+    }
+
+    data d;
+    while (fread(&d, sizeof(d), 1, file)) {
+        CONSOLE_WRITE("%d %f", d.time_stamp, d.x);
+    }
+    fclose(file);
+
+    CONSOLE_WRITE_G("Read end");
+    esp_log_level_set("*", ESP_LOG_INFO);
+    return 0;
+    return 0;
+}
+
+static int flash_start(int argc, char** arg ) {
+    flag = true;
+    return 0;
+}
+
+
+static esp_console_cmd_t cmd[] = {
+    {"flash-read", "123", NULL, read_flash, NULL},
+    {"flash-start", "3223", NULL, flash_start, NULL},
+};
+static void init_console() {
+    console_init();
+    esp_err_t ret = console_register_commands(cmd, 2);
+    ESP_LOGW(TAG, "%s", esp_err_to_name(ret));
+}
+
+static bool can_write() {
+    return true;
+}
+
+static bool erase_cond() {
+    return flag;
+}
+
+
+
+static void flash_task() {
+    flash_task_cfg_t cfg = {
+        .data_size = sizeof(data),
+        .queue_size = 40,
+        .error_handler_fnc = NULL,
+        .terminate_codnition_fnc = NULL,
+        .can_write_to_flash_fnc = can_write,
+        .erase_codnition_fnc = erase_cond,
+    };
+    init_flash_task(&cfg);
+}
+
 
 void app_main(void) {
+    init_console();
+    data d = {
+        .time_stamp = 0,
+        .x = 12,
+    };
+    flash_task();
     while (1) {
-        ESP_LOGI(TAG, "Hello world! 1234");
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        // ESP_LOGI(TAG, "Hello world! 1234");
+        d.x += 1.5;
+        d.time_stamp = esp_timer_get_time() / 1000ULL;
+        send_data_to_flash_task(&d);
+        vTaskDelay(pdMS_TO_TICKS(50));
     }
 }
 

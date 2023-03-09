@@ -6,7 +6,6 @@
 static struct {
   esp_vfs_spiffs_conf_t conf;
   size_t total_size;
-  size_t used_size;
   bool initialized;
 } fl;
 
@@ -18,7 +17,6 @@ FlashResult FLASH_init(uint8_t max_files) {
   }
 
   fl.total_size = 0;
-  fl.used_size = 0;
   fl.conf.base_path = PATH;
   fl.conf.partition_label = NULL;
   fl.conf.max_files = max_files;
@@ -38,7 +36,8 @@ FlashResult FLASH_init(uint8_t max_files) {
     return FLASH_INIT_ERROR;
   }
 
-  err = esp_spiffs_info(fl.conf.partition_label, &fl.total_size, &fl.used_size);
+  uint32_t used_size;
+  err = esp_spiffs_info(fl.conf.partition_label, &fl.total_size, (size_t*) &used_size);
 
   if (err != ESP_OK) {
     ESP_LOGE(TAG,
@@ -46,8 +45,8 @@ FlashResult FLASH_init(uint8_t max_files) {
              "to format partition");
     return FLASH_INIT_ERROR;
   } else {
-    ESP_LOGI(TAG, "Partition size: total: %d, used: %d", fl.total_size,
-             fl.used_size);
+    ESP_LOGI(TAG, "Partition size: total: %d, used: %d", (int) fl.total_size,
+            (int) used_size);
   }
 
   fl.initialized = true;
@@ -116,13 +115,23 @@ size_t FLASH_get_used_size(void) {
     return 0;
   }
 
-  err = esp_spiffs_info(fl.conf.partition_label, &fl.total_size, &fl.used_size);
+  uint32_t used_size;
+  err = esp_spiffs_info(fl.conf.partition_label, &fl.total_size, (size_t*) &used_size);
   if (err != ESP_OK) {
     return 0;
   }
-  ESP_LOGI(TAG, "Used size %d, total size %d", fl.used_size, fl.total_size);
-  return fl.used_size;
+  ESP_LOGI(TAG, "Used size %d, total size %d", (int) used_size, (int) fl.total_size);
+  return used_size;
 }
+
+size_t FLASH_get_total_size(void) {
+  if (fl.initialized == false) {
+    return 0;
+  }
+
+  return fl.total_size;
+}
+
 
 FlashResult FLASH_format(void) {
   esp_err_t err;
