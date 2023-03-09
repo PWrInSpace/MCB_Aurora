@@ -15,11 +15,11 @@
 
 #define TAG "AURORA"
 
-static bool flag = false;
 
 typedef struct {
     float x;
     uint32_t time_stamp;
+    float t[60];
 } data;
 
 static int read_flash(int argc, char** argv) {
@@ -44,7 +44,13 @@ static int read_flash(int argc, char** argv) {
 }
 
 static int flash_start(int argc, char** arg ) {
-    flag = true;
+    // flag = true;
+    FT_erase_and_run_loop();
+    return 0;
+}
+
+static int flash_terminate(int argc, char ** arg) {
+    FT_terminate();
     return 0;
 }
 
@@ -52,10 +58,11 @@ static int flash_start(int argc, char** arg ) {
 static esp_console_cmd_t cmd[] = {
     {"flash-read", "123", NULL, read_flash, NULL},
     {"flash-start", "3223", NULL, flash_start, NULL},
+    {"flash-terminate", "12313", NULL, flash_terminate, NULL}
 };
 static void init_console() {
     console_init();
-    esp_err_t ret = console_register_commands(cmd, 2);
+    esp_err_t ret = console_register_commands(cmd, sizeof(cmd)/sizeof(cmd[0]));
     ESP_LOGW(TAG, "%s", esp_err_to_name(ret));
 }
 
@@ -63,22 +70,18 @@ static bool can_write() {
     return true;
 }
 
-static bool erase_cond() {
-    return flag;
-}
-
-
 
 static void flash_task() {
     flash_task_cfg_t cfg = {
         .data_size = sizeof(data),
         .queue_size = 40,
+        .stack_depth = 8000,
+        .core_id = APP_CPU_NUM,
+        .priority = 4,
         .error_handler_fnc = NULL,
-        .terminate_codnition_fnc = NULL,
         .can_write_to_flash_fnc = can_write,
-        .erase_codnition_fnc = erase_cond,
     };
-    init_flash_task(&cfg);
+    FT_init(&cfg);
 }
 
 
@@ -93,7 +96,7 @@ void app_main(void) {
         // ESP_LOGI(TAG, "Hello world! 1234");
         d.x += 1.5;
         d.time_stamp = esp_timer_get_time() / 1000ULL;
-        send_data_to_flash_task(&d);
+        FT_send_data(&d);
         vTaskDelay(pdMS_TO_TICKS(50));
     }
 }
