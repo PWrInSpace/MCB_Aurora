@@ -39,10 +39,10 @@ bool SD_mount(sd_card_t *sd_card) {
     return true;
 }
 
-bool SD_init(sd_card_t *sd_card, spi_host_device_t spi_host, uint8_t cs_pin, const char* m_point) {
-    sd_card->spi_host = spi_host;
-    sd_card->cs_pin = cs_pin;
-    sd_card->mount_point = m_point;
+bool SD_init(sd_card_t *sd_card, sd_card_config_t *cfg) {
+    sd_card->spi_host = cfg->spi_host;
+    sd_card->cs_pin = cfg->cs_pin;
+    sd_card->mount_point = cfg->mount_point;
 
     // Options for mounting the filesystem
     if (SD_mount(sd_card) == false) {

@@ -24,6 +24,13 @@ typedef struct {
     bool mounted;
 } sd_card_t;
 
+typedef struct {
+    spi_host_device_t spi_host;
+    const char *mount_point;
+    uint8_t cs_pin;
+    uint8_t cd_pin;
+} sd_card_config_t;
+
 /**
  * @brief Initialize sd card
  *
@@ -34,7 +41,7 @@ typedef struct {
  * @return true :D
  * @return false :C
  */
-bool SD_init(sd_card_t *sd_card, spi_host_device_t host, uint8_t cs, const char *m_point);
+bool SD_init(sd_card_t *sd_card, sd_card_config_t *cfg);
 
 /**
  * @brief Write string to sd card

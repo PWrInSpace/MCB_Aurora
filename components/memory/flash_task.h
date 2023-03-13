@@ -17,6 +17,7 @@ typedef enum {
     FT_INIT_ERROR,
     FT_FILE_OPEN,
     FT_FILE_FULL,
+    FT_FORMAT,
     FT_WRITE,
 } FT_ERROR_CODE;
 

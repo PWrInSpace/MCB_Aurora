@@ -84,9 +84,15 @@ static void init() {
     gb.flash.wrote_size = 0;
 }
 
-static void open() {
-    FLASH_format();
+static void format() {
+    if (FLASH_format() != FLASH_OK) {
+        report_error(FT_FORMAT);
+        termninate_task();
+    }
 
+}
+
+static void open() {
     gb.flash.file = fopen(FLASH_PATH, "a");
     if (gb.flash.file == NULL) {
         report_error(FT_FILE_OPEN);
@@ -232,6 +238,10 @@ void FT_erase_and_run_loop(void) {
 void FT_terminate(void) {
     if (gb.events == NULL) {
         return;
+    }
+
+    if (gb.flash_formated == false) {
+        terminate_task();
     }
 
     xEventGroupSetBits(gb.events, EVENT_TERMINATE);
