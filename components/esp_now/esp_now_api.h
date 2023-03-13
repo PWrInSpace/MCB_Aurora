@@ -8,6 +8,8 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 
+#define MAX_DEV_NB CONFIG_MAX_NUMBER_OF_DEVICE
+
 #define MAC_ADDRESS_SIZE 6
 #define MAX_DATA_SIZE 250
 
@@ -31,7 +33,6 @@ typedef struct {
 } ENA_device_t;
 
 typedef struct {
-  uint8_t mac_address[MAC_ADDRESS_SIZE];
   uint32_t stack_depth;
   BaseType_t core_id;
   UBaseType_t priority;
@@ -61,7 +62,7 @@ typedef struct {
  * @param ena_cfg pointer to struct with esp now api configturation
  * @return esp_err_t status
  */
-esp_err_t ENA_init(ENA_config_t *ena_cfg);
+esp_err_t ENA_init(uint8_t *mac_address);
 
 /**
  * @brief Add device to network and api
@@ -78,6 +79,13 @@ esp_err_t ENA_register_device(const ENA_device_t *device);
  * @return esp_err_t status
  */
 esp_err_t ENA_register_error_handler(ENA_on_error error_fnc);
+
+/**
+ * @brief Run esp now api task, use after init and register functions
+ *
+ * @return esp_err_t status
+ */
+esp_err_t ENA_run(ENA_config_t *cfg);
 
 /**
  * @brief Send data via esp_now, data are queued

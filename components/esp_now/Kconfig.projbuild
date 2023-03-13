@@ -1,0 +1,6 @@
+menu "Esp now API"
+    config MAX_NUMBER_OF_DEVICE
+        int "Max number of devices"
+        default 8
+
+endmenu

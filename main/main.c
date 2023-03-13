@@ -46,16 +46,17 @@ const ENA_device_t test_dev2 = {
 };
 
 void app_main(void) {
+  uint8_t mac_address[] = {0x04, 0x20, 0x04, 0x20, 0x04, 0x20};
   ENA_config_t cfg = {
-      .mac_address = {0x04, 0x20, 0x04, 0x20, 0x04, 0x20},
       .stack_depth = 8000,
       .priority = 3,
       .core_id = APP_CPU_NUM,
   };
-  ENA_init(&cfg);
+  ENA_init(mac_address);
   ENA_register_device(&test_dev);
   ENA_register_device(&test_dev2);
   ENA_register_error_handler(on_err);
+  ENA_run(&cfg);
 uint8_t x = 1;
     ENA_send(&test_dev, &x, sizeof(x), 0);
     vTaskDelay(10000 / portTICK_PERIOD_MS);
