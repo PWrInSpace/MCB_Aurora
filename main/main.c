@@ -1,7 +1,6 @@
 // Copyright 2022 PWrInSpace, Kuba
 #include <stdio.h>
 
-#include "driver/gpio.h"
 #include "esp_log.h"
 #include "esp_now_api.h"
 #include "esp_timer.h"
@@ -37,7 +36,6 @@ static void on_rec(uint8_t *data, size_t len) {
     memcpy(&x, data, len);
 
     ESP_LOGI(TAG, "RECEIVED %d %d", x.wakenUp, x.uptime);
-
 }
 /*
 static void init_state_machine(void) {
