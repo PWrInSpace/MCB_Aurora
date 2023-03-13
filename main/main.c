@@ -10,16 +10,38 @@
 #include "flash.h"
 #include "driver/gpio.h"
 #include "w25q64.h"
+#include "state_machine_wrapper.h"
 spi_t spi;
 i2c_t i2c;
 sd_card_t sd;
 
+#include "sdkconfig.h"
 #define TAG "AURORA"
 
+static void init_state_machine(void) {
+    state_machine_task_cfg_t task_cfg = {
+        .stack_depth = 8000,
+        .core_id = APP_CPU_NUM,
+        .priority = 3,
+    };
+    state_config_t *cfg = NULL;
+    uint8_t number_of_states;
 
-void app_main(void) {
+    ESP_LOGI(TAG, "Initializing state machine");
+
+    SM_init();
+    SMW_get_states_config(&cfg, &number_of_states);
+    SM_set_states(cfg, number_of_states);
+    SM_run(&task_cfg);
+}
+
+void app_main(void) {\
+    init_state_machine();
+    vTaskDelay(pdMS_TO_TICKS(10000));
+    SM_change_state(IDLE);
+
     while (1) {
-        ESP_LOGI(TAG, "Hello world! 1234");
+        ESP_LOGI(TAG, "Hello world! 123 %d", CONFIG_TEST);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
