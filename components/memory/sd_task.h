@@ -3,11 +3,17 @@
 #define SD_TASK_H
 
 #include <stdint.h>
+#include "sdcard.h"
 
 // #include "sdkconfig"
 
+#define SD_LOG_BUFFER_MAX_SIZE CONFIG_SD_LOG_BUFFER_MAX_SIZE
+#define SD_DATA_BUFFER_MAX_SIZE CONFIG_SD_DATA_BUFFER_MAX_SIZE
+#define SD_DATA_PATH CONFIG_SD_DATA_PATH
+#define SD_LOG_PATH CONFIG_SD_LOG_PATH
 
-#define SD_QUEUE_SIZE CONFIG_SD_QUEUE_SIZE
+#define SD_DATA_QUEUE_SIZE CONFIG_SD_DATA_QUEUE_SIZE
+#define SD_LOG_QUEUE_SIZE CONFIG_SD_LOG_QUEUE_SIZE
 #define SD_DATA_DROP_VALUE CONFIG_DATA_DROP_VALUE
 
 typedef enum {
@@ -20,22 +26,17 @@ typedef void (*error_handler)(SD_TASK_ERR error_code);
 
 
 typedef struct {
-    uint8_t cs_pin;
     spi_host_device_t spi_host;
-
-    char *path;
-    size_t path_size;
-
-    size_t queue_data_size;
+    uint8_t cs_pin;
 
     error_handler error_handler_fnc;
 } sd_task_cfg_t;
 
-bool init_sd_task(sd_task_cfg_t *cfg);
+bool SDT_init(sd_task_cfg_t *cfg);
 
-bool send_data_to_sd_task(void *data);
+bool SDT_send_data(char *data, size_t data_size);
 
-bool send_log_to_sd_task(char *log, size_t log_size);
+bool SDT_send_log(char *log, size_t log_size);
 
-bool change_path_to_file(char *new_path);
+bool SDT_change_data_path(char *new_path);
 #endif
