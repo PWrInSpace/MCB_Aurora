@@ -122,6 +122,7 @@ void app_main(void) {
 
     SDT_init(&cfg);
     char dupa[256];
+    int i = 0;
     while (1) {
         snprintf(dupa, sizeof(dupa), "Hello world\n");
         ESP_LOGI(TAG, "Writing to sd");
@@ -129,6 +130,11 @@ void app_main(void) {
         snprintf(dupa, sizeof(dupa), "Hello log\n");
         SDT_send_log(dupa, sizeof(dupa));
         vTaskDelay(pdMS_TO_TICKS(1000));
+        i++;
+        if (i == 40) {
+            ESP_LOGI(TAG, "TERMINATING");
+            SDT_terminate();
+        }
     }
 }
 

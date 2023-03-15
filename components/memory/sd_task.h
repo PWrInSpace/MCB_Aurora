@@ -45,4 +45,6 @@ bool SDT_send_data(char *data, size_t data_size);
 bool SDT_send_log(char *log, size_t log_size);
 
 bool SDT_change_data_path(char *new_path);
+
+void SDT_terminate(void);
 #endif

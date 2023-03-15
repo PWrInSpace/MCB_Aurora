@@ -11,6 +11,7 @@
 static struct {
     sd_card_t sd_card;
 
+    TaskHandle_t sd_task;
     QueueHandle_t data_queue;
     QueueHandle_t log_queue;
 
@@ -50,17 +51,21 @@ static void write_to_sd(FILE * file, char *data, size_t size) {
     fwrite(data, size, 1, file);
 }
 
-// static void check_terminate_condition(void) {
-//     // if (mem.task_terminate_condition_fnc == NULL) {
-//     //     return false;
-//     // }
+static void terminate_task(void) {
+    vQueueDelete(mem.data_queue);
+    vQueueDelete(mem.log_queue);
+    mem.data_queue = NULL;
+    mem.log_queue = NULL;
+    vTaskDelete(NULL);
+}
 
-//     // if (mem.task_terminate_condition_fnc() == true) {
-//     //     vQueueDelete(mem.queue);
-//     //     mem.queue = NULL;
-//     //     vTaskDelete(NULL);
-//     // }
-// }
+static void check_terminate_condition(void) {
+    if (ulTaskNotifyTake(pdTRUE, 0) == 0) {
+        return;
+    }
+
+    terminate_task();
+}
 
 static void sdTask(void *args) {
     ESP_LOGI(TAG, "RUNNING SD TASK");
@@ -83,7 +88,7 @@ static void sdTask(void *args) {
             SD_write(&mem.sd_card, mem.log_path, mem.log_buffer, sizeof(mem.log_buffer));
         }
 
-        // check_terminate_condition();
+        check_terminate_condition();
 
         vTaskDelay(pdMS_TO_TICKS(10));
     }
@@ -151,7 +156,7 @@ bool SDT_init(sd_task_cfg_t *task_cfg) {
     ESP_LOGI(TAG, "Using data path %s", mem.data_path);
     ESP_LOGI(TAG, "Using log path %s", mem.log_path);
 
-    xTaskCreatePinnedToCore(sdTask, "sd task", 8000, NULL, 5, NULL, APP_CPU_NUM);
+    xTaskCreatePinnedToCore(sdTask, "sd task", 8000, NULL, 5, &mem.sd_task, APP_CPU_NUM);
 
     return true;
 }
@@ -165,6 +170,8 @@ bool SDT_send_data(char *data, size_t data_size) {
         return false;
     }
 
+
+    ESP_LOGI(TAG, "SENDING to queue");
     if (xQueueSend(mem.data_queue, data, 0) == pdFALSE) {
         ESP_LOGW(TAG, "Unable to add data to sd mem.queue");
         return false;
@@ -182,10 +189,15 @@ bool SDT_send_log(char *data, size_t data_size) {
         return false;
     }
 
+    ESP_LOGI(TAG, "SENDING to queue");
     if (xQueueSend(mem.log_queue, data, 0) == pdFALSE) {
         ESP_LOGW(TAG, "Unable to add data to sd mem.queue");
         return false;
     }
 
     return true;
+}
+
+void SDT_terminate(void) {
+    xTaskNotifyGive(mem.sd_task);
 }
