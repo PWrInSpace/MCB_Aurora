@@ -4,8 +4,7 @@
 
 #include <stdint.h>
 #include "sdcard.h"
-
-// #include "sdkconfig"
+#include "sdkconfig.h"
 
 #define SD_LOG_BUFFER_MAX_SIZE CONFIG_SD_LOG_BUFFER_MAX_SIZE
 #define SD_DATA_BUFFER_MAX_SIZE CONFIG_SD_DATA_BUFFER_MAX_SIZE
@@ -19,8 +18,10 @@
 #define SD_PATH_SIZE CONFIG_SD_PATH_SIZE
 
 typedef enum {
+    SD_INIT,
     SD_QUEUE_READ,
-    SD_CREATE_CSV_STRING,
+    SD_WRITE,
+    SD_MUTEX,
 } SD_TASK_ERR;
 
 
@@ -44,7 +45,7 @@ bool SDT_send_data(char *data, size_t data_size);
 
 bool SDT_send_log(char *log, size_t log_size);
 
-bool SDT_change_data_path(char *new_path);
+bool SDT_change_data_path(char *new_path, size_t path_size);
 
 void SDT_terminate(void);
 #endif

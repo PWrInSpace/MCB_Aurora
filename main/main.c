@@ -94,11 +94,11 @@ esp_err_t spi_initialize(void) {
       .quadwp_io_num = -1,
       .quadhd_io_num = -1,
       .max_transfer_sz = 4000,
-   };
+    };
 
-   ret = spi_bus_initialize(VSPI_HOST, &bus, SDSPI_DEFAULT_DMA);
-   assert(ret == ESP_OK);
-   return ret;
+    ret = spi_bus_initialize(VSPI_HOST, &bus, SDSPI_DEFAULT_DMA);
+    assert(ret == ESP_OK);
+    return ret;
 }
 
 
@@ -125,12 +125,17 @@ void app_main(void) {
     int i = 0;
     while (1) {
         snprintf(dupa, sizeof(dupa), "Hello world\n");
-        ESP_LOGI(TAG, "Writing to sd");
+        // ESP_LOGI(TAG, "Writing to sd");
         SDT_send_data(dupa, sizeof(dupa));
-        snprintf(dupa, sizeof(dupa), "Hello log\n");
+        snprintf(dupa, sizeof(dupa), "Hello XDDDD\n");
         SDT_send_log(dupa, sizeof(dupa));
         vTaskDelay(pdMS_TO_TICKS(1000));
         i++;
+        if (i == 20) {
+            ESP_LOGI(TAG, "changing path");
+            char path[] = "test123";
+            SDT_change_data_path(path, sizeof(path));
+        }
         if (i == 40) {
             ESP_LOGI(TAG, "TERMINATING");
             SDT_terminate();

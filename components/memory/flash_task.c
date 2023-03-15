@@ -89,7 +89,6 @@ static void format() {
         report_error(FT_FORMAT);
         terminate_task();
     }
-
 }
 
 static void open() {
