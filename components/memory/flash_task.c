@@ -87,7 +87,7 @@ static void init() {
 static void format() {
     if (FLASH_format() != FLASH_OK) {
         report_error(FT_FORMAT);
-        termninate_task();
+        terminate_task();
     }
 
 }
@@ -138,7 +138,8 @@ static void flash_task(void *arg) {
 
     wait_until_erase_condition();  // Blocking till required condition
     ESP_LOGI(TAG, "Formatting flash");
-    open();  // Fotmating flash.
+    format();
+    open();
     gb.flash_formated = true;
 
     while (1) {

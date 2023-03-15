@@ -12,92 +12,123 @@
 #include "w25q64.h"
 #include "console.h"
 #include "flash_task.h"
+#include "sd_task.h"
 
 #define TAG "AURORA"
 
 
-typedef struct {
-    float x;
-    uint32_t time_stamp;
-    float t[60];
-} data;
+// typedef struct {
+//     float x;
+//     uint32_t time_stamp;
+//     float t[60];
+// } data;
 
-static int read_flash(int argc, char** argv) {
-    esp_log_level_set("*", ESP_LOG_NONE);
-    FILE *file = NULL;
-    file = fopen(FLASH_PATH, "r");
-    if (file == NULL) {
-        CONSOLE_WRITE_E("Unable to open file");
-        return -1;
-    }
+// static int read_flash(int argc, char** argv) {
+//     esp_log_level_set("*", ESP_LOG_NONE);
+//     FILE *file = NULL;
+//     file = fopen(FLASH_PATH, "r");
+//     if (file == NULL) {
+//         CONSOLE_WRITE_E("Unable to open file");
+//         return -1;
+//     }
 
-    data d;
-    while (fread(&d, sizeof(d), 1, file)) {
-        CONSOLE_WRITE("%d %f", d.time_stamp, d.x);
-    }
-    fclose(file);
+//     data d;
+//     while (fread(&d, sizeof(d), 1, file)) {
+//         CONSOLE_WRITE("%d %f", d.time_stamp, d.x);
+//     }
+//     fclose(file);
 
-    CONSOLE_WRITE_G("Read end");
-    esp_log_level_set("*", ESP_LOG_INFO);
-    return 0;
-    return 0;
-}
+//     CONSOLE_WRITE_G("Read end");
+//     esp_log_level_set("*", ESP_LOG_INFO);
+//     return 0;
+//     return 0;
+// }
 
-static int flash_start(int argc, char** arg ) {
-    // flag = true;
-    FT_erase_and_run_loop();
-    return 0;
-}
+// static int flash_start(int argc, char** arg ) {
+//     // flag = true;
+//     FT_erase_and_run_loop();
+//     return 0;
+// }
 
-static int flash_terminate(int argc, char ** arg) {
-    FT_terminate();
-    return 0;
-}
-
-
-static esp_console_cmd_t cmd[] = {
-    {"flash-read", "123", NULL, read_flash, NULL},
-    {"flash-start", "3223", NULL, flash_start, NULL},
-    {"flash-terminate", "12313", NULL, flash_terminate, NULL}
-};
-static void init_console() {
-    console_init();
-    esp_err_t ret = console_register_commands(cmd, sizeof(cmd)/sizeof(cmd[0]));
-    ESP_LOGW(TAG, "%s", esp_err_to_name(ret));
-}
-
-static bool can_write() {
-    return true;
-}
+// static int flash_terminate(int argc, char ** arg) {
+//     FT_terminate();
+//     return 0;
+// }
 
 
-static void flash_task() {
-    flash_task_cfg_t cfg = {
-        .data_size = sizeof(data),
-        .queue_size = 40,
-        .stack_depth = 8000,
-        .core_id = APP_CPU_NUM,
-        .priority = 4,
-        .error_handler_fnc = NULL,
-        .can_write_to_flash_fnc = can_write,
-    };
-    FT_init(&cfg);
+// static esp_console_cmd_t cmd[] = {
+//     {"flash-read", "123", NULL, read_flash, NULL},
+//     {"flash-start", "3223", NULL, flash_start, NULL},
+//     {"flash-terminate", "12313", NULL, flash_terminate, NULL}
+// };
+// static void init_console() {
+//     console_init();
+//     esp_err_t ret = console_register_commands(cmd, sizeof(cmd)/sizeof(cmd[0]));
+//     ESP_LOGW(TAG, "%s", esp_err_to_name(ret));
+// }
+
+// static bool can_write() {
+//     return true;
+// }
+
+
+// static void flash_task() {
+//     flash_task_cfg_t cfg = {
+//         .data_size = sizeof(data),
+//         .queue_size = 40,
+//         .stack_depth = 8000,
+//         .core_id = APP_CPU_NUM,
+//         .priority = 4,
+//         .error_handler_fnc = NULL,
+//         .can_write_to_flash_fnc = can_write,
+//     };
+//     FT_init(&cfg);
+// }
+
+esp_err_t spi_initialize(void) {
+    esp_err_t ret;
+    spi_bus_config_t bus = {
+      .miso_io_num = 19,
+      .mosi_io_num = 23,
+      .sclk_io_num = 18,
+      .quadwp_io_num = -1,
+      .quadhd_io_num = -1,
+      .max_transfer_sz = 4000,
+   };
+
+   ret = spi_bus_initialize(VSPI_HOST, &bus, SDSPI_DEFAULT_DMA);
+   assert(ret == ESP_OK);
+   return ret;
 }
 
 
 void app_main(void) {
-    init_console();
-    data d = {
-        .time_stamp = 0,
-        .x = 12,
+    // init_console();
+    // data d = {
+    //     .time_stamp = 0,
+    //     .x = 12,
+    // };
+    // flash_task();
+    spi_initialize();
+    sd_task_cfg_t cfg = {
+        .cs_pin = 5,
+        .data_path = "data",
+        .data_path_size = 9,
+        .spi_host = VSPI_HOST,
+        .log_path = "log",
+        .log_path_size = 5,
+        .error_handler_fnc = NULL,
     };
-    flash_task();
+
+    SDT_init(&cfg);
+    char dupa[256];
     while (1) {
-        // ESP_LOGI(TAG, "Hello world! 1234");
-        d.x += 1.5;
-        d.time_stamp = esp_timer_get_time() / 1000ULL;
-        FT_send_data(&d);
-        vTaskDelay(pdMS_TO_TICKS(50));
+        snprintf(dupa, sizeof(dupa), "Hello world\n");
+        ESP_LOGI(TAG, "Writing to sd");
+        SDT_send_data(dupa, sizeof(dupa));
+        snprintf(dupa, sizeof(dupa), "Hello log\n");
+        SDT_send_log(dupa, sizeof(dupa));
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
@@ -139,20 +170,25 @@ void app_main(void) {
 //     spi_device_handle_t spi;
 //     sd_card_t sd;
 //     spi_initialize();
-//     SD_init(&sd, VSPI_HOST, 5, MOUNT_POINT);
-//     spi_add_lora(&spi);
-//     lora_init(&spi);
-//     lora_set_frequency(867000000);
-//     lora_disable_crc();
-//     lora_set_spreading_factor(7);
-//     lora_set_bandwidth(250000);
-//     lora_set_tx_power(17);
+//     sd_card_config_t cfg = {
+//         .cs_pin = 5,
+//         .spi_host = VSPI_HOST,
+//         .mount_point = SDCARD_MOUNT_POINT
+//     };
+//     SD_init(&sd, &cfg);
+//     // spi_add_lora(&spi);
+//     // lora_init(&spi);
+//     // lora_set_frequency(867000000);
+//     // lora_disable_crc();
+//     // lora_set_spreading_factor(7);
+//     // lora_set_bandwidth(250000);
+//     // lora_set_tx_power(17);
 
 //     uint8_t test[] = "Hello space\n";
 //     char test_sd[] = "Uga buga TABAlugA!\n";
 //     while (1) {
 //         SD_write(&sd, "/sdcard/ugabuga.txt", test_sd, sizeof(test_sd));
-//         lora_send_packet(test, sizeof(test));
+//         // lora_send_packet(test, sizeof(test));
 //         vTaskDelay(1000 / portTICK_PERIOD_MS);
 //     }
 // }

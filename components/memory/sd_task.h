@@ -9,12 +9,14 @@
 
 #define SD_LOG_BUFFER_MAX_SIZE CONFIG_SD_LOG_BUFFER_MAX_SIZE
 #define SD_DATA_BUFFER_MAX_SIZE CONFIG_SD_DATA_BUFFER_MAX_SIZE
-#define SD_DATA_PATH CONFIG_SD_DATA_PATH
-#define SD_LOG_PATH CONFIG_SD_LOG_PATH
+#define SD_MOUNT_POINT CONFIG_SD_MOUNT_POINT
 
 #define SD_DATA_QUEUE_SIZE CONFIG_SD_DATA_QUEUE_SIZE
 #define SD_LOG_QUEUE_SIZE CONFIG_SD_LOG_QUEUE_SIZE
-#define SD_DATA_DROP_VALUE CONFIG_DATA_DROP_VALUE
+
+#define SD_DATA_DROP_VALUE CONFIG_SD_DATA_DROP_VALUE
+
+#define SD_PATH_SIZE CONFIG_SD_PATH_SIZE
 
 typedef enum {
     SD_QUEUE_READ,
@@ -28,6 +30,10 @@ typedef void (*error_handler)(SD_TASK_ERR error_code);
 typedef struct {
     spi_host_device_t spi_host;
     uint8_t cs_pin;
+    char *data_path;
+    size_t data_path_size;
+    char *log_path;
+    size_t log_path_size;
 
     error_handler error_handler_fnc;
 } sd_task_cfg_t;
