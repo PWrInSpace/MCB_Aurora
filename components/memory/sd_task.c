@@ -23,7 +23,11 @@ static struct {
     char log_path[SD_PATH_SIZE];
 
     error_handler error_handler_fnc;
-} mem;
+} mem = {
+    .sd_task = NULL,
+    .log_queue = NULL,
+    .data_write_mutex = NULL,
+};
 
 static void report_error(SD_TASK_ERR error_code) {
     if (mem.error_handler_fnc == NULL) {
@@ -86,7 +90,6 @@ static void data_check_and_save(void) {
 }
 
 static void log_check_and_save(void) {
-     // TO DO: Change to queue message Waiting
     while (uxQueueMessagesWaiting(mem.log_queue) > 0) {
         xQueueReceive(mem.log_queue, &mem.log_buffer, 0);
         if (SD_write(&mem.sd_card, mem.log_path,
@@ -125,7 +128,7 @@ static void sdTask(void *args) {
     }
 }
 
-bool create_unique_path(char *path, size_t size) {
+static bool create_unique_path(char *path, size_t size) {
     char temp_path[SD_PATH_SIZE] = {0};
     int ret = 0;
     ESP_LOGI(TAG, "%s", path);
@@ -144,7 +147,7 @@ bool create_unique_path(char *path, size_t size) {
     return false;
 }
 
-bool SDT_init(sd_task_cfg_t *task_cfg) {
+static void initialize_sd_card(sd_task_cfg_t *task_cfg) {
     sd_card_config_t card_cfg = {
         .spi_host = task_cfg->spi_host,
         .cs_pin = task_cfg->cs_pin,
@@ -155,7 +158,7 @@ bool SDT_init(sd_task_cfg_t *task_cfg) {
     if (ret == false) {
         ESP_LOGW(TAG, "Unable to initialize SD card");
         report_error(SD_INIT);
-        // return false;
+        // return false;    not returning -> user can insert sd card after system init
     }
 
     mem.error_handler_fnc = task_cfg->error_handler_fnc;
@@ -172,8 +175,9 @@ bool SDT_init(sd_task_cfg_t *task_cfg) {
 
     ESP_LOGI(TAG, "Using data path %s", mem.data_path);
     ESP_LOGI(TAG, "Using log path %s", mem.log_path);
+}
 
-
+static bool initialize_task(sd_task_cfg_t *task_cfg) {
     mem.data_queue = xQueueCreate(SD_DATA_QUEUE_SIZE, sizeof(char[SD_DATA_BUFFER_MAX_SIZE]));
     if (mem.data_queue == NULL) {
         return false;
@@ -188,7 +192,34 @@ bool SDT_init(sd_task_cfg_t *task_cfg) {
     // prevent race condition during path changing
     mem.data_write_mutex = xSemaphoreCreateMutex();
 
-    xTaskCreatePinnedToCore(sdTask, "sd task", 8000, NULL, 5, &mem.sd_task, APP_CPU_NUM);
+    xTaskCreatePinnedToCore(
+        sdTask,
+        "sd task",
+        task_cfg->stack_depth,
+        NULL,
+        task_cfg->priority,
+        &mem.sd_task,
+        task_cfg->core_id);
+
+    if (mem.sd_task == NULL) {
+        vQueueDelete(mem.data_queue);
+        vQueueDelete(mem.log_queue);
+        mem.data_queue = NULL;
+        mem.log_queue = NULL;
+        return false;
+    }
+
+    return true;
+}
+
+
+bool SDT_init(sd_task_cfg_t *task_cfg) {
+    initialize_sd_card(task_cfg);
+
+    if (initialize_task(task_cfg) == false) {
+        ESP_LOGE(TAG, "Unable to initialzie sd task");
+        return false;
+    }
 
     return true;
 }
@@ -202,7 +233,6 @@ bool SDT_send_data(char *data, size_t data_size) {
         return false;
     }
 
-    ESP_LOGI(TAG, "SENDING to queue");
     if (xQueueSend(mem.data_queue, data, 0) == pdFALSE) {
         ESP_LOGW(TAG, "Unable to add data to sd mem.queue");
         return false;
@@ -220,7 +250,6 @@ bool SDT_send_log(char *data, size_t data_size) {
         return false;
     }
 
-    ESP_LOGI(TAG, "SENDING to queue");
     if (xQueueSend(mem.log_queue, data, 0) == pdFALSE) {
         ESP_LOGW(TAG, "Unable to add data to sd mem.queue");
         return false;

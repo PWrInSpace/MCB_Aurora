@@ -117,6 +117,9 @@ void app_main(void) {
         .spi_host = VSPI_HOST,
         .log_path = "log",
         .log_path_size = 5,
+        .stack_depth = 8000,
+        .priority = 0,
+        .core_id = APP_CPU_NUM,
         .error_handler_fnc = NULL,
     };
 

@@ -11,7 +11,8 @@
 #include "freertos/task.h"
 #include "freertos/projdefs.h"
 
-#define DROP_VALUE_RATIO 3 / 4
+#define FLASH_DROP_VALUE CONFIG_FLASH_DATA_DROP_VALUE
+#define FLASH_QUEUE_SIZE CONFIG_FLASH_QUEUE_SIZE
 
 typedef enum {
     FT_INIT_ERROR,
@@ -28,8 +29,7 @@ typedef bool (*FT_erase_condition) (void);
 typedef bool (*FT_terminate_codnition) (void);
 
 typedef struct {
-    size_t data_size;   // soze of transmitting data
-    size_t queue_size;  // size of queue
+    size_t data_size;   // size of transmitting data
 
     uint32_t stack_depth;
     BaseType_t core_id;

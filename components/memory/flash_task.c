@@ -21,7 +21,6 @@ static struct {
     void *data;
     size_t data_size;
 
-    size_t data_drop_value;
     bool flash_formated;
 
     FT_can_write can_write_fnc;
@@ -38,7 +37,6 @@ static struct {
     .events = NULL,
     .data = NULL,
     .data_size = 0,
-    .data_drop_value = 0,
     .flash_formated = false,
     .can_write_fnc = NULL,
     .error_handler_fnc = NULL,
@@ -142,7 +140,7 @@ static void flash_task(void *arg) {
     gb.flash_formated = true;
 
     while (1) {
-        if (uxQueueMessagesWaiting(gb.queue) > gb.data_drop_value) {
+        if (uxQueueMessagesWaiting(gb.queue) > FLASH_DROP_VALUE) {
             while (uxQueueMessagesWaiting(gb.queue) > 0) {
                 xQueueReceive(gb.queue, gb.data, portMAX_DELAY);
                 write(gb.data, gb.data_size);
@@ -168,7 +166,7 @@ bool FT_init(flash_task_cfg_t *cfg) {
         return false;
     }
 
-    gb.queue = xQueueCreate(cfg->queue_size, cfg->data_size);
+    gb.queue = xQueueCreate(FLASH_QUEUE_SIZE, cfg->data_size);
     if (gb.queue == NULL) {
         return false;
     }
@@ -185,7 +183,6 @@ bool FT_init(flash_task_cfg_t *cfg) {
     }
 
     gb.data_size = cfg->data_size;
-    gb.data_drop_value = cfg->queue_size * DROP_VALUE_RATIO;
     gb.can_write_fnc = cfg->can_write_to_flash_fnc;
     gb.error_handler_fnc = cfg->error_handler_fnc;
 

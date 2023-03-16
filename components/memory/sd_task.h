@@ -36,6 +36,10 @@ typedef struct {
     char *log_path;
     size_t log_path_size;
 
+    uint32_t stack_depth;
+    BaseType_t core_id;
+    UBaseType_t priority;
+
     error_handler error_handler_fnc;
 } sd_task_cfg_t;
 
