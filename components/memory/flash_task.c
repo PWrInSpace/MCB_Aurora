@@ -18,7 +18,7 @@ static struct {
     QueueHandle_t queue;
     EventGroupHandle_t events;    // TO DO  change to task notification
 
-    void *data;
+    void *data_from_queue;
     size_t data_size;
 
     bool flash_formated;
@@ -35,7 +35,7 @@ static struct {
     .task = NULL,
     .queue = NULL,
     .events = NULL,
-    .data = NULL,
+    .data_from_queue = NULL,
     .data_size = 0,
     .flash_formated = false,
     .can_write_fnc = NULL,
@@ -57,8 +57,8 @@ static void report_error(FT_ERROR_CODE error_code) {
 
 static void terminate_task(void) {
     ESP_LOGE(TAG, "TERMINATING FLASH TASK !!!");
-    if (gb.data != NULL) {
-        free(gb.data);
+    if (gb.data_from_queue != NULL) {
+        free(gb.data_from_queue);
     }
 
     if (gb.flash.file != NULL) {
@@ -98,7 +98,7 @@ static void open() {
 }
 
 static void write(void *data, size_t size) {
-    if (gb.flash.max_size <= gb.flash.wrote_size) {
+    if (gb.flash.wrote_size + size > gb.flash.max_size) {
         ESP_LOGW(TAG, "MAX SIZE");
         report_error(FT_FILE_FULL);
         terminate_task();
@@ -142,8 +142,8 @@ static void flash_task(void *arg) {
     while (1) {
         if (uxQueueMessagesWaiting(gb.queue) > FLASH_DROP_VALUE) {
             while (uxQueueMessagesWaiting(gb.queue) > 0) {
-                xQueueReceive(gb.queue, gb.data, portMAX_DELAY);
-                write(gb.data, gb.data_size);
+                xQueueReceive(gb.queue, gb.data_from_queue, portMAX_DELAY);
+                write(gb.data_from_queue, gb.data_size);
                 ESP_LOGI(TAG, "FLASH WRITE");
             }
             fflush(gb.flash.file);
@@ -171,14 +171,14 @@ bool FT_init(flash_task_cfg_t *cfg) {
         return false;
     }
 
-    gb.data = malloc(cfg->data_size);
-    if (gb.data == NULL) {
+    gb.data_from_queue = malloc(cfg->data_size);
+    if (gb.data_from_queue == NULL) {
         return false;
     }
 
     gb.events = xEventGroupCreate();
     if (gb.events == NULL) {
-        free(gb.data);
+        free(gb.data_from_queue);
         return false;
     }
 
@@ -196,7 +196,7 @@ bool FT_init(flash_task_cfg_t *cfg) {
         cfg->core_id);
 
     if (gb.task == NULL) {
-        free(gb.data);
+        free(gb.data_from_queue);
         return false;
     }
 
@@ -232,7 +232,7 @@ void FT_erase_and_run_loop(void) {
     xEventGroupSetBits(gb.events, EVENT_ERASE);
 }
 
-void FT_terminate(void) {
+void FT_terminate_task(void) {
     if (gb.events == NULL) {
         return;
     }

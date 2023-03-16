@@ -105,7 +105,6 @@ static void check_terminate_condition(void) {
         return;
     }
 
-    // TO DO: save data from queues
     data_get_from_queue_and_save();
     log_check_and_save();
     terminate_task();
@@ -272,6 +271,6 @@ bool SDT_change_data_path(char *new_path, size_t path_size) {
     return true;
 }
 
-void SDT_terminate(void) {
+void SDT_terminate_task(void) {
     xTaskNotifyGive(mem.sd_task);
 }

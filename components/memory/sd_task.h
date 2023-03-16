@@ -43,13 +43,48 @@ typedef struct {
     error_handler error_handler_fnc;
 } sd_task_cfg_t;
 
+/**
+ * @brief Initialzie sd task
+ *
+ * @param cfg pointer to task conifg
+ * @return true :)
+ * @return false :C
+ */
 bool SDT_init(sd_task_cfg_t *cfg);
 
+/**
+ * @brief Send data to save
+ *
+ * @param data pointer to data string
+ * @param data_size data string size
+ * @return true :)
+ * @return false :C
+ */
 bool SDT_send_data(char *data, size_t data_size);
 
+/**
+ * @brief Send log to save
+ *
+ * @param log pointer to log string
+ * @param log_size log stirng size
+ * @return true :)
+ * @return false :C
+ */
 bool SDT_send_log(char *log, size_t log_size);
 
+/**
+ * @brief Change path for data saving
+ * 
+ * @param new_path new path string
+ * @param path_size new path size 
+ * @return true :)
+ * @return false  :C
+ */
 bool SDT_change_data_path(char *new_path, size_t path_size);
 
-void SDT_terminate(void);
+/**
+ * @brief Terminate sd task
+ *
+ */
+void SDT_terminate_task(void);
 #endif

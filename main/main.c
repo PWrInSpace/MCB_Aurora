@@ -141,7 +141,7 @@ void app_main(void) {
         }
         if (i == 40) {
             ESP_LOGI(TAG, "TERMINATING");
-            SDT_terminate();
+            SDT_terminate_task();
         }
     }
 }

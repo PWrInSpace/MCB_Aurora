@@ -25,8 +25,6 @@ typedef enum {
 typedef bool (*FT_error_handler) (FT_ERROR_CODE error_code);
 
 typedef bool (*FT_can_write) (void);
-typedef bool (*FT_erase_condition) (void);
-typedef bool (*FT_terminate_codnition) (void);
 
 typedef struct {
     size_t data_size;   // size of transmitting data
@@ -68,6 +66,6 @@ void FT_erase_and_run_loop(void);
  * @brief Terminate flash task
  * 
  */
-void FT_terminate(void);
+void FT_terminate_task(void);
 
 #endif
