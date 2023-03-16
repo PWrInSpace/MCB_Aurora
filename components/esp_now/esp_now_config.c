@@ -1,3 +1,5 @@
+// Copyright 2022 PWrInSpace, Kuba
+
 #include "esp_now_config.h"
 #include "esp_log.h"
 #include "esp_now_api.h"
@@ -53,9 +55,3 @@ static void callback_main_valve(uint8_t *data, size_t size) {
 static void callback_tanwa(uint8_t *data, size_t size) {
     ESP_LOGI(TAG, "Tanwa receive, size %d", size);
 }
-
-
-
-
-
-

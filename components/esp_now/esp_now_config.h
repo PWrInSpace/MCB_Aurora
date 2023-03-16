@@ -1,7 +1,10 @@
+// Copyright 2022 PWrInSpace, Kuba
+
 #ifndef ESP_NOW_CONFIG_H
 #define ESP_NOW_CONFIG_H
 
 #include <stdint.h>
+#include "esp_now_api.h"
 
 #define ESP_NOW_CHANNEL 0
 
