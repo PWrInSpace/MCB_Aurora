@@ -15,6 +15,7 @@ set(EXTRA_COMPONENT_DIRS "../components")
 set(TEST_FILES_DIRS
     "test"
     "esp_now"
+    "commands"
 )
 
 

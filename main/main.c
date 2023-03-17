@@ -24,8 +24,6 @@ sd_card_t sd;
 #include "sdkconfig.h"
 #define TAG "AURORA"
 
-
-
 // typedef struct {
 //     float x;
 //     uint32_t time_stamp;

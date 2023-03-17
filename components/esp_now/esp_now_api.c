@@ -74,11 +74,17 @@ static bool address_compare(const uint8_t *addr1, const uint8_t *addr2) {
     return true;
 }
 
-inline static void transmiting_acquire(void) { gb.is_packet_transmiting = true; }
+inline static void transmiting_acquire(void) {
+    gb.is_packet_transmiting = true;
+}
 
-inline static void transmiting_release(void) { gb.is_packet_transmiting = false; }
+inline static void transmiting_release(void) {
+    gb.is_packet_transmiting = false;
+}
 
-inline static bool is_packet_transmiting(void) { return gb.is_packet_transmiting; }
+inline static bool is_packet_transmiting(void) {
+    return gb.is_packet_transmiting;
+}
 
 static bool send_packet(ENA_transmit_param_t *packet) {
     ESP_LOGI(TAG, "SENDING MESSAGE TO: " MACSTR, MAC2STR(packet->mac));
