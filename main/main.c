@@ -154,22 +154,22 @@ void app_main(void) {
         }
     }
 }
- 
-typedef struct DataToObc {
-    bool wakenUp : 1;
-    uint32_t uptime;
-    // IMPORTANT! To implementation of each module:
 
-    // IMPORTANT END!
-} DataToObc;
+// typedef struct DataToObc {
+//     bool wakenUp : 1;
+//     uint32_t uptime;
+//     // IMPORTANT! To implementation of each module:
 
-static void on_rec(uint8_t *data, size_t len) {
-    ESP_LOGI(TAG, "RECEIVED MESSAGE :D");
-    DataToObc x;
-    memcpy(&x, data, len);
+//     // IMPORTANT END!
+// } DataToObc;
 
-    ESP_LOGI(TAG, "RECEIVED %d %d", x.wakenUp, x.uptime);
-}
+// static void on_rec(uint8_t *data, size_t len) {
+//     ESP_LOGI(TAG, "RECEIVED MESSAGE :D");
+//     DataToObc x;
+//     memcpy(&x, data, len);
+
+//     ESP_LOGI(TAG, "RECEIVED %d %d", x.wakenUp, x.uptime);
+// }
 /*
 static void init_state_machine(void) {
     state_machine_task_cfg_t task_cfg = {
@@ -200,41 +200,41 @@ void app_main(void) {
 }
 */
 
-static void on_err(ENA_ERROR err) { ESP_LOGE(TAG, "ERROR :C %d", err); }
+// static void on_err(ENA_ERROR err) { ESP_LOGE(TAG, "ERROR :C %d", err); }
 
-const ENA_device_t test_dev = {
-    .peer = {.peer_addr = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, .channel = 0},
-    .on_receive = on_rec,
-};
+// const ENA_device_t test_dev = {
+//     .peer = {.peer_addr = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, .channel = 0},
+//     .on_receive = on_rec,
+// };
 
-const ENA_device_t test_dev2 = {
-    .peer = {.peer_addr = {0x78, 0x21, 0x84, 0x8d, 0x7e, 0xd0}, .channel = 0},
-    .on_receive = on_rec,
-};
+// const ENA_device_t test_dev2 = {
+//     .peer = {.peer_addr = {0x78, 0x21, 0x84, 0x8d, 0x7e, 0xd0}, .channel = 0},
+//     .on_receive = on_rec,
+// };
 
-void app_main(void) {
-  uint8_t mac_address[] = {0x04, 0x20, 0x04, 0x20, 0x04, 0x20};
-  ENA_config_t cfg = {
-      .stack_depth = 8000,
-      .priority = 3,
-      .core_id = APP_CPU_NUM,
-  };
-  ENA_init(mac_address);
-  ENA_register_device(&test_dev);
-  ENA_register_device(&test_dev2);
-  ENA_register_error_handler(on_err);
-  ENA_run(&cfg);
-uint8_t x = 1;
-    ENA_send(&test_dev, &x, sizeof(x), 0);
-    vTaskDelay(10000 / portTICK_PERIOD_MS);
-  while (1) {
-    // ESP_LOGI(TAG, "Hello world! 1234");
-    x = 4;
-    // ENA_send(&test_dev2, &x, sizeof(x), 3);
-    ENA_send(&test_dev, &x, sizeof(x), 0);
-    vTaskDelay(500 / portTICK_PERIOD_MS);
-  }
-}
+// void app_main(void) {
+//   uint8_t mac_address[] = {0x04, 0x20, 0x04, 0x20, 0x04, 0x20};
+//   ENA_config_t cfg = {
+//       .stack_depth = 8000,
+//       .priority = 3,
+//       .core_id = APP_CPU_NUM,
+//   };
+//   ENA_init(mac_address);
+//   ENA_register_device(&test_dev);
+//   ENA_register_device(&test_dev2);
+//   ENA_register_error_handler(on_err);
+//   ENA_run(&cfg);
+// uint8_t x = 1;
+//     ENA_send(&test_dev, &x, sizeof(x), 0);
+//     vTaskDelay(10000 / portTICK_PERIOD_MS);
+//   while (1) {
+//     // ESP_LOGI(TAG, "Hello world! 1234");
+//     x = 4;
+//     // ENA_send(&test_dev2, &x, sizeof(x), 3);
+//     ENA_send(&test_dev, &x, sizeof(x), 0);
+//     vTaskDelay(500 / portTICK_PERIOD_MS);
+//   }
+// }
 
 // esp_err_t spi_initialize(void) {
 //     esp_err_t ret;
