@@ -1,0 +1,4 @@
+Flash Task:
+    @low Change events bit to task notification
+    @high Check flash open with w instead of erase
+
