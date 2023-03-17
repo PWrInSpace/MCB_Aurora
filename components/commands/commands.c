@@ -115,7 +115,7 @@ bool CMD_send_command_for_processing(command_message_t *command) {
     return true;
 }
 
-command_message_t CMD_create_command(uint32_t command, int32_t payload) {
+command_message_t CMD_create_message(uint32_t command, int32_t payload) {
     command_message_t message = {
         .cmd.command = command,
         .cmd.payload = payload

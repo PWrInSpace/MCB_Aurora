@@ -62,7 +62,7 @@ TEST_CASE("Check command processing", "[CMD]") {
     };
     TEST_ASSERT_EQUAL(true, CMD_init(&cfg));
 
-    command_message_t cmd = CMD_create_command(TEST_COMMAND, 32);
+    command_message_t cmd = CMD_create_message(TEST_COMMAND, 32);
     TEST_ASSERT_EQUAL(true, CMD_send_command_for_processing(&cmd));
 
     vTaskDelay(pdMS_TO_TICKS(25));
