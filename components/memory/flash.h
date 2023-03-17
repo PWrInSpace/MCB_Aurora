@@ -1,15 +1,21 @@
 // Copyright 2022 PWr in Space, Krzysztof Gliwiński
 #pragma once
 
-#include <esp_flash.h>
-#include <esp_flash_spi_init.h>
-#include <spi_flash_mmap.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include "esp_flash.h"
+#include "esp_flash_spi_init.h"
+#include "spi_flash_mmap.h"
 
 #include "esp_log.h"
 #include "esp_spiffs.h"
+
+#define PATH "/spiffs"
+#define FLASH_FILE_NAME "flash"
+#define MAX_FILES 1
+
+#define FLASH_PATH PATH "/" FLASH_FILE_NAME
 
 /*!
   \file flash.h
@@ -59,12 +65,11 @@ typedef enum {
   FLASH_ALLOC_ERROR,
 } FlashResult;
 
-#define PATH "/spiffs"
-#define MAX_FILES 1
 
 FlashResult FLASH_init(uint8_t max_files);
 FlashResult FLASH_write(const char* file_name, const char* data, size_t size);
 FlashResult FLASH_read_all_data(const char* file_name, char* data_container,
                                 size_t size);
 size_t FLASH_get_used_size(void);
+size_t FLASH_get_total_size(void);
 FlashResult FLASH_format(void);

@@ -6,7 +6,7 @@
 
 #define TAG "SDCARD"
 
-static bool SD_mount(sd_card_t *sd_card) {
+bool SD_mount(sd_card_t *sd_card) {
     esp_err_t res;
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
         .format_if_mount_failed = false,
@@ -34,14 +34,15 @@ static bool SD_mount(sd_card_t *sd_card) {
         }
         return false;
     }
+    sd_card->card_detect_pin = 0;
     sd_card->mounted = true;
     return true;
 }
 
-bool SD_init(sd_card_t *sd_card, spi_host_device_t spi_host, uint8_t cs_pin, const char* m_point) {
-    sd_card->spi_host = spi_host;
-    sd_card->cs_pin = cs_pin;
-    sd_card->mount_point = m_point;
+bool SD_init(sd_card_t *sd_card, sd_card_config_t *cfg) {
+    sd_card->spi_host = cfg->spi_host;
+    sd_card->cs_pin = cfg->cs_pin;
+    sd_card->mount_point = cfg->mount_point;
 
     // Options for mounting the filesystem
     if (SD_mount(sd_card) == false) {
@@ -101,12 +102,11 @@ bool SD_write(sd_card_t *sd_card, const char* path, const char* data, size_t len
     if (res != ESP_OK) {
         ESP_LOGE(TAG, "CARD ERROR, REMOOUNTING...");
         SD_remount(sd_card);
-        return false;
     }
 
     FILE *file = fopen(path, "a");
     if (file == NULL) {
-        ESP_LOGE(TAG, "FILE OPEN ERROR");
+        ESP_LOGE(TAG, "FILE OPEN ERROR %s", path);
         return false;
     }
 
@@ -122,4 +122,33 @@ bool SD_write(sd_card_t *sd_card, const char* path, const char* data, size_t len
     return true;
 }
 
+bool SD_is_ok(sd_card_t *sd_card) {
+    esp_err_t res = sdmmc_get_status(sd_card->card);
+    if (res != ESP_OK) {
+        ESP_LOGE(TAG, "SD error status %s", esp_err_to_name(res));
+        return false;
+    }
 
+    return true;
+}
+
+bool create_path_to_file(char *file_path, size_t size) {
+    char *path = (char*)calloc(size, sizeof(char));
+    int ret = 0;
+    for (int i = 0; i < 1000; ++i) {
+        ret = snprintf(path, size, "%s%d.txt", file_path, i);
+        if (ret == size) {
+            free(path);
+            return false;
+        }
+
+        if (SD_file_exists(path) == false) {
+            memcpy(file_path, path, size);
+            free(path);
+            return true;
+        }
+    }
+
+    free(path);
+    return false;
+}
