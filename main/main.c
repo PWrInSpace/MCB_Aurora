@@ -16,13 +16,19 @@
 #include "flash_task.h"
 #include "sd_task.h"
 #include "state_machine_wrapper.h"
+#include "init_task.h"
 
-spi_t spi;
-i2c_t i2c;
-sd_card_t sd;
+// spi_t spi;
+// i2c_t i2c;
+// sd_card_t sd;
 
 #include "sdkconfig.h"
 #define TAG "AURORA"
+
+// void app_main(void) {
+//     run_init_task();
+//     vTaskDelete(NULL);
+// }
 
 // typedef struct {
 //     float x;
@@ -233,6 +239,7 @@ void app_main(void) {
 //     vTaskDelay(500 / portTICK_PERIOD_MS);
 //   }
 // }
+
 
 // esp_err_t spi_initialize(void) {
 //     esp_err_t ret;
