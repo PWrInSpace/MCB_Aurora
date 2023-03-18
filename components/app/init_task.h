@@ -3,6 +3,6 @@
 #define INIT_TASK_H
 
 
-void TASK_init(void *arg);
+void run_init_task(void);
 
 #endif
