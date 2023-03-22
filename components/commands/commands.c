@@ -2,9 +2,6 @@
 
 #include <string.h>
 #include "commands.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/queue.h"
-#include "freertos/task.h"
 #include "esp_log.h"
 
 #define TAG "CMD"
@@ -16,34 +13,38 @@ static struct {
     command_handle_t *registered_commands;
     size_t number_of_commands;
 
-    cmd_on_error error_fnc;
+    cmd_on_task_error error_task_fnc;
 } gb = {
     .task = NULL,
     .receive_queue = NULL,
     .registered_commands = NULL,
     .number_of_commands = 0,
-    .error_fnc = NULL,
+    .error_task_fnc = NULL,
 };
 
 static void report_error(COMMAND_ERROR error) {
     ESP_LOGE(TAG, "ERROR %d", error);
-    if (gb.error_fnc != NULL) {
-        gb.error_fnc(error);
+    if (gb.error_task_fnc != NULL) {
+        gb.error_task_fnc(error);
     }
 }
 
-static void find_command_and_execute(command_message_t *received_command) {
+static bool find_command_and_execute(command_message_t *received_command) {
     for (size_t i = 0; i < gb.number_of_commands; ++i) {
         if (gb.registered_commands[i].command == received_command->cmd.command) {
             if (gb.registered_commands[i].receive_fnc != NULL) {
                 gb.registered_commands[i].receive_fnc(
                         received_command->cmd.command, received_command->cmd.payload);
             }
-            return;
+            return true;
         }
     }
 
-    report_error(COMMAND_NOT_FOUND);
+    if (gb.task != NULL) {
+        report_error(COMMAND_NOT_FOUND);
+    }
+
+    return false;
 }
 
 static void command_task(void *arg) {
@@ -58,12 +59,8 @@ static void command_task(void *arg) {
     }
 }
 
-bool CMD_init(command_config_t *cfg) {
-    assert(gb.task != NULL);
-    if (gb.task != NULL) {
-        return false;
-    }
 
+static bool register_commands_and_err_fnc(command_config_t *cfg) {
     assert(cfg->commands != NULL);
     assert(cfg->number_of_commands > 0);
     if (cfg->commands == NULL || cfg->number_of_commands == 0) {
@@ -72,9 +69,25 @@ bool CMD_init(command_config_t *cfg) {
 
     gb.registered_commands = cfg->commands;
     gb.number_of_commands = cfg->number_of_commands;
-    gb.error_fnc = cfg->error_fnc;
+    gb.error_task_fnc = cfg->task_error_fnc;
 
-    gb.receive_queue = xQueueCreate(CMD_RECEIVE_QUEUE_SIZE, sizeof(command_message_t));
+    return true;
+}
+
+bool CMD_init(command_config_t *cfg) {
+    return register_commands_and_err_fnc(cfg);
+}
+
+bool CMD_init_with_task(command_config_t *cfg) {
+    if (gb.task != NULL) {
+        return false;
+    }
+
+    if (register_commands_and_err_fnc(cfg) == false) {
+        return false;
+    }
+
+    gb.receive_queue = xQueueCreate(cfg->queue_size, sizeof(command_message_t));
     if (gb.receive_queue == NULL) {
         return false;
     }
@@ -82,11 +95,11 @@ bool CMD_init(command_config_t *cfg) {
     xTaskCreatePinnedToCore(
         command_task,
         "Command task",
-        CMD_TASK_STACK_DEPTH,
+        cfg->stack_depth,
         NULL,
-        CMD_TASK_PRIORITY,
+        cfg->priority,
         &gb.task,
-        CMD_TASK_CORE_ID);
+        cfg->core_id);
 
     if (gb.task == NULL) {
         vQueueDelete(gb.receive_queue);
@@ -99,6 +112,7 @@ bool CMD_init(command_config_t *cfg) {
 
 bool CMD_send_command_for_processing(command_message_t *command) {
     assert(command != NULL);
+    assert(gb.receive_queue != NULL);
     if (command == NULL) {
         return false;
     }
@@ -115,6 +129,10 @@ bool CMD_send_command_for_processing(command_message_t *command) {
     return true;
 }
 
+bool CMD_process_command(command_message_t *command) {
+    return find_command_and_execute(command);
+}
+
 command_message_t CMD_create_message(uint32_t command, int32_t payload) {
     command_message_t message = {
         .cmd.command = command,
@@ -125,9 +143,14 @@ command_message_t CMD_create_message(uint32_t command, int32_t payload) {
 }
 
 void CMD_terminate_task(void) {
-    vQueueDelete(gb.receive_queue);
-    vTaskDelete(gb.task);
-    memset(&gb, 0, sizeof(gb));
-    gb.receive_queue = NULL;
+    if (gb.receive_queue != NULL) {
+        vQueueDelete(gb.receive_queue);
+        gb.receive_queue = NULL;
+    }
+
+    if (gb.task != NULL) {
+        vTaskDelete(gb.task);
+        gb.task = NULL;
+    }
 }
 
