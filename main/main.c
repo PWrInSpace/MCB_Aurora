@@ -25,13 +25,10 @@
 #include "sdkconfig.h"
 #define TAG "AURORA"
 
-
-
 // void app_main(void) {
 //     run_init_task();
 //     vTaskDelete(NULL);
 // }
-
 
 // typedef struct {
 //     float x;
