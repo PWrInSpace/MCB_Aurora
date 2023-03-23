@@ -18,13 +18,22 @@ typedef enum {
     COMMAND_NOT_FOUND = 1,
 } COMMAND_ERROR;
 
-typedef void (*cmd_on_command_receive)(uint32_t command, int32_t payload);
-typedef void (*cmd_on_task_error)(COMMAND_ERROR error);
+typedef uint8_t rf_cmd_device_id_t;
+typedef uint32_t rf_cmd_command_id_t;
+typedef void (*rf_cmd_on_command_receive)(uint32_t command, int32_t payload, bool sudo);
+typedef void (*rf_cmd_on_task_error)(COMMAND_ERROR error);
+
 
 typedef struct {
-    uint32_t command;
-    cmd_on_command_receive receive_fnc;
-} command_handle_t;
+    rf_cmd_command_id_t command_id;
+    rf_cmd_on_command_receive on_command_receive_fnc;
+} rf_cmd_command_t;
+
+typedef struct {
+    rf_cmd_device_id_t dev_id;
+    rf_cmd_command_t *commands;
+    size_t number_of_commands;
+} rf_cmd_device_t;
 
 typedef union {
     struct command {
@@ -33,19 +42,20 @@ typedef union {
     } cmd;
 
     uint8_t raw[sizeof(struct command)];
-} command_message_t;
+} rf_cmd_message_t;
+
 
 typedef struct {
-    command_handle_t *commands;  // pointer to static allocated array of commands
-    size_t number_of_commands;   // numbner of commands
+    rf_cmd_device_t *devices;  // pointer to static allocated array of commands
+    size_t number_of_devices;   // numbner of commands
     // function calls on error, can be NULL if you dont want to use
-    cmd_on_task_error task_error_fnc;
+    rf_cmd_on_task_error task_error_fnc;
 
-    uint32_t stack_depth;   // task stack_depth
-    BaseType_t core_id;     // task core_id
-    UBaseType_t priority;   // task priority
-    uint8_t queue_size;     // queueu size
-} command_config_t;
+    // uint32_t stack_depth;   // task stack_depth
+    // BaseType_t core_id;     // task core_id
+    // UBaseType_t priority;   // task priority
+    // uint8_t queue_size;     // queueu size
+} rf_cmd_config_t;
 
 /**
  * @brief Initialize commands api without task
@@ -54,50 +64,50 @@ typedef struct {
  * @return true :)
  * @return false :C
  */
-bool CMD_init(command_config_t *cfg);
+bool rf_cmd_init(rf_cmd_config_t *cfg);
 
 /**
- * @brief Initialize command task
+ * @brief Initialize rf_cmd task
  *
  * @param cfg pointer to config
  * @return true :)
  * @return false :C
  */
-bool CMD_init_with_task(command_config_t *cfg);
+bool rf_cmd_init_with_task(rf_cmd_config_t *cfg);
 
 
 /**
- * @brief Send command to task for processing
+ * @brief Send rf_cmd to task for processing
  *
- * @param command pointer to command
+ * @param rf_cmd pointer to rf_cmd
  * @return true :D
  * @return false :C
  */
-bool CMD_send_command_for_processing(command_message_t *command);
+bool rf_cmd_send_rf_cmd_for_processing(rf_cmd_message_t *command);
 
 /**
- * @brief Process command without task
+ * @brief Process rf_cmd without task
  * 
- * @param command pointer to command
+ * @param rf_cmd pointer to rf_cmd
  * @return true :D
  * @return false :C
  */
-bool CMD_process_command(command_message_t *command);
+bool rf_cmd_process_rf_cmd(rf_cmd_message_t *command);
 
 /**
  * @brief Creater message
  *
- * @param command command
+ * @param rf_cmd rf_cmd
  * @param payload payload
- * @return command_message_t created message
+ * @return rf_cmd_message_t created message
  */
-command_message_t CMD_create_message(uint32_t command, int32_t payload);
+rf_cmd_message_t rf_cmd_create_message(uint32_t command, int32_t payload);
 
 /**
  * @brief Terminate task
  *
  */
-void CMD_terminate_task(void);
+void rf_cmd_terminate_task(void);
 
 #ifdef __cplusplus
 }
