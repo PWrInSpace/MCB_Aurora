@@ -17,6 +17,8 @@
 #include "sd_task.h"
 #include "state_machine_wrapper.h"
 #include "init_task.h"
+#include "lora.h"
+#include "lora_esp32_config.h"
 
 // spi_t spi;
 // i2c_t i2c;
@@ -25,12 +27,102 @@
 #include "sdkconfig.h"
 #define TAG "AURORA"
 
+#define DO_PIN 17
+
+int x = 0;
 
 
-// void app_main(void) {
-//     run_init_task();
-//     vTaskDelete(NULL);
-// }
+
+lora_struct_t lora = {._spi_transmit = _lora_SPI_transmit,
+                      ._delay = _lora_delay,
+                      ._gpio_set_level = _lora_GPIO_set_level,
+                      .log = _lora_log,
+                      .rst_gpio_num = 16,
+                      .cs_gpio_num = 4,
+                      .d0_gpio_num = DO_PIN,
+                      .implicit_header = 0,
+                      .frequency = 0};
+
+QueueHandle_t queue;
+static void IRAM_ATTR gpio_interrupt_cb(void *args) {
+    int pin_number = (int)args;
+    x += 1;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xQueueSendFromISR(queue, &x, &xHigherPriorityTaskWoken);
+    if( xHigherPriorityTaskWoken )
+    {
+        portYIELD_FROM_ISR();
+    }
+}
+
+
+void test_task(void *arg) {
+    int x = 0;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    uint8_t buf[300];
+
+    while (1) {
+        if (xQueueReceive(queue, &x, portMAX_DELAY) == pdTRUE) {
+            ESP_LOGI(TAG, "RECEIVED %d", x);
+            size_t z = lora_receive_packet(&lora, buf, sizeof(buf));
+            buf[z] = '\0';
+            printf("Received: %s", buf);
+            lora_received(&lora);
+            lora_set_receive_mode(&lora);
+        }
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+}
+
+
+void app_main(void) {
+    _lora_spi_and_pins_init();
+    lora_init(&lora);
+
+    gpio_pad_select_gpio(DO_PIN);
+    gpio_set_direction(DO_PIN, GPIO_MODE_INPUT);
+    gpio_pulldown_en(DO_PIN);
+    gpio_pullup_dis(DO_PIN);
+    gpio_set_intr_type(DO_PIN, GPIO_INTR_POSEDGE);
+    gpio_install_isr_service(0);
+    gpio_isr_handler_add(DO_PIN, gpio_interrupt_cb, (void*)DO_PIN);
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+    queue = xQueueCreate(20, sizeof(int));
+
+    lora_set_frequency(&lora, 867e6);
+    lora_set_bandwidth(&lora, LORA_BW_250_kHz);
+    lora_disable_crc(&lora);
+    // lora_map_d0_interrupt(&lora, LORA_IRQ_D0_TXDONE);
+    // lora_write_irq_flags(&lora);
+
+    // int16_t read_val_one = lora_read_reg(&lora, 0x0d);
+    // int16_t read_val_two = lora_read_reg(&lora, 0x0c);
+    // ESP_LOGI(TAG, "LORA_READ: %04x, %04x", read_val_one, read_val_two);
+
+    uint8_t buffer[] = "Hello world!\n";
+    lora_map_d0_interrupt(&lora, LORA_IRQ_D0_RXDONE);
+    lora_send_packet(&lora, buffer, sizeof(buffer));
+    lora_set_receive_mode(&lora);
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    ESP_LOGI(TAG, "Transmiting done counter %d", x);
+    xTaskCreatePinnedToCore(test_task, "now_task", 4096, NULL, 10,
+                            NULL, 0);
+    while (1) {
+        // ESP_LOGI(TAG, "Transmiting done counter %d", x);
+        // // lora_received(&lora);
+        // // lora_set_receive_mode(&lora);
+
+        // lora_set_receive_mode(&lora);  // put into receive mode
+        // while (lora_received(&lora) == LORA_OK) {
+        //     size_t z = lora_receive_packet(&lora, buf, sizeof(buf));
+        //     buf[z] = '\0';
+        //     printf("Received: %s", buf);
+        //     lora_received(&lora);
+        // }
+        vTaskDelay(1000);
+    }
+}
 
 
 // typedef struct {
@@ -101,66 +193,66 @@
 //     FT_init(&cfg);
 // }
 
-esp_err_t spi_initialize(void) {
-    esp_err_t ret;
-    spi_bus_config_t bus = {
-      .miso_io_num = 19,
-      .mosi_io_num = 23,
-      .sclk_io_num = 18,
-      .quadwp_io_num = -1,
-      .quadhd_io_num = -1,
-      .max_transfer_sz = 4000,
-    };
+// esp_err_t spi_initialize(void) {
+//     esp_err_t ret;
+//     spi_bus_config_t bus = {
+//       .miso_io_num = 19,
+//       .mosi_io_num = 23,
+//       .sclk_io_num = 18,
+//       .quadwp_io_num = -1,
+//       .quadhd_io_num = -1,
+//       .max_transfer_sz = 4000,
+//     };
 
-    ret = spi_bus_initialize(VSPI_HOST, &bus, SDSPI_DEFAULT_DMA);
-    assert(ret == ESP_OK);
-    return ret;
-}
+//     ret = spi_bus_initialize(VSPI_HOST, &bus, SDSPI_DEFAULT_DMA);
+//     assert(ret == ESP_OK);
+//     return ret;
+// }
 
 
-void app_main(void) {
-    // init_console();
-    // data d = {
-    //     .time_stamp = 0,
-    //     .x = 12,
-    // };
-    // flash_task();
-    spi_initialize();
-    sd_task_cfg_t cfg = {
-        .cs_pin = 5,
-        .data_path = "data",
-        .data_path_size = 9,
-        .spi_host = VSPI_HOST,
-        .log_path = "log",
-        .log_path_size = 5,
-        .stack_depth = 8000,
-        .priority = 0,
-        .core_id = APP_CPU_NUM,
-        .error_handler_fnc = NULL,
-    };
+// void app_main(void) {
+//     // init_console();
+//     // data d = {
+//     //     .time_stamp = 0,
+//     //     .x = 12,
+//     // };
+//     // flash_task();
+//     spi_initialize();
+//     sd_task_cfg_t cfg = {
+//         .cs_pin = 5,
+//         .data_path = "data",
+//         .data_path_size = 9,
+//         .spi_host = VSPI_HOST,
+//         .log_path = "log",
+//         .log_path_size = 5,
+//         .stack_depth = 8000,
+//         .priority = 0,
+//         .core_id = APP_CPU_NUM,
+//         .error_handler_fnc = NULL,
+//     };
 
-    SDT_init(&cfg);
-    char dupa[256];
-    int i = 0;
-    while (1) {
-        snprintf(dupa, sizeof(dupa), "Hello world\n");
-        // ESP_LOGI(TAG, "Writing to sd");
-        SDT_send_data(dupa, sizeof(dupa));
-        snprintf(dupa, sizeof(dupa), "Hello XDDDD\n");
-        SDT_send_log(dupa, sizeof(dupa));
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        i++;
-        if (i == 20) {
-            ESP_LOGI(TAG, "changing path");
-            char path[] = "test123";
-            SDT_change_data_path(path, sizeof(path));
-        }
-        if (i == 40) {
-            ESP_LOGI(TAG, "TERMINATING");
-            SDT_terminate_task();
-        }
-    }
-}
+//     SDT_init(&cfg);
+//     char dupa[256];
+//     int i = 0;
+//     while (1) {
+//         snprintf(dupa, sizeof(dupa), "Hello world\n");
+//         // ESP_LOGI(TAG, "Writing to sd");
+//         SDT_send_data(dupa, sizeof(dupa));
+//         snprintf(dupa, sizeof(dupa), "Hello XDDDD\n");
+//         SDT_send_log(dupa, sizeof(dupa));
+//         vTaskDelay(pdMS_TO_TICKS(1000));
+//         i++;
+//         if (i == 20) {
+//             ESP_LOGI(TAG, "changing path");
+//             char path[] = "test123";
+//             SDT_change_data_path(path, sizeof(path));
+//         }
+//         if (i == 40) {
+//             ESP_LOGI(TAG, "TERMINATING");
+//             SDT_terminate_task();
+//         }
+//     }
+// }
 
 // typedef struct DataToObc {
 //     bool wakenUp : 1;
