@@ -11,7 +11,7 @@
 #include "freertos/task.h"
 #include "lora.h"
 
-bool _lora_spi_and_pins_init();
+bool spi_lora_add_device();
 
 bool _lora_SPI_transmit(uint8_t _in[2], uint8_t _out[2]);
 

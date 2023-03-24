@@ -1,28 +1,24 @@
 // Copyright 2023 PWr in Space, Krzysztof Gliwiński
 
 #include "lora_esp32_config.h"
+#include "lora_task.h"
+#include "driver/gpio.h"
 
 static spi_device_handle_t __spi;
 
-#define CONFIG_CS_GPIO GPIO_NUM_4
-#define CONFIG_SCK_GPIO GPIO_NUM_18
-#define CONFIG_MOSI_GPIO GPIO_NUM_23
-#define CONFIG_MISO_GPIO GPIO_NUM_19
-#define CONFIG_RST_GPIO GPIO_NUM_17
+#define LORA_CS_PIN CONFIG_LORA_CS
+#define CONFIG_RST_GPIO CONFIG_LORA_RS
+#define LORA_D0_PIN CONFIG_LORA_D0
+
 
 #define TAG "LORA"
 
-bool _lora_spi_and_pins_init() {
-  esp_err_t ret;
-  spi_bus_config_t bus = {.miso_io_num = CONFIG_MISO_GPIO,
-                          .mosi_io_num = CONFIG_MOSI_GPIO,
-                          .sclk_io_num = CONFIG_SCK_GPIO,
-                          .quadwp_io_num = -1,
-                          .quadhd_io_num = -1,
-                          .max_transfer_sz = 0};
+static void IRAM_ATTR gpio_interrupt_cb(void *args) {
+    lora_task_irq_notifi();
+}
 
-  ret = spi_bus_initialize(VSPI_HOST, &bus, 0);
-  ESP_ERROR_CHECK(ret);
+bool spi_lora_add_device() {
+  esp_err_t ret;
 
   spi_device_interface_config_t dev = {.clock_speed_hz = 9000000,
                                        .mode = 0,
@@ -36,11 +32,14 @@ bool _lora_spi_and_pins_init() {
   /*
    * Configure CPU hardware to communicate with the radio chip
    */
-  // gpio_pad_select_gpio(CONFIG_RST_GPIO);
   gpio_set_direction(CONFIG_RST_GPIO, GPIO_MODE_OUTPUT);
-  // gpio_pad_select_gpio(CONFIG_CS_GPIO);
-  gpio_set_direction(CONFIG_CS_GPIO, GPIO_MODE_OUTPUT);
-
+  gpio_set_direction(LORA_CS_PIN, GPIO_MODE_OUTPUT);
+  gpio_set_direction(LORA_D0_PIN, GPIO_MODE_INPUT);
+  gpio_pulldown_en(LORA_D0_PIN);
+  gpio_pullup_dis(LORA_D0_PIN);
+  gpio_set_intr_type(LORA_D0_PIN, GPIO_INTR_POSEDGE);
+  gpio_install_isr_service(0);
+  gpio_isr_handler_add(LORA_D0_PIN, gpio_interrupt_cb, NULL);
   return ret == ESP_OK ? true : false;
 }
 
@@ -50,9 +49,9 @@ bool _lora_SPI_transmit(uint8_t _in[2], uint8_t _out[2]) {
                          .tx_buffer = _out,
                          .rx_buffer = _in};
 
-  gpio_set_level(CONFIG_CS_GPIO, 0);
+  gpio_set_level(LORA_CS_PIN, 0);
   spi_device_transmit(__spi, &t);
-  gpio_set_level(CONFIG_CS_GPIO, 1);
+  gpio_set_level(LORA_CS_PIN, 1);
   return true;
 }
 

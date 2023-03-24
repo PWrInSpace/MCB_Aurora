@@ -23,6 +23,7 @@ static struct {
     TimerHandle_t receive_window_timer;
 }gb;
 
+// move to commands -- start
 static bool check_lora_dev_id(lora_dev_id dev_id) {
     if (dev_id == BORADCAST_DEV_ID) {
         return true;
@@ -39,6 +40,7 @@ static bool wait_until_irq(void) {
     // return xSemaphoreTake(gb.irq_notification, portMAX_DELAY) == pdTRUE ? true : false;
     return ulTaskNotifyTake(pdTRUE, portMAX_DELAY) == pdTRUE ? true : false;
 }
+// move to commands -- stop
 
 void lora_task_irq_notifi(void) {
     BaseType_t higher_priority_task_woken = pdFALSE;
@@ -50,22 +52,23 @@ void lora_task_irq_notifi(void) {
 }
 
 static void notify_end_of_rx_window(void) {
-    // xSemaphoreGive(gb.irq_notification);
     xTaskNotifyGive(gb.task);
 }
 
-static void init_irq_norification(void) {
-    // xSemaphoreTake(gb.irq_notification, portMAX_DELAY);
+static void lora_change_state_to_receive() {
+    lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_RXDONE);
+    lora_set_receive_mode(&gb.lora);
+    gb.lora_state = LORA_RECEIVE;
 }
 
-static void lora_change_state(lora_state_t new_state) {
-    gb.lora_state = new_state;
+static void lora_change_state_to_transmit() {
+    lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_TXDONE);
+    gb.lora_state = LORA_TRANSMIT;
 }
 
 static size_t on_lora_receive(uint8_t *rx_buffer, size_t buffer_len) {
     size_t len = 0;
-    lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_TXDONE);
-    lora_change_state(LORA_TRANSMIT);
+    lora_change_state_to_transmit();
     if (lora_received(&gb.lora) == LORA_OK) {
         len = lora_receive_packet(&gb.lora, rx_buffer, buffer_len);
         rx_buffer[len] = '\0';
@@ -90,9 +93,7 @@ static void transmint_packet(void) {
 }
 
 static void on_lora_transmit() {
-    lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_RXDONE);
-    lora_set_receive_mode(&gb.lora);
-    lora_change_state(LORA_RECEIVE);
+    lora_change_state_to_receive();
     if (xTimerIsTimerActive(gb.receive_window_timer) == pdTRUE) {
         ESP_LOGE(TAG, "TIMER IS ACTIVE");
         return;
@@ -151,7 +152,7 @@ bool lora_task_init(lora_api_config_t *cfg) {
     }
 
     gb.irq_notification = xSemaphoreCreateBinary();
-    init_irq_norification();
+    // init_irq_norification();
     if (gb.irq_notification == NULL) {
         ESP_LOGI(TAG, "DUPA");
         return false;
@@ -180,21 +181,6 @@ bool lora_task_init(lora_api_config_t *cfg) {
     }
     return true;
 }
-
-
-
-
-// void lora_api_on_irq(void) {
-//     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-//     xEventGroupSetBitsFromISR(gb.irq_event, 0, &xHigherPriorityTaskWoken);
-//     if( xHigherPriorityTaskWoken )
-//     {
-//         portYIELD_FROM_ISR();
-//     }
-// }
-
-// bool lora_wait_for_irq(void) {
-// }
 
 
 

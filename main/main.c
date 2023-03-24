@@ -20,7 +20,7 @@
 #include "lora_esp32_config.h"
 #include "lora_task.h"
 
-// spi_t spi;
+spi_t spi;
 // i2c_t i2c;
 // sd_card_t sd;
 
@@ -58,17 +58,37 @@ static size_t lora_packet(uint8_t *buffer, size_t buffer_size) {
     return snprintf((char*)buffer, buffer_size, "Hello %d\n", i);
 }
 
+esp_err_t spi_initialize(void) {
+    esp_err_t ret;
+    spi_bus_config_t bus = {
+      .miso_io_num = 19,
+      .mosi_io_num = 23,
+      .sclk_io_num = 18,
+      .quadwp_io_num = -1,
+      .quadhd_io_num = -1,
+      .max_transfer_sz = 4000,
+   };
+
+   ret = spi_bus_initialize(VSPI_HOST, &bus, SDSPI_DEFAULT_DMA);
+   assert(ret == ESP_OK);
+   return ret;
+}
+
+
 void app_main(void) {
-    _lora_spi_and_pins_init();
-    lora_init(&lora);
+    SPI_init(&spi, VSPI_HOST, 23, 19, 18);
+    // spi_initialize();
+    spi_lora_add_device();
+    // _lora_spi_and_pins_init();
+    // lora_init(&lora);
 
     // gpio_pad_select_gpio(DO_PIN);
-    gpio_set_direction(DO_PIN, GPIO_MODE_INPUT);
-    gpio_pulldown_en(DO_PIN);
-    gpio_pullup_dis(DO_PIN);
-    gpio_set_intr_type(DO_PIN, GPIO_INTR_POSEDGE);
-    gpio_install_isr_service(0);
-    gpio_isr_handler_add(DO_PIN, gpio_interrupt_cb, (void*)DO_PIN);
+    // gpio_set_direction(DO_PIN, GPIO_MODE_INPUT);
+    // gpio_pulldown_en(DO_PIN);
+    // gpio_pullup_dis(DO_PIN);
+    // gpio_set_intr_type(DO_PIN, GPIO_INTR_POSEDGE);
+    // gpio_install_isr_service(0);
+    // gpio_isr_handler_add(DO_PIN, gpio_interrupt_cb, (void*)DO_PIN);
 
     vTaskDelay(pdMS_TO_TICKS(100));
     lora_api_config_t cfg = {
