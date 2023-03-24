@@ -1,0 +1,22 @@
+menu "Lora"
+    config LORA_FREQUENCY_KHZ
+        int "Lora frequency"
+        default 867000
+
+    config LORA_BANDWIDTH
+        int "Lora bandwidth"
+        default 8
+
+    config LORA_SPREADING_FACTOR
+        int "Lora spreading factor"
+        default 1
+
+    config LORA_CRC_ENABLE
+        int "enable crc"
+        range 0 1
+        default 0
+
+    config LORA_RECEIVE_WINDOW
+        int "receive window time ms"
+        default 500
+endmenu

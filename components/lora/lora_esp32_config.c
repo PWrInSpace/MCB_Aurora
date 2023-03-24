@@ -36,9 +36,9 @@ bool _lora_spi_and_pins_init() {
   /*
    * Configure CPU hardware to communicate with the radio chip
    */
-  gpio_pad_select_gpio(CONFIG_RST_GPIO);
+  // gpio_pad_select_gpio(CONFIG_RST_GPIO);
   gpio_set_direction(CONFIG_RST_GPIO, GPIO_MODE_OUTPUT);
-  gpio_pad_select_gpio(CONFIG_CS_GPIO);
+  // gpio_pad_select_gpio(CONFIG_CS_GPIO);
   gpio_set_direction(CONFIG_CS_GPIO, GPIO_MODE_OUTPUT);
 
   return ret == ESP_OK ? true : false;
