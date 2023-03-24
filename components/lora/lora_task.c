@@ -13,8 +13,10 @@
 
 static struct {
     lora_dev_id dev_id;
-    lora_state_t lora_state;
     lora_struct_t lora;
+    lora_task_process_rx_packet process_packet_fnc;
+    lora_task_get_tx_packet get_tx_packet_fnc;
+    lora_state_t lora_state;
 
     SemaphoreHandle_t irq_notification;
     TaskHandle_t task;
@@ -60,25 +62,31 @@ static void lora_change_state(lora_state_t new_state) {
     gb.lora_state = new_state;
 }
 
-static void on_lora_receive(uint8_t *rx_buffer, size_t buffer_len) {
+static size_t on_lora_receive(uint8_t *rx_buffer, size_t buffer_len) {
+    size_t len = 0;
     lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_TXDONE);
     lora_change_state(LORA_TRANSMIT);
     if (lora_received(&gb.lora) == LORA_OK) {
-        size_t len = 0;
         len = lora_receive_packet(&gb.lora, rx_buffer, buffer_len);
         rx_buffer[len] = '\0';
         ESP_LOGI(TAG, "Received %s", rx_buffer);
-        vTaskDelay(pdMS_TO_TICKS(100));
     }
-    static int x = 0;
-    x += 1;
-    char test_packet[200];
-    snprintf(test_packet, sizeof(test_packet), "Hello %d\n", x);
+    return len;
+}
+
+static void transmint_packet(void) {
     if (xTimerIsTimerActive(gb.receive_window_timer) == pdTRUE) {
         xTimerStop(gb.receive_window_timer, portMAX_DELAY);
     }
-    ESP_LOGW(TAG, "EEEEet");
-    lora_send_packet(&gb.lora, (uint8_t *)test_packet, sizeof(test_packet));
+
+    if (gb.get_tx_packet_fnc == NULL) {
+        return;
+    }
+
+    uint8_t test_packet[200];
+    size_t packet_size = 0;
+    packet_size = gb.get_tx_packet_fnc(test_packet, sizeof(test_packet));
+    lora_send_packet(&gb.lora, (uint8_t *)test_packet, packet_size);
 }
 
 static void on_lora_transmit() {
@@ -93,22 +101,24 @@ static void on_lora_transmit() {
 }
 
 static void on_receive_window_timer(TimerHandle_t timer) {
-    ESP_LOGI(TAG, "Timer notify");
     notify_end_of_rx_window();
 }
 
 static void lora_task(void *arg) {
     uint8_t rx_buffer[256];
-    size_t rx_len = 0;
+    size_t rx_packet_size = 0;
 
     while (1) {
         if (wait_until_irq() == true) {
             if (gb.lora_state == LORA_TRANSMIT) {
-                ESP_LOGI(TAG, "On transmit");
                 on_lora_transmit();
             } else {
-                ESP_LOGI(TAG, "On receive");
-                on_lora_receive(rx_buffer, sizeof(rx_buffer));
+                rx_packet_size = on_lora_receive(rx_buffer, sizeof(rx_buffer));
+                if (rx_packet_size > 0 && gb.process_packet_fnc != NULL) {
+                    gb.process_packet_fnc(rx_buffer, rx_packet_size);
+                    vTaskDelay(pdMS_TO_TICKS(100));
+                }
+                transmint_packet();
             }
         }
         vTaskDelay(pdMS_TO_TICKS(10));
@@ -121,6 +131,12 @@ bool lora_task_init(lora_api_config_t *cfg) {
         return false;
     }
 
+    if (cfg->process_rx_packet_fnc == NULL || cfg->get_tx_packet_fnc == NULL) {
+        return false;
+    }
+
+    gb.process_packet_fnc = cfg->process_rx_packet_fnc;
+    gb.get_tx_packet_fnc = cfg->get_tx_packet_fnc;
     gb.dev_id = cfg->dev_id;
     memcpy(&gb.lora, cfg->lora, sizeof(lora_struct_t));
 

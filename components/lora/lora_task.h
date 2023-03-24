@@ -18,6 +18,8 @@
 #define BORADCAST_DEV_ID 0x00
 
 typedef uint8_t lora_dev_id;
+typedef void (*lora_task_process_rx_packet)(uint8_t *packet, size_t packet_size);
+typedef size_t (*lora_task_get_tx_packet)(uint8_t *buffer, size_t buffer_size);
 
 typedef enum {
     LORA_IDLE,
@@ -28,6 +30,8 @@ typedef enum {
 
 typedef struct {
     lora_dev_id dev_id;
+    lora_task_process_rx_packet process_rx_packet_fnc;
+    lora_task_get_tx_packet get_tx_packet_fnc;
     lora_struct_t* lora;
 } lora_api_config_t;
 
@@ -35,9 +39,4 @@ typedef struct {
 
 bool lora_task_init(lora_api_config_t *cfg);
 void lora_task_irq_notifi(void);
-
-// void lora_api_on_irq(void);
-// bool lora_wait_for_irq(void);
-
-// bool lora_api_check_dev_id(lora_api_id_t dev_id);
 #endif

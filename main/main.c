@@ -47,6 +47,17 @@ static void IRAM_ATTR gpio_interrupt_cb(void *args) {
     lora_task_irq_notifi();
 }
 
+
+static void lora_process(uint8_t *packet, size_t packet_size) {
+    ESP_LOGI(TAG, "Packet %s", packet);
+}
+
+static size_t lora_packet(uint8_t *buffer, size_t buffer_size) {
+    static int i = 0;
+    i += 1;
+    return snprintf((char*)buffer, buffer_size, "Hello %d\n", i);
+}
+
 void app_main(void) {
     _lora_spi_and_pins_init();
     lora_init(&lora);
@@ -63,6 +74,8 @@ void app_main(void) {
     lora_api_config_t cfg = {
         .dev_id = 0x22,
         .lora = &lora,
+        .process_rx_packet_fnc = lora_process,
+        .get_tx_packet_fnc = lora_packet,
     };
     lora_task_init(&cfg);
 
