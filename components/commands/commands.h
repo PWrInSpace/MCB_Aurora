@@ -22,7 +22,6 @@ typedef uint32_t rf_cmd_lora_dev_id;
 typedef uint32_t rf_cmd_sys_dev_id;
 typedef uint32_t rf_cmd_command_id;
 typedef void (*rf_cmd_on_command_receive)(uint32_t command, int32_t payload, bool privilage);
-typedef void (*rf_cmd_on_task_error)(COMMAND_ERROR error);
 
 typedef struct {
     rf_cmd_command_id command_id;
