@@ -1,7 +1,9 @@
+// Copyright 2022 PWrInSpace, Kuba
 #ifndef LORA_TASK_H
 #define LORA_TASK_H
 
 #include <stdint.h>
+
 #include "lora.h"
 
 #define LORA_TASK_PRIORITY 10
@@ -29,14 +31,25 @@ typedef enum {
 } lora_state_t;
 
 typedef struct {
-    lora_dev_id dev_id;
     lora_task_process_rx_packet process_rx_packet_fnc;
     lora_task_get_tx_packet get_tx_packet_fnc;
-    lora_struct_t* lora;
+    lora_struct_t *lora;
 } lora_api_config_t;
 
-
-
+/**
+ * @brief Initialize lora task
+ *
+ * @param cfg pointer to config
+ * @return true :D
+ * @return false :C
+ */
 bool lora_task_init(lora_api_config_t *cfg);
-void lora_task_irq_notifi(void);
+
+/**
+ * @brief Attach this function to d0 interrupt handler
+ *
+ * @param arg nothing
+ */
+void lora_task_irq_notifi(void *arg);
+
 #endif

@@ -1,4 +1,4 @@
-menu "Lora"
+menu "PinOut"
     config SPI_MOSI
         int "Spi mosi pin"
         default 23

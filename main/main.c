@@ -17,10 +17,10 @@
 #include "sd_task.h"
 #include "state_machine_wrapper.h"
 #include "init_task.h"
-#include "lora_esp32_config.h"
+#include "lora_hw_config.h"
 #include "lora_task.h"
 
-spi_t spi;
+// spi_t spi;
 // i2c_t i2c;
 // sd_card_t sd;
 
@@ -33,77 +33,84 @@ int x = 0;
 
 
 
-lora_struct_t lora = {._spi_transmit = _lora_SPI_transmit,
-                      ._delay = _lora_delay,
-                      ._gpio_set_level = _lora_GPIO_set_level,
-                      .log = _lora_log,
-                      .rst_gpio_num = 16,
-                      .cs_gpio_num = 4,
-                      .d0_gpio_num = DO_PIN,
-                      .implicit_header = 0,
-                      .frequency = 0};
+// lora_struct_t lora = {._spi_transmit = lora_hw_spi_transmit,
+//                       ._delay = lora_hw_delay,
+//                       ._gpio_set_level = lora_hw_gpio_set_level,
+//                       .log = lora_hw_log,
+//                       .rst_gpio_num = 16,
+//                       .cs_gpio_num = 4,
+//                       .d0_gpio_num = DO_PIN,
+//                       .implicit_header = 0,
+//                       .frequency = 0};
 
-static void IRAM_ATTR gpio_interrupt_cb(void *args) {
-    lora_task_irq_notifi();
-}
+// // static void IRAM_ATTR gpio_interrupt_cb(void *args) {
+// //     lora_task_irq_notifi();
+// // }
 
 
-static void lora_process(uint8_t *packet, size_t packet_size) {
-    ESP_LOGI(TAG, "Packet %s", packet);
-}
+// static void lora_process(uint8_t *packet, size_t packet_size) {
+//     ESP_LOGI(TAG, "Packet %s", packet);
+// }
 
-static size_t lora_packet(uint8_t *buffer, size_t buffer_size) {
-    static int i = 0;
-    i += 1;
-    return snprintf((char*)buffer, buffer_size, "Hello %d\n", i);
-}
+// static size_t lora_packet(uint8_t *buffer, size_t buffer_size) {
+//     static int i = 0;
+//     i += 1;
+//     return snprintf((char*)buffer, buffer_size, "Hello %d\n", i);
+// }
 
-esp_err_t spi_initialize(void) {
-    esp_err_t ret;
-    spi_bus_config_t bus = {
-      .miso_io_num = 19,
-      .mosi_io_num = 23,
-      .sclk_io_num = 18,
-      .quadwp_io_num = -1,
-      .quadhd_io_num = -1,
-      .max_transfer_sz = 4000,
-   };
+// esp_err_t spi_initialize(void) {
+//     esp_err_t ret;
+//     spi_bus_config_t bus = {
+//       .miso_io_num = 19,
+//       .mosi_io_num = 23,
+//       .sclk_io_num = 18,
+//       .quadwp_io_num = -1,
+//       .quadhd_io_num = -1,
+//       .max_transfer_sz = 4000,
+//    };
 
-   ret = spi_bus_initialize(VSPI_HOST, &bus, SDSPI_DEFAULT_DMA);
-   assert(ret == ESP_OK);
-   return ret;
-}
+//    ret = spi_bus_initialize(VSPI_HOST, &bus, SDSPI_DEFAULT_DMA);
+//    assert(ret == ESP_OK);
+//    return ret;
+// }
 
+
+// void app_main(void) {
+//     // SPI_init(&spi, VSPI_HOST, 23, 19, 18);
+//     spi_init(VSPI_HOST, 23, 19, 18);
+//     lora_hw_spi_add_device(VSPI_HOST);
+//     lora_hw_set_gpio();
+//     lora_hw_attach_d0_interrupt(lora_task_irq_notifi);
+//     // _lora_spi_and_pins_init();
+//     // lora_init(&lora);
+
+//     // gpio_pad_select_gpio(DO_PIN);
+//     // gpio_set_direction(DO_PIN, GPIO_MODE_INPUT);
+//     // gpio_pulldown_en(DO_PIN);
+//     // gpio_pullup_dis(DO_PIN);
+//     // gpio_set_intr_type(DO_PIN, GPIO_INTR_POSEDGE);
+//     // gpio_install_isr_service(0);
+//     // gpio_isr_handler_add(DO_PIN, gpio_interrupt_cb, (void*)DO_PIN);
+
+//     vTaskDelay(pdMS_TO_TICKS(100));
+//     lora_api_config_t cfg = {
+//         .dev_id = 0x22,
+//         .lora = &lora,
+//         .process_rx_packet_fnc = lora_process,
+//         .get_tx_packet_fnc = lora_packet,
+//     };
+//     lora_task_init(&cfg);
+
+//     while (1) {
+//         vTaskDelay(10);
+//     }
+// }
 
 void app_main(void) {
-    SPI_init(&spi, VSPI_HOST, 23, 19, 18);
-    // spi_initialize();
-    spi_lora_add_device();
-    // _lora_spi_and_pins_init();
-    // lora_init(&lora);
-
-    // gpio_pad_select_gpio(DO_PIN);
-    // gpio_set_direction(DO_PIN, GPIO_MODE_INPUT);
-    // gpio_pulldown_en(DO_PIN);
-    // gpio_pullup_dis(DO_PIN);
-    // gpio_set_intr_type(DO_PIN, GPIO_INTR_POSEDGE);
-    // gpio_install_isr_service(0);
-    // gpio_isr_handler_add(DO_PIN, gpio_interrupt_cb, (void*)DO_PIN);
-
-    vTaskDelay(pdMS_TO_TICKS(100));
-    lora_api_config_t cfg = {
-        .dev_id = 0x22,
-        .lora = &lora,
-        .process_rx_packet_fnc = lora_process,
-        .get_tx_packet_fnc = lora_packet,
-    };
-    lora_task_init(&cfg);
-
-    while (1) {
-        vTaskDelay(10);
-    }
+    ESP_LOGI(TAG, "INIT TASK");
+    run_init_task();
+    vTaskDelete(NULL);
 }
-
 
 // typedef struct {
 //     float x;

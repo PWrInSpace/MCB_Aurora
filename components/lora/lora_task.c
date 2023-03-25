@@ -1,18 +1,17 @@
+// Copyright 2022 PWrInSpace, Kuba
 #include "lora_task.h"
 
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/semphr.h"
-#include "freertos/timers.h"
 #include "freertos/portmacro.h"
 #include "freertos/projdefs.h"
-
-#include "esp_log.h"
+#include "freertos/semphr.h"
+#include "freertos/task.h"
+#include "freertos/timers.h"
 
 #define TAG "LORA_T"
 
 static struct {
-    lora_dev_id dev_id;
     lora_struct_t lora;
     lora_task_process_rx_packet process_packet_fnc;
     lora_task_get_tx_packet get_tx_packet_fnc;
@@ -21,28 +20,28 @@ static struct {
     SemaphoreHandle_t irq_notification;
     TaskHandle_t task;
     TimerHandle_t receive_window_timer;
-}gb;
+} gb;
 
 // move to commands -- start
-static bool check_lora_dev_id(lora_dev_id dev_id) {
-    if (dev_id == BORADCAST_DEV_ID) {
-        return true;
-    }
-    // remove privilage mask and check id
-    return (dev_id >> 1) == (gb.dev_id >> 1) ? true : false;
-}
+// static bool check_lora_dev_id(lora_dev_id dev_id) {
+//     if (dev_id == BORADCAST_DEV_ID) {
+//         return true;
+//     }
+//     // remove privilage mask and check id
+//     return (dev_id >> 1) == (gb.dev_id >> 1) ? true : false;
+// }
 
-static bool check_dev_id_privilage_mode(lora_dev_id dev_id) {
-    return (dev_id & PRIVILAGE_MASK) > 0 ? true : false;
-}
+// static bool check_dev_id_privilage_mode(lora_dev_id dev_id) {
+//     return (dev_id & PRIVILAGE_MASK) > 0 ? true : false;
+// }
+// move to commands -- stop
 
 static bool wait_until_irq(void) {
     // return xSemaphoreTake(gb.irq_notification, portMAX_DELAY) == pdTRUE ? true : false;
     return ulTaskNotifyTake(pdTRUE, portMAX_DELAY) == pdTRUE ? true : false;
 }
-// move to commands -- stop
 
-void lora_task_irq_notifi(void) {
+void IRAM_ATTR lora_task_irq_notifi(void *arg) {
     BaseType_t higher_priority_task_woken = pdFALSE;
     // xSemaphoreGiveFromISR(gb.irq_notification, &higher_priority_task_woken);
     vTaskNotifyGiveFromISR(gb.task, &higher_priority_task_woken);
@@ -51,9 +50,7 @@ void lora_task_irq_notifi(void) {
     }
 }
 
-static void notify_end_of_rx_window(void) {
-    xTaskNotifyGive(gb.task);
-}
+static void notify_end_of_rx_window(void) { xTaskNotifyGive(gb.task); }
 
 static void lora_change_state_to_receive() {
     lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_RXDONE);
@@ -66,9 +63,24 @@ static void lora_change_state_to_transmit() {
     gb.lora_state = LORA_TRANSMIT;
 }
 
+void turn_on_receive_window_timer(void) {
+    if (xTimerIsTimerActive(gb.receive_window_timer) == pdTRUE) {
+        ESP_LOGE(TAG, "TIMER IS ACTIVE");
+        return;
+    }
+    xTimerStart(gb.receive_window_timer, portMAX_DELAY);
+}
+
+void turn_of_receive_window_timer(void) {
+    if (xTimerIsTimerActive(gb.receive_window_timer) == pdTRUE) {
+        xTimerStop(gb.receive_window_timer, portMAX_DELAY);
+    }
+}
+
 static size_t on_lora_receive(uint8_t *rx_buffer, size_t buffer_len) {
     size_t len = 0;
     lora_change_state_to_transmit();
+    turn_of_receive_window_timer();
     if (lora_received(&gb.lora) == LORA_OK) {
         len = lora_receive_packet(&gb.lora, rx_buffer, buffer_len);
         rx_buffer[len] = '\0';
@@ -78,10 +90,6 @@ static size_t on_lora_receive(uint8_t *rx_buffer, size_t buffer_len) {
 }
 
 static void transmint_packet(void) {
-    if (xTimerIsTimerActive(gb.receive_window_timer) == pdTRUE) {
-        xTimerStop(gb.receive_window_timer, portMAX_DELAY);
-    }
-
     if (gb.get_tx_packet_fnc == NULL) {
         return;
     }
@@ -94,16 +102,10 @@ static void transmint_packet(void) {
 
 static void on_lora_transmit() {
     lora_change_state_to_receive();
-    if (xTimerIsTimerActive(gb.receive_window_timer) == pdTRUE) {
-        ESP_LOGE(TAG, "TIMER IS ACTIVE");
-        return;
-    }
-    xTimerStart(gb.receive_window_timer, portMAX_DELAY);
+    turn_on_receive_window_timer();
 }
 
-static void on_receive_window_timer(TimerHandle_t timer) {
-    notify_end_of_rx_window();
-}
+static void on_receive_window_timer(TimerHandle_t timer) { notify_end_of_rx_window(); }
 
 static void lora_task(void *arg) {
     uint8_t rx_buffer[256];
@@ -138,7 +140,6 @@ bool lora_task_init(lora_api_config_t *cfg) {
 
     gb.process_packet_fnc = cfg->process_rx_packet_fnc;
     gb.get_tx_packet_fnc = cfg->get_tx_packet_fnc;
-    gb.dev_id = cfg->dev_id;
     memcpy(&gb.lora, cfg->lora, sizeof(lora_struct_t));
 
     lora_init(&gb.lora);
@@ -158,32 +159,16 @@ bool lora_task_init(lora_api_config_t *cfg) {
         return false;
     }
 
-    gb.receive_window_timer = xTimerCreate(
-        "Transmit timer",
-        LORA_TASK_RECEIVE_WINDOW,
-        pdFALSE,
-        NULL,
-        on_receive_window_timer);
+    gb.receive_window_timer = xTimerCreate("Transmit timer", LORA_TASK_RECEIVE_WINDOW, pdFALSE,
+                                           NULL, on_receive_window_timer);
     ESP_LOGI(TAG, "Starting timer");
     xTimerStart(gb.receive_window_timer, portMAX_DELAY);
 
-    xTaskCreatePinnedToCore(
-        lora_task,
-        "LoRa task",
-        LORA_TASK_STACK_DEPTH,
-        NULL,
-        LORA_TASK_PRIORITY,
-        &gb.task,
-        LORA_TASK_CPU_NUM);
+    xTaskCreatePinnedToCore(lora_task, "LoRa task", LORA_TASK_STACK_DEPTH, NULL, LORA_TASK_PRIORITY,
+                            &gb.task, LORA_TASK_CPU_NUM);
 
     if (gb.task == NULL) {
         return false;
     }
     return true;
 }
-
-
-
-
-
-

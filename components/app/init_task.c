@@ -6,6 +6,10 @@
 #include "esp_now_config.h"
 #include "esp_system.h"
 #include "state_machine_wrapper.h"
+#include "lora_task.h"
+#include "lora_hw_config.h"
+#include "spi.h"
+#include "utils.h"
 
 #define TAG "INIT"
 
@@ -70,9 +74,51 @@ static bool init_esp_now(void) {
     return status == ESP_OK ? true : false;
 }
 
+
+static bool init_spi(void) {
+    return spi_init(VSPI_HOST, 23, 19, 18);
+}
+
+static void lora_process(uint8_t *packet, size_t packet_size) {
+    ESP_LOGI(TAG, "Packet %s", packet);
+}
+
+static size_t lora_packet(uint8_t *buffer, size_t buffer_size) {
+    static int i = 0;
+    i += 1;
+    return snprintf((char*)buffer, buffer_size, "Hello %d\n", i);
+}
+
+static bool init_lora(void) {
+    RETURN_ON_FALSE(lora_hw_spi_add_device(VSPI_HOST));
+    RETURN_ON_FALSE(lora_hw_set_gpio());
+    RETURN_ON_FALSE(lora_hw_attach_d0_interrupt(lora_task_irq_notifi));
+    lora_struct_t lora = {
+        ._spi_transmit = lora_hw_spi_transmit,
+        ._delay = lora_hw_delay,
+        ._gpio_set_level = lora_hw_gpio_set_level,
+        .log = lora_hw_log,
+        .rst_gpio_num = 16,
+        .cs_gpio_num = 4,
+        .d0_gpio_num = 17,
+        .implicit_header = 0,
+        .frequency = 0
+    };
+    lora_api_config_t cfg = {
+        .lora = &lora,
+        .process_rx_packet_fnc = lora_process,
+        .get_tx_packet_fnc = lora_packet,
+    };
+    RETURN_ON_FALSE(lora_task_init(&cfg));
+    return true;
+}
+
+
 static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(init_esp_now(), "ESP_NOW");
     CHECK_RESULT_BOOL(init_state_machine(), "STATE_MACHINE");
+    CHECK_RESULT_BOOL(init_spi(), "SPI");
+    CHECK_RESULT_BOOL(init_lora(), "LORA");
     vTaskDelete(NULL);
 }
 
