@@ -17,9 +17,6 @@ extern "C" {
 #define RF_CMD_BROADCAST_DEV_ID 0x00
 #define RF_CMD_PRIVILAGE_MASK 0x01
 
-typedef enum {
-    COMMAND_NOT_FOUND = 1,
-} COMMAND_ERROR;
 
 typedef uint32_t rf_cmd_lora_dev_id;
 typedef uint32_t rf_cmd_sys_dev_id;
@@ -61,8 +58,10 @@ typedef struct {
 } rf_cmd_config_t;
 
 
+
 /**
- * @brief Initialize commands api
+ * @brief Initialize commands api without task
+
  *
  * @param cfg pointer to config
  * @return true :)
@@ -111,6 +110,7 @@ bool rf_cmd_process_lora_command(
  * @return rf_cmd_message_t created message
  */
 rf_cmd_message_t rf_cmd_create_message(uint32_t command, int32_t payload);
+
 
 
 #ifdef __cplusplus

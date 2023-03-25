@@ -1,7 +1,7 @@
 // Copyright 2022 PWrInSpace, Kuba
 
-#include "commands.h"
 
+#include "commands.h"
 #include <string.h>
 
 #include "esp_log.h"
