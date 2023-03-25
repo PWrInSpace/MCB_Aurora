@@ -13,13 +13,9 @@ ENA_device_t dev_two = {
 };
 
 TEST_CASE("Initialization", "[ENA]") {
-    ENA_config_t cfg = {
-        .mac_address = {0x04, 0x20, 0x04, 0x20, 0x04, 0x20},
-        .stack_depth = 8000,
-        .core_id = APP_CPU_NUM,
-        .priority = 2,
-    };
-    TEST_ASSERT_EQUAL(ESP_OK, ENA_init(&cfg));
+    uint8_t mac_address[] = {0x04, 0x20, 0x04, 0x20, 0x04, 0x20};
+
+    TEST_ASSERT_EQUAL(ESP_OK, ENA_init(mac_address));
     // TEST_ASSERT_EQUAL_HEX_ARRAY();
 }
 
@@ -27,6 +23,15 @@ TEST_CASE("Add peer", "[ENA]") {
     TEST_ASSERT_EQUAL(ESP_OK, ENA_register_device(&dev_one));
     TEST_ASSERT_NOT_EQUAL(ESP_OK, ENA_register_device(&dev_one));
     TEST_ASSERT_EQUAL(ESP_OK, ENA_register_device(&dev_two));
+}
+
+TEST_CASE("Run task", "[ENA]") {
+    ENA_config_t cfg = {
+        .stack_depth = 8000,
+        .core_id = APP_CPU_NUM,
+        .priority = 2,
+    };
+    TEST_ASSERT_EQUAL(ESP_OK, ENA_run(&cfg));
 }
 
 TEST_CASE("Check peer", "[ENA]") {

@@ -1,0 +1,21 @@
+menu "Commands task"
+#define CMD_TASK_CORE_ID CONFIG_CMD_TASK_CORE_ID
+    config CMD_RECEIVE_QUEUE_SIZE
+        int "Receive queue size"
+        default 10
+
+    config CMD_TASK_STACK_DEPTH
+        int "Task stack depth"
+        default 8000
+
+    config CMD_TASK_PRIORITY
+        int "Task priority"
+        range 0 20
+        default 2
+
+    config CMD_TASK_CORE_ID
+        int "Task core"
+        range 0 1
+        default 0
+
+endmenu
