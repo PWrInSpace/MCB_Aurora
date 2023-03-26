@@ -31,7 +31,7 @@ static bool init(rf_cmd_device_t *devices, size_t dev_nb, rf_cmd_lora_dev_id lor
     return true;
 }
 
-bool rf_cmd_init_standatd_mode(rf_cmd_config_t *cfg) {
+bool rf_cmd_init_standard_mode(rf_cmd_config_t *cfg) {
     return init(cfg->devices, cfg->number_of_devices, RF_CMD_BROADCAST_DEV_ID);
 }
 
@@ -40,7 +40,7 @@ bool rf_cmd_init_lora_mode(rf_cmd_lora_config_t *cfg) {
 }
 
 static bool get_device_index(rf_cmd_sys_dev_id dev_id, size_t *dev_index) {
-    for (size_t i = 0; gb.number_of_devices; ++i) {
+    for (size_t i = 0; i < gb.number_of_devices; ++i) {
         if (gb.devices[i].dev_id == dev_id) {
             *dev_index = i;
             return true;

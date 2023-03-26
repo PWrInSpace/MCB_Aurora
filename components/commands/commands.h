@@ -66,7 +66,7 @@ typedef struct {
  * @return true :)
  * @return false :C
  */
-bool rf_cmd_init_standatd_mode(rf_cmd_config_t *cfg);
+bool rf_cmd_init_standard_mode(rf_cmd_config_t *cfg);
 
 /**
  * @brief Initialize commands api in lora mode

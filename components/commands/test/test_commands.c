@@ -85,12 +85,17 @@ TEST_CASE("Init in standard mode", "[RF_CMD]") {
         .devices = devices,
         .number_of_devices = sizeof(devices) / sizeof(rf_cmd_device_t)
     };
-    TEST_ASSERT_EQUAL(true, rf_cmd_init_standatd_mode(&cfg));
+    TEST_ASSERT_EQUAL(true, rf_cmd_init_standard_mode(&cfg));
 }
 
 TEST_CASE("Try prcoess lora in standard mode", "[RF_CMD]") {
     rf_cmd_message_t mess = rf_cmd_create_message(PITOT_ONE, 123);
     TEST_ASSERT_EQUAL(false, rf_cmd_process_lora_command(0x12, PITOT, &mess));
+}
+
+TEST_CASE("Process commands with invalid dev", "[RF_CMD]") {
+    rf_cmd_message_t mess = rf_cmd_create_message(PITOT_ONE, 123);
+    TEST_ASSERT_EQUAL(false, rf_cmd_process_command(123, &mess));
 }
 
 TEST_CASE("Process commands in normal mode", "[RF_CMD]") {
