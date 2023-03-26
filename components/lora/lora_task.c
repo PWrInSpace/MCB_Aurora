@@ -24,28 +24,12 @@ static struct {
     TimerHandle_t receive_window_timer;
 } gb;
 
-// move to commands -- start
-// static bool check_lora_dev_id(lora_dev_id dev_id) {
-//     if (dev_id == BORADCAST_DEV_ID) {
-//         return true;
-//     }
-//     // remove privilage mask and check id
-//     return (dev_id >> 1) == (gb.dev_id >> 1) ? true : false;
-// }
-
-// static bool check_dev_id_privilage_mode(lora_dev_id dev_id) {
-//     return (dev_id & PRIVILAGE_MASK) > 0 ? true : false;
-// }
-// move to commands -- stop
-
 static bool wait_until_irq(void) {
-    // return xSemaphoreTake(gb.irq_notification, portMAX_DELAY) == pdTRUE ? true : false;
     return ulTaskNotifyTake(pdTRUE, portMAX_DELAY) == pdTRUE ? true : false;
 }
 
 void IRAM_ATTR lora_task_irq_notify(void *arg) {
     BaseType_t higher_priority_task_woken = pdFALSE;
-    // xSemaphoreGiveFromISR(gb.irq_notification, &higher_priority_task_woken);
     vTaskNotifyGiveFromISR(gb.task, &higher_priority_task_woken);
     if (higher_priority_task_woken == pdTRUE) {
         portYIELD_FROM_ISR();
