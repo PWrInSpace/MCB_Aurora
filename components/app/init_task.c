@@ -92,7 +92,7 @@ static size_t lora_packet(uint8_t *buffer, size_t buffer_size) {
 static bool init_lora(void) {
     RETURN_ON_FALSE(lora_hw_spi_add_device(VSPI_HOST));
     RETURN_ON_FALSE(lora_hw_set_gpio());
-    RETURN_ON_FALSE(lora_hw_attach_d0_interrupt(lora_task_irq_notifi));
+    RETURN_ON_FALSE(lora_hw_attach_d0_interrupt(lora_task_irq_notify));
     lora_struct_t lora = {
         ._spi_transmit = lora_hw_spi_transmit,
         ._delay = lora_hw_delay,

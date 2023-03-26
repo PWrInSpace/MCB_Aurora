@@ -50,6 +50,6 @@ bool lora_task_init(lora_api_config_t *cfg);
  *
  * @param arg nothing
  */
-void lora_task_irq_notifi(void *arg);
+void lora_task_irq_notify(void *arg);
 
 #endif
