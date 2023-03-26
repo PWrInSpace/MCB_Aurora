@@ -1,0 +1,26 @@
+menu "PinOut"
+    config SPI_MOSI
+        int "Spi mosi pin"
+        default 23
+
+    config SPI_MISO
+        int "Spi miso pin"
+        default 19
+
+    config SPI_SCK
+        int "Spi sck pin"
+        default 18
+
+    config LORA_D0
+        int "LoRa DIO0 pin"
+        default 17
+
+    config LORA_RS
+        int "LoRa reset pin"
+        default 17
+
+    config LORA_CS
+        int "LoRa cs pin"
+        default 4
+
+endmenu

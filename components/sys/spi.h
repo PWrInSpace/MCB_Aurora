@@ -6,11 +6,9 @@
 #include "driver/spi_common.h"
 #include "driver/sdspi_host.h"
 
-typedef struct {
-    spi_bus_config_t spi_bus;
-    spi_host_device_t spi_host;
-} spi_t;
+#define SPI_MOSI CONFIG_SPI_MOSI
+#define SPI_MISO CONFIG_SPI_MISO
+#define SPI_SCK CONFIG_SPI_SCK
 
-bool SPI_init(spi_t *spi, spi_host_device_t host, uint8_t mosi, uint8_t miso, uint8_t sck);
-
+bool spi_init(spi_host_device_t host, uint8_t mosi, uint8_t miso, uint8_t sck);
 #endif

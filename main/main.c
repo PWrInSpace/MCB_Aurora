@@ -17,6 +17,8 @@
 #include "sd_task.h"
 #include "state_machine_wrapper.h"
 #include "init_task.h"
+#include "lora_hw_config.h"
+#include "lora_task.h"
 
 // spi_t spi;
 // i2c_t i2c;
@@ -25,10 +27,11 @@
 #include "sdkconfig.h"
 #define TAG "AURORA"
 
-// void app_main(void) {
-//     run_init_task();
-//     vTaskDelete(NULL);
-// }
+void app_main(void) {
+    ESP_LOGI(TAG, "INIT TASK");
+    run_init_task();
+    vTaskDelete(NULL);
+}
 
 // typedef struct {
 //     float x;
@@ -98,66 +101,66 @@
 //     FT_init(&cfg);
 // }
 
-esp_err_t spi_initialize(void) {
-    esp_err_t ret;
-    spi_bus_config_t bus = {
-      .miso_io_num = 19,
-      .mosi_io_num = 23,
-      .sclk_io_num = 18,
-      .quadwp_io_num = -1,
-      .quadhd_io_num = -1,
-      .max_transfer_sz = 4000,
-    };
+// esp_err_t spi_initialize(void) {
+//     esp_err_t ret;
+//     spi_bus_config_t bus = {
+//       .miso_io_num = 19,
+//       .mosi_io_num = 23,
+//       .sclk_io_num = 18,
+//       .quadwp_io_num = -1,
+//       .quadhd_io_num = -1,
+//       .max_transfer_sz = 4000,
+//     };
 
-    ret = spi_bus_initialize(VSPI_HOST, &bus, SDSPI_DEFAULT_DMA);
-    assert(ret == ESP_OK);
-    return ret;
-}
+//     ret = spi_bus_initialize(VSPI_HOST, &bus, SDSPI_DEFAULT_DMA);
+//     assert(ret == ESP_OK);
+//     return ret;
+// }
 
 
-void app_main(void) {
-    // init_console();
-    // data d = {
-    //     .time_stamp = 0,
-    //     .x = 12,
-    // };
-    // flash_task();
-    spi_initialize();
-    sd_task_cfg_t cfg = {
-        .cs_pin = 5,
-        .data_path = "data",
-        .data_path_size = 9,
-        .spi_host = VSPI_HOST,
-        .log_path = "log",
-        .log_path_size = 5,
-        .stack_depth = 8000,
-        .priority = 0,
-        .core_id = APP_CPU_NUM,
-        .error_handler_fnc = NULL,
-    };
+// void app_main(void) {
+//     // init_console();
+//     // data d = {
+//     //     .time_stamp = 0,
+//     //     .x = 12,
+//     // };
+//     // flash_task();
+//     spi_initialize();
+//     sd_task_cfg_t cfg = {
+//         .cs_pin = 5,
+//         .data_path = "data",
+//         .data_path_size = 9,
+//         .spi_host = VSPI_HOST,
+//         .log_path = "log",
+//         .log_path_size = 5,
+//         .stack_depth = 8000,
+//         .priority = 0,
+//         .core_id = APP_CPU_NUM,
+//         .error_handler_fnc = NULL,
+//     };
 
-    SDT_init(&cfg);
-    char dupa[256];
-    int i = 0;
-    while (1) {
-        snprintf(dupa, sizeof(dupa), "Hello world\n");
-        // ESP_LOGI(TAG, "Writing to sd");
-        SDT_send_data(dupa, sizeof(dupa));
-        snprintf(dupa, sizeof(dupa), "Hello XDDDD\n");
-        SDT_send_log(dupa, sizeof(dupa));
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        i++;
-        if (i == 20) {
-            ESP_LOGI(TAG, "changing path");
-            char path[] = "test123";
-            SDT_change_data_path(path, sizeof(path));
-        }
-        if (i == 40) {
-            ESP_LOGI(TAG, "TERMINATING");
-            SDT_terminate_task();
-        }
-    }
-}
+//     SDT_init(&cfg);
+//     char dupa[256];
+//     int i = 0;
+//     while (1) {
+//         snprintf(dupa, sizeof(dupa), "Hello world\n");
+//         // ESP_LOGI(TAG, "Writing to sd");
+//         SDT_send_data(dupa, sizeof(dupa));
+//         snprintf(dupa, sizeof(dupa), "Hello XDDDD\n");
+//         SDT_send_log(dupa, sizeof(dupa));
+//         vTaskDelay(pdMS_TO_TICKS(1000));
+//         i++;
+//         if (i == 20) {
+//             ESP_LOGI(TAG, "changing path");
+//             char path[] = "test123";
+//             SDT_change_data_path(path, sizeof(path));
+//         }
+//         if (i == 40) {
+//             ESP_LOGI(TAG, "TERMINATING");
+//             SDT_terminate_task();
+//         }
+//     }
+// }
 
 // typedef struct DataToObc {
 //     bool wakenUp : 1;

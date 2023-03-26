@@ -1,5 +1,5 @@
 idf_component_register(SRC_DIRS "."
                     INCLUDE_DIRS "."
-                    REQUIRES cmock esp_now state_machine sys lora utils)
+                    REQUIRES cmock driver soc esp_rom)
 
 target_compile_options(${COMPONENT_LIB} PRIVATE "-Wno-format")

@@ -1,0 +1,21 @@
+syntax = "proto2";
+
+message MainValveFrame {
+    required float thermocuple1 = 1;
+    required float thermocuple2 = 2;
+    required float battery = 3;
+}
+
+message VentValveFrame {
+    required uint32 thermistor1 = 1;
+    required uint32 thermistor2 = 2;
+    required float tankpressure = 3;
+    required float batteryVoltage = 4;
+}
+
+message LoRaFrame {
+    required MainValveFrame mainValve = 1;
+    required VentValveFrame ventValve = 2;
+    required uint32 uptime = 3;
+    required uint32 state = 4;
+}
