@@ -1,156 +1,116 @@
 // Copyright 2022 PWrInSpace, Kuba
 
-#include <string.h>
+
 #include "commands.h"
+#include <string.h>
+
 #include "esp_log.h"
 
 #define TAG "CMD"
 
 static struct {
-    TaskHandle_t task;
-    QueueHandle_t receive_queue;
-
-    command_handle_t *registered_commands;
-    size_t number_of_commands;
-
-    cmd_on_task_error error_task_fnc;
+    rf_cmd_lora_dev_id lora_dev_id;
+    rf_cmd_device_t *devices;
+    size_t number_of_devices;
 } gb = {
-    .task = NULL,
-    .receive_queue = NULL,
-    .registered_commands = NULL,
-    .number_of_commands = 0,
-    .error_task_fnc = NULL,
+    .devices = NULL,
+    .number_of_devices = 0,
 };
 
-static void report_error(COMMAND_ERROR error) {
-    ESP_LOGE(TAG, "ERROR %d", error);
-    if (gb.error_task_fnc != NULL) {
-        gb.error_task_fnc(error);
+static bool init(rf_cmd_device_t *devices, size_t dev_nb, rf_cmd_lora_dev_id lora_dev_id) {
+    assert(devices != NULL);
+    assert(dev_nb > 0);
+    if (devices == NULL || dev_nb == 0) {
+        return false;
     }
+
+    gb.devices = devices;
+    gb.number_of_devices = dev_nb;
+    gb.lora_dev_id = lora_dev_id;
+
+    return true;
 }
 
-static bool find_command_and_execute(command_message_t *received_command) {
-    for (size_t i = 0; i < gb.number_of_commands; ++i) {
-        if (gb.registered_commands[i].command == received_command->cmd.command) {
-            if (gb.registered_commands[i].receive_fnc != NULL) {
-                gb.registered_commands[i].receive_fnc(
-                        received_command->cmd.command, received_command->cmd.payload);
+bool rf_cmd_init_standard_mode(rf_cmd_config_t *cfg) {
+    return init(cfg->devices, cfg->number_of_devices, RF_CMD_BROADCAST_DEV_ID);
+}
+
+bool rf_cmd_init_lora_mode(rf_cmd_lora_config_t *cfg) {
+    return init(cfg->devices, cfg->number_of_devices, cfg->lora_dev_id);
+}
+
+static bool get_device_index(rf_cmd_sys_dev_id dev_id, size_t *dev_index) {
+    for (size_t i = 0; i < gb.number_of_devices; ++i) {
+        if (gb.devices[i].dev_id == dev_id) {
+            *dev_index = i;
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool find_command_and_execute(size_t dev_index, rf_cmd_message_t *received_command,
+                                     bool privilage) {
+    rf_cmd_device_t* dev = &gb.devices[dev_index];
+    for (size_t i = 0; i < dev->number_of_commands; ++i) {
+        if (dev->commands[i].command_id == received_command->cmd.command) {
+            if (dev->commands[i].on_command_receive_fnc != NULL) {
+                dev->commands[i].on_command_receive_fnc(
+                    received_command->cmd.command, received_command->cmd.payload, privilage);
             }
             return true;
         }
     }
 
-    if (gb.task != NULL) {
-        report_error(COMMAND_NOT_FOUND);
-    }
-
     return false;
 }
 
-static void command_task(void *arg) {
-    command_message_t received_command;
-    while (1) {
-        if (xQueueReceive(gb.receive_queue, &received_command, 0) == pdTRUE) {
-            if (gb.registered_commands != NULL) {
-                find_command_and_execute(&received_command);
-            }
-        }
-        vTaskDelay(pdMS_TO_TICKS(10));
+static bool process_command(rf_cmd_sys_dev_id dev_id, rf_cmd_message_t *message, bool privilage) {
+    size_t index = 0;
+    if (get_device_index(dev_id, &index) == false) {
+        return false;
     }
+    ESP_LOGI(TAG, "INDEX %d", index);
+    return find_command_and_execute(index, message, privilage);
 }
 
-
-static bool register_commands_and_err_fnc(command_config_t *cfg) {
-    assert(cfg->commands != NULL);
-    assert(cfg->number_of_commands > 0);
-    if (cfg->commands == NULL || cfg->number_of_commands == 0) {
-        return false;
-    }
-
-    gb.registered_commands = cfg->commands;
-    gb.number_of_commands = cfg->number_of_commands;
-    gb.error_task_fnc = cfg->task_error_fnc;
-
-    return true;
+bool rf_cmd_process_command(rf_cmd_sys_dev_id dev_id, rf_cmd_message_t *message) {
+    return process_command(dev_id, message, false);
 }
 
-bool CMD_init(command_config_t *cfg) {
-    return register_commands_and_err_fnc(cfg);
+static bool check_lora_dev_id(rf_cmd_lora_dev_id dev_id) {
+    if (dev_id == 0x00) {
+        return true;
+    }
+    // remove privilage mask and check id
+    return (dev_id >> 1) == (gb.lora_dev_id >> 1) ? true : false;
 }
 
-bool CMD_init_with_task(command_config_t *cfg) {
-    if (gb.task != NULL) {
-        return false;
-    }
-
-    if (register_commands_and_err_fnc(cfg) == false) {
-        return false;
-    }
-
-    gb.receive_queue = xQueueCreate(cfg->queue_size, sizeof(command_message_t));
-    if (gb.receive_queue == NULL) {
-        return false;
-    }
-
-    xTaskCreatePinnedToCore(
-        command_task,
-        "Command task",
-        cfg->stack_depth,
-        NULL,
-        cfg->priority,
-        &gb.task,
-        cfg->core_id);
-
-    if (gb.task == NULL) {
-        vQueueDelete(gb.receive_queue);
-        gb.receive_queue = NULL;
-        return false;
-    }
-
-    return true;
+static bool check_dev_id_privilage_mode(rf_cmd_lora_dev_id dev_id) {
+    return (dev_id & RF_CMD_PRIVILAGE_MASK) > 0 ? true : false;
 }
 
-bool CMD_send_command_for_processing(command_message_t *command) {
-    assert(command != NULL);
-    assert(gb.receive_queue != NULL);
-    if (command == NULL) {
+bool rf_cmd_process_lora_command(rf_cmd_lora_dev_id lora_dev_id, rf_cmd_sys_dev_id dev_id,
+                                 rf_cmd_message_t *message) {
+    if (gb.lora_dev_id == RF_CMD_BROADCAST_DEV_ID) {
+        ESP_LOGE(TAG, "Library hasn't been initialized in LoRa mode");
         return false;
     }
 
-    if (gb.receive_queue == NULL) {
+    if (check_lora_dev_id(lora_dev_id) == false) {
+        ESP_LOGE(TAG, "Incorrect lora dev id");
         return false;
     }
 
-    if (xQueueSend(gb.receive_queue, command, 0) != pdTRUE) {
-        ESP_LOGE(TAG, "Unable to add to queue");
-        return false;
+    if (check_dev_id_privilage_mode(lora_dev_id) == true) {
+        return process_command(dev_id, message, true);
     }
 
-    return true;
+    return process_command(dev_id, message, false);
 }
 
-bool CMD_process_command(command_message_t *command) {
-    return find_command_and_execute(command);
-}
-
-command_message_t CMD_create_message(uint32_t command, int32_t payload) {
-    command_message_t message = {
-        .cmd.command = command,
-        .cmd.payload = payload
-    };
+rf_cmd_message_t rf_cmd_create_message(uint32_t command, int32_t payload) {
+    rf_cmd_message_t message = {.cmd.command = command, .cmd.payload = payload};
 
     return message;
 }
-
-void CMD_terminate_task(void) {
-    if (gb.receive_queue != NULL) {
-        vQueueDelete(gb.receive_queue);
-        gb.receive_queue = NULL;
-    }
-
-    if (gb.task != NULL) {
-        vTaskDelete(gb.task);
-        gb.task = NULL;
-    }
-}
-
