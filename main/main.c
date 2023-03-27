@@ -19,6 +19,8 @@
 #include "init_task.h"
 #include "lora_hw_config.h"
 #include "lora_task.h"
+#include <inttypes.h>
+#include "esp_sntp.h"
 
 // spi_t spi;
 // i2c_t i2c;
@@ -27,10 +29,68 @@
 #include "sdkconfig.h"
 #define TAG "AURORA"
 
+#define PAYLOAD "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuUUUUUUUUuuuuuuuuuuuuuuuuuuuuuuuuuuaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+uint64_t get_time_ms(void) {
+    struct timeval tv_now;
+    gettimeofday(&tv_now, NULL);
+
+    return (uint64_t) (esp_timer_get_time() / 1000ULL);
+}
+
+
 void app_main(void) {
-    ESP_LOGI(TAG, "INIT TASK");
-    run_init_task();
-    vTaskDelete(NULL);
+    spi_init(VSPI_HOST, 23, 19, 18);
+    lora_hw_spi_add_device(VSPI_HOST);
+    lora_hw_set_gpio();
+    // lora_hw_attach_d0_interrupt(lora_task_irq_notify);
+    lora_struct_t lora = {
+        ._spi_transmit = lora_hw_spi_transmit,
+        ._delay = lora_hw_delay,
+        ._gpio_set_level = lora_hw_gpio_set_level,
+        .log = lora_hw_log,
+        .rst_gpio_num = 16,
+        .cs_gpio_num = 4,
+        .d0_gpio_num = 17,
+        .implicit_header = 0,
+        .frequency = 0
+    };
+    lora_init(&lora);
+    lora_set_frequency(&lora, 867e6);
+    lora_set_bandwidth(&lora, LORA_BW_250_kHz);
+    lora_disable_crc(&lora);
+    lora_set_receive_mode(&lora);
+
+    uint8_t buffer[255] = {0};
+    size_t rx_size;
+    int received_packet = 0;
+    int transmited_packet = 0;
+    while (1) {
+        if (lora_received(&lora) == LORA_OK) {
+            rx_size = lora_receive_packet(&lora, buffer, sizeof(buffer));
+            received_packet += 1;
+            buffer[rx_size] = '\0';
+            ESP_LOGI(TAG, "Received: %s\n", buffer);
+            if (strncmp((char*)buffer, "RESET", 5) == 0) {
+                ESP_LOGW(TAG, "RESETING");
+                received_packet = 0;
+                transmited_packet = 0;
+            } else {
+                vTaskDelay(pdMS_TO_TICKS(100));
+                snprintf((char*)buffer, sizeof(buffer), "%lu;%d;%d;"PAYLOAD"\n", (uint32_t)get_time_ms(), received_packet, transmited_packet);
+                ESP_LOGI(TAG, "%s", buffer);
+                lora_send_packet(&lora, buffer, sizeof(buffer));
+                transmited_packet += 1;
+            }
+            lora_set_receive_mode(&lora);
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+
+    // // ESP_LOGI(TAG, "INIT TASK");
+    // // run_init_task();
+    // vTaskDelete(NULL);
 }
 
 // typedef struct {
