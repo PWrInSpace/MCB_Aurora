@@ -56,9 +56,11 @@ void app_main(void) {
         .frequency = 0
     };
     lora_init(&lora);
-    lora_set_frequency(&lora, 867e6);
+    lora_set_frequency(&lora, 868e6);
     lora_set_bandwidth(&lora, LORA_BW_250_kHz);
-    lora_disable_crc(&lora);
+    // lora_disable_crc(&lora);
+    lora_explicit_header_mode(&lora);
+    lora_enable_crc(&lora);
     lora_set_receive_mode(&lora);
 
     uint8_t buffer[255] = {0};
@@ -71,13 +73,16 @@ void app_main(void) {
             received_packet += 1;
             buffer[rx_size] = '\0';
             ESP_LOGI(TAG, "Received: %s\n", buffer);
+            ESP_LOGI(TAG, "RSSI %d", lora_packet_rssi(&lora));
+            ESP_LOGI(TAG, "Signal to noise: %f", lora_packet_snr(&lora));
             if (strncmp((char*)buffer, "RESET", 5) == 0) {
                 ESP_LOGW(TAG, "RESETING");
                 received_packet = 0;
                 transmited_packet = 0;
             } else {
                 vTaskDelay(pdMS_TO_TICKS(100));
-                snprintf((char*)buffer, sizeof(buffer), "%lu;%d;%d;"PAYLOAD"\n", (uint32_t)get_time_ms(), received_packet, transmited_packet);
+                snprintf((char*)buffer, sizeof(buffer), "%lu;%d;%d;%d;%f;"PAYLOAD"\n",
+                    (uint32_t)get_time_ms(), received_packet, transmited_packet, lora_packet_rssi(&lora), lora_packet_snr(&lora));
                 ESP_LOGI(TAG, "%s", buffer);
                 lora_send_packet(&lora, buffer, sizeof(buffer));
                 transmited_packet += 1;
