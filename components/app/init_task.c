@@ -10,6 +10,8 @@
 #include "lora_hw_config.h"
 #include "spi.h"
 #include "utils.h"
+#include "lora.pb-c.h"
+#include "esp_timer.h"
 
 #define TAG "INIT"
 
@@ -86,7 +88,31 @@ static void lora_process(uint8_t *packet, size_t packet_size) {
 static size_t lora_packet(uint8_t *buffer, size_t buffer_size) {
     static int i = 0;
     i += 1;
-    return snprintf((char*)buffer, buffer_size, "Hello %d\n", i);
+    MainValveFrame main_valve_frame;
+    main_valve_frame__init(&main_valve_frame);
+    main_valve_frame.battery = 21.3;
+    main_valve_frame.thermocuple1 = 321;
+    main_valve_frame.thermocuple2 = 123;
+    VentValveFrame vent_valve_frame;
+    vent_valve_frame__init(&vent_valve_frame);
+    vent_valve_frame.batteryvoltage = 22.3;
+    vent_valve_frame.tankpressure = 62;
+    vent_valve_frame.thermistor1 = 12;
+    vent_valve_frame.thermistor2 = 22;
+    LoRaFrame lora_frame;
+    lo_ra_frame__init(&lora_frame);
+    lora_frame.mainvalve = &main_valve_frame;
+    lora_frame.ventvalve = &vent_valve_frame;
+    lora_frame.uptime = esp_timer_get_time();
+    lora_frame.state = SM_get_current_state();
+    size_t size = lo_ra_frame__get_packed_size(&lora_frame);
+    lo_ra_frame__pack(&lora_frame, buffer);
+    ESP_LOGI(TAG, "FRAME CREATED %lu", size);
+    // LoRaFrame * frame = lo_ra_frame__unpack(NULL, size, buffer);
+    // ESP_LOGI(TAG, "Received %f", frame->mainvalve->thermocuple1);
+    // lo_ra_frame__free_unpacked(frame, NULL);
+
+    return size;
 }
 
 static bool init_lora(void) {

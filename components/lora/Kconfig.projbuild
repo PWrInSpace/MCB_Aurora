@@ -1,7 +1,7 @@
 menu "Lora"
     config LORA_FREQUENCY_KHZ
-        int "Lora frequency"
-        default 867000
+        int "Lora frequency kHz"
+        default 868000
 
     config LORA_BANDWIDTH
         int "Lora bandwidth"
