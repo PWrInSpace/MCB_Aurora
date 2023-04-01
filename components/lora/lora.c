@@ -287,6 +287,18 @@ lora_err_t lora_received(lora_struct_t *lora) {
   return LORA_RECEIVE_ERR;
 }
 
+bool lora_check_crc_error(lora_struct_t *lora) {
+  if (lora_read_reg(lora, REG_IRQ_FLAGS) & (1 << 5)) {
+    lora_reset_crc_error(lora);
+    return true;
+  }
+  return false;
+}
+
+lora_err_t lora_reset_crc_error(lora_struct_t *lora) {
+  return lora_write_reg(lora, REG_IRQ_FLAGS, lora_read_reg(lora, REG_IRQ_FLAGS) | (0 << 5));
+}
+
 int16_t lora_packet_rssi(lora_struct_t *lora) {
   return (lora_read_reg(lora, REG_PKT_RSSI_VALUE) -
           (lora->frequency < 868E6 ? 164 : 157));

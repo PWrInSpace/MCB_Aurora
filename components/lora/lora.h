@@ -332,7 +332,9 @@ int16_t lora_packet_rssi(lora_struct_t *lora);
 float lora_packet_snr(lora_struct_t *lora);
 
 lora_err_t lora_map_d0_interrupt(lora_struct_t *lora, lora_dio0_mapping_t mode);
+lora_err_t lora_reset_crc_error(lora_struct_t *lora);
 
+bool lora_check_crc_error(lora_struct_t *lora);
 /*!
  * \brief Shutdown hardware.
  */

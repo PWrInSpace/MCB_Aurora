@@ -6,7 +6,7 @@ import os.path
 import numpy as np
 
 class LoRaTest():
-    TEST_PACKET_NB = 200
+    TEST_PACKET_NB = 100
     TEST_OUTPUT_DIR = "outputs/"
 
     def __init__(self, antenna_name, distance) -> None:
@@ -25,7 +25,7 @@ class LoRaTest():
             raise Exception("File exists")
 
     def on_timer(self):
-        self.ser.write("R4A;DUPA;GS;NOW".encode())
+        self.ser.write("R4A;TEST;GS;NOW".encode())
         self.transmited_package += 1
         if self.transmited_package < self.TEST_PACKET_NB:
             th.Timer(0.5, self.on_timer).start()
@@ -37,23 +37,23 @@ class LoRaTest():
         self.lock.acquire()
         th.Timer(0.5, self.on_timer).start()
         logging.info("Starting test")
+        self.ser.flush()
         self._test_loop()
         self._print_test_stats()
 
     def _reset_dev(self):
         self.ser.write("RESET;GS;NOW".encode())
         logging.info("Reseting device ....")
-        time.sleep(1)
-        self.ser.flush()
+        time.sleep(3)
 
     def _print_test_stats(self):
-        test_data = np.loadtxt(self.TEST_OUTPUT_DIR + self.file_name, delimiter=";", dtype=str)
-        rssi = np.array([int(z) for z in test_data[:,3]])
-        snr = np.array([float(z) for z in test_data[:,4]])
         logging.info("Received %d message", self.received_package)
         logging.info("Lost %d message", self.TEST_PACKET_NB - self.received_package)
-        logging.info("Precent of received %f", self.received_package/float(self.TEST_PACKET_NB) * 100)
         logging.info("Unable to decode %d", self.unable_to_decode)
+        logging.info("Precent of received %f", self.received_package/float(self.TEST_PACKET_NB) * 100)
+        test_data = np.loadtxt(self.TEST_OUTPUT_DIR + self.file_name, delimiter=";", dtype=str)
+        rssi = np.array([int(z) for z in test_data[:,5]])
+        snr = np.array([float(z) for z in test_data[:,6]])
         logging.info("RSSI:\tAverage %f\tMAX %d\tMin %d", np.average(rssi), max(rssi), min(rssi))
         logging.info("SNR:\tAverage %f\tMAX %f\tMin %f", np.average(snr), max(snr), min(snr))
         with open(self.TEST_OUTPUT_DIR + "stats_" + self.file_name, "w") as stats_file:
@@ -63,13 +63,17 @@ class LoRaTest():
             stats_file.write(f"RSSI:\tAverage {np.average(rssi)}\tMAX {max(rssi)}\tMin {min(rssi)}\n")
             stats_file.write(f"SNR:\tAverage {np.average(snr)}\tMAX {max(snr)}\tMin {min(snr)}\n")
             stats_file.write(f"Unable to decode {self.unable_to_decode}\n")
+
     def _test_loop(self):
         while self.lock.locked():
             try:
                 line = self.ser.readline().decode()
                 logging.info("Receive -> %s...", line[:25])
-                self.file.write(line)
-                self.received_package += 1
+                if  line.startswith("MCB;") is True:
+                    self.file.write(line)
+                    self.received_package += 1
+                else :
+                    logging.error("Invalid prefix -> %s", line)
             except Exception as err:
                 self.unable_to_decode += 1
                 logging.error("Unable to decode message")

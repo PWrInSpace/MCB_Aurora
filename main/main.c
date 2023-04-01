@@ -67,27 +67,37 @@ void app_main(void) {
     size_t rx_size;
     int received_packet = 0;
     int transmited_packet = 0;
+    int crc_error = 0;
     while (1) {
         if (lora_received(&lora) == LORA_OK) {
-            rx_size = lora_receive_packet(&lora, buffer, sizeof(buffer));
-            received_packet += 1;
-            buffer[rx_size] = '\0';
-            ESP_LOGI(TAG, "Received: %s\n", buffer);
-            ESP_LOGI(TAG, "RSSI %d", lora_packet_rssi(&lora));
-            ESP_LOGI(TAG, "Signal to noise: %f", lora_packet_snr(&lora));
-            if (strncmp((char*)buffer, "RESET", 5) == 0) {
-                ESP_LOGW(TAG, "RESETING");
-                received_packet = 0;
-                transmited_packet = 0;
+            if (lora_check_crc_error(&lora) == true) {
+                ESP_LOGE(TAG, "CRC ERRORR");
+                crc_error += 1;
+                rx_size = lora_receive_packet(&lora, buffer, sizeof(buffer));
+                lora_set_receive_mode(&lora);
+                ESP_LOGI(TAG, "Received: %s\n", buffer);
             } else {
-                vTaskDelay(pdMS_TO_TICKS(100));
-                snprintf((char*)buffer, sizeof(buffer), "%lu;%d;%d;%d;%f;"PAYLOAD"\n",
-                    (uint32_t)get_time_ms(), received_packet, transmited_packet, lora_packet_rssi(&lora), lora_packet_snr(&lora));
-                ESP_LOGI(TAG, "%s", buffer);
-                lora_send_packet(&lora, buffer, sizeof(buffer));
-                transmited_packet += 1;
+                rx_size = lora_receive_packet(&lora, buffer, sizeof(buffer));
+                received_packet += 1;
+                buffer[rx_size] = '\0';
+                ESP_LOGI(TAG, "Received: %s\n", buffer);
+                ESP_LOGI(TAG, "RSSI %d", lora_packet_rssi(&lora));
+                ESP_LOGI(TAG, "Signal to noise: %f", lora_packet_snr(&lora));
+                if (strncmp((char*)buffer, "RESET", 5) == 0) {
+                    ESP_LOGW(TAG, "RESETING");
+                    received_packet = 0;
+                    transmited_packet = 0;
+                    crc_error = 0;
+                } else {
+                    vTaskDelay(pdMS_TO_TICKS(100));
+                    snprintf((char*)buffer, sizeof(buffer), "MCB;%lu;%d;%d;%d;%d;%f;"PAYLOAD"\n",
+                        (uint32_t)get_time_ms(), received_packet, transmited_packet, crc_error, lora_packet_rssi(&lora), lora_packet_snr(&lora));
+                    ESP_LOGI(TAG, "%s", buffer);
+                    lora_send_packet(&lora, buffer, sizeof(buffer));
+                    transmited_packet += 1;
+                }
+                lora_set_receive_mode(&lora);
             }
-            lora_set_receive_mode(&lora);
         }
 
         vTaskDelay(pdMS_TO_TICKS(10));
