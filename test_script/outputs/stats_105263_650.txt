@@ -1,0 +1,6 @@
+Received 499 message
+Lost 1 message
+Precent of received 499.0
+RSSI:	Average -98.8817635270541	MAX -94	Min -107
+SNR:	Average 9.422344689378757	MAX 11.75	Min 7.75
+Unable to decode 0

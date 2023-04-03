@@ -6,7 +6,7 @@ import os.path
 import numpy as np
 
 class LoRaTest():
-    TEST_PACKET_NB = 100
+    TEST_PACKET_NB = 500
     TEST_OUTPUT_DIR = "outputs/"
 
     def __init__(self, antenna_name, distance) -> None:
@@ -83,7 +83,13 @@ class LoRaTest():
 
 if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
-    antenna = input("Insert antenna name: ")
-    distance = input("Insert distance: ")
-    test = LoRaTest(antenna, distance)
-    test.start_test()
+
+    test_data = np.loadtxt("outputs/105262_back_650.txt", delimiter=";", dtype=str)
+    rssi = np.array([int(z) for z in test_data[:,5]])
+    snr = np.array([float(z) for z in test_data[:,6]])
+    transmited_packets = np.array([int(z) for z in test_data[:,2]])
+    received_packets = np.array([int(z) for z in test_data[:,3]])
+    logging.info(f"Transmited packets: {transmited_packets[-1]}-> {transmited_packets[-1] / 500.0 * 100}%")
+    logging.info(f"Transmited packets: {received_packets[-1]}-> {received_packets[-1] / 500.0 * 100}%")
+    logging.info(f"RSSI:\tAverage {np.average(rssi)}\tMAX {max(rssi)}\tMin {min(rssi)}")
+    logging.info(f"SNR:\tAverage {np.average(snr)}\tMAX {max(snr)}\tMin {min(snr)}")

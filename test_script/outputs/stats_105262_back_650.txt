@@ -1,0 +1,2 @@
+INFO:root:RSSI: Average -109.223176     MAX -101        Min -119
+INFO:root:SNR:  Average 6.668991        MAX 11.000000   Min -4.250000
