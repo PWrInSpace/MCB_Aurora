@@ -15,7 +15,6 @@
 #include "console.h"
 #include "flash_task.h"
 #include "sd_task.h"
-#include "state_machine_wrapper.h"
 #include "init_task.h"
 #include "lora_hw_config.h"
 #include "lora_task.h"

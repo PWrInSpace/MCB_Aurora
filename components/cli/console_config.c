@@ -3,6 +3,7 @@
 #include "console.h"
 #include "flash_task.h"
 #include "esp_log.h"
+#include "esp_system.h"
 
 #define TAG "CONSOLE_CONFIG"
 
@@ -27,6 +28,11 @@
 //     return 0;
 // }
 
+static int reset_device(int argc, char** arg) {
+    esp_restart();
+    return 0;
+}
+
 static int flash_start(int argc, char** arg ) {
     FT_erase_and_run_loop();
     return 0;
@@ -39,8 +45,9 @@ static int flash_terminate(int argc, char ** arg) {
 
 static esp_console_cmd_t cmd[] = {
     // {"flash-read", "123", NULL, read_flash, NULL},
-    {"flash-start", "3223", NULL, flash_start, NULL},
-    {"flash-terminate", "12313", NULL, flash_terminate, NULL}
+    {"reset-dev", "Restart device", NULL, reset_device, NULL},
+    {"flash-start", "start flash task loop", NULL, flash_start, NULL},
+    {"flash-terminate", "terminate flash loop", NULL, flash_terminate, NULL}
 };
 
 esp_err_t init_console() {

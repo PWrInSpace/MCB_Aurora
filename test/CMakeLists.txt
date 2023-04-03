@@ -16,6 +16,7 @@ set(TEST_FILES_DIRS
     "test"
     "esp_now"
     "commands"
+    # "state_machine"
 )
 
 

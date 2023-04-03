@@ -9,11 +9,6 @@
 #include "esp_log.h"
 #include "esp_rom_gpio.h"
 #include "freertos/task.h"
-#include "sdkconfig.h"
-
-#define LORA_CS_PIN CONFIG_LORA_CS
-#define LORA_RS_PIN CONFIG_LORA_RS
-#define LORA_D0_PIN CONFIG_LORA_D0
 
 /**
  * @brief Initialize spi for lora
