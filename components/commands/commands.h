@@ -84,7 +84,7 @@ bool cmd_process_command(
 
 /**
  * @brief Process command in lora mode
- * 
+ *
  * @param lora_dev_id lora dev id
  * @param dev_id system device id
  * @param message message to process
