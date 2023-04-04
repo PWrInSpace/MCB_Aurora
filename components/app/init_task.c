@@ -14,8 +14,8 @@
 #include "esp_timer.h"
 #include "console_config.h"
 #include "flash_task.h"
-#include "sd_task.h"
 #include "lora_task_config.h"
+#include "sd_card_config.h"
 
 #define TAG "INIT"
 
@@ -84,29 +84,13 @@ static bool init_flash_task() {
     return FT_init(&cfg);
 }
 
-static bool init_sd_card() {
-    sd_task_cfg_t cfg = {
-        .cs_pin = 5,
-        .data_path = "data",
-        .data_path_size = 9,
-        .spi_host = VSPI_HOST,
-        .log_path = "log",
-        .log_path_size = 5,
-        .stack_depth = 8000,
-        .priority = 0,
-        .core_id = APP_CPU_NUM,
-        .error_handler_fnc = NULL,
-    };
-
-    return SDT_init(&cfg);
-}
-
 
 static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(init_esp_now(), "ESP_NOW");
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
     CHECK_RESULT_BOOL(init_spi(), "SPI");
-    CHECK_RESULT_BOOL(init_sd_card(), "SD CARD");
+    CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
+    CHECK_RESULT_BOOL(sd_data_timer_start(1000), "SD CARD");
     CHECK_RESULT_BOOL(initialize_lora(), "LORA");
     CHECK_RESULT_BOOL(init_flash_task(), "FLASH");
     CHECK_RESULT_ESP(init_console(), "CLI");

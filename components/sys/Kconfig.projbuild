@@ -23,4 +23,7 @@ menu "PinOut"
         int "LoRa cs pin"
         default 4
 
+    config SD_CS
+        int "SD cs pin"
+        default 5
 endmenu

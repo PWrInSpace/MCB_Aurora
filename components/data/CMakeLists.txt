@@ -1,9 +1,5 @@
 idf_component_register(SRC_DIRS "."
                     INCLUDE_DIRS "."
-                    REQUIRES cmock protobuf-c data)
-
-execute_process (
-    COMMAND bash -c "portoc --c_out=. lora.proto"
-)
+                    REQUIRES cmock)
 
 target_compile_options(${COMPONENT_LIB} PRIVATE "-Wno-format" "-Wall" "-Werror")

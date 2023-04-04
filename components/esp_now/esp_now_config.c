@@ -3,6 +3,7 @@
 #include "esp_now_config.h"
 #include "esp_log.h"
 #include "esp_now_api.h"
+#include "rocket_data.h"
 
 #define TAG "ENC"
 
@@ -42,14 +43,21 @@ const ENA_device_t esp_now_tanwa = {
 
 static void callback_pitot(uint8_t *data, size_t size) {
     ESP_LOGI(TAG, "Pitot receive, size %d", size);
+    // if (size == sizeof())
 }
 
 static void callback_vent_valve(uint8_t *data, size_t size) {
     ESP_LOGI(TAG, "Vent receive, size %d", size);
+    if (size == sizeof(vent_valve_data_t)) {
+        rocket_data_update_vent_valve((vent_valve_data_t *) data);
+    }
 }
 
 static void callback_main_valve(uint8_t *data, size_t size) {
     ESP_LOGI(TAG, "Main receive, size %d", size);
+    if (size == sizeof(main_valve_data_t)) {
+        rocket_data_update_main_valve((main_valve_data_t *) data);
+    }
 }
 
 static void callback_tanwa(uint8_t *data, size_t size) {

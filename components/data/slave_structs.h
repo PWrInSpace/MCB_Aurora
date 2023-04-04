@@ -3,6 +3,7 @@
 #define SLAVE_STRUCTS_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef struct {
     bool waken_up :1;
