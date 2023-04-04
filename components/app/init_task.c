@@ -13,9 +13,9 @@
 #include "lora.pb-c.h"
 #include "esp_timer.h"
 #include "console_config.h"
-#include "flash_task.h"
 #include "lora_task_config.h"
 #include "sd_card_config.h"
+#include "flash_task_config.h"
 
 #define TAG "INIT"
 
@@ -67,24 +67,6 @@ static bool init_spi(void) {
     return spi_init(VSPI_HOST, 23, 19, 18);
 }
 
-static bool can_write() {
-    return true;
-}
-
-
-static bool init_flash_task() {
-    flash_task_cfg_t cfg = {
-        .data_size = 120,
-        .stack_depth = 8000,
-        .core_id = APP_CPU_NUM,
-        .priority = 4,
-        .error_handler_fnc = NULL,
-        .can_write_to_flash_fnc = can_write,
-    };
-    return FT_init(&cfg);
-}
-
-
 static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(init_esp_now(), "ESP_NOW");
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
@@ -92,7 +74,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
     CHECK_RESULT_BOOL(sd_data_timer_start(1000), "SD CARD");
     CHECK_RESULT_BOOL(initialize_lora(), "LORA");
-    CHECK_RESULT_BOOL(init_flash_task(), "FLASH");
+    CHECK_RESULT_BOOL(initialize_flash_memory(), "FLASH");
     CHECK_RESULT_ESP(init_console(), "CLI");
     vTaskDelete(NULL);
 }

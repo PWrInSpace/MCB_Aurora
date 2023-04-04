@@ -23,7 +23,6 @@ static struct {
 
     bool flash_formated;
 
-    FT_can_write can_write_fnc;
     FT_error_handler error_handler_fnc;
 
     struct {
@@ -38,7 +37,6 @@ static struct {
     .data_from_queue = NULL,
     .data_size = 0,
     .flash_formated = false,
-    .can_write_fnc = NULL,
     .error_handler_fnc = NULL,
     .flash.wrote_size = 0,
     .flash.max_size = 0,
@@ -161,11 +159,6 @@ bool FT_init(flash_task_cfg_t *cfg) {
         return false;
     }
 
-    if (cfg->can_write_to_flash_fnc == NULL) {
-        ESP_LOGE(TAG, "One or more intrface functions is equal to NULL");
-        return false;
-    }
-
     gb.queue = xQueueCreate(FLASH_QUEUE_SIZE, cfg->data_size);
     if (gb.queue == NULL) {
         return false;
@@ -183,7 +176,6 @@ bool FT_init(flash_task_cfg_t *cfg) {
     }
 
     gb.data_size = cfg->data_size;
-    gb.can_write_fnc = cfg->can_write_to_flash_fnc;
     gb.error_handler_fnc = cfg->error_handler_fnc;
 
     xTaskCreatePinnedToCore(
@@ -204,10 +196,6 @@ bool FT_init(flash_task_cfg_t *cfg) {
 }
 
 bool FT_send_data(void *data) {
-    if (gb.can_write_fnc() == false) {
-        return false;
-    }
-
     if (gb.flash_formated == false) {
         return false;
     }

@@ -13,7 +13,7 @@ static struct {
     char sd_data_buffer[CONFIG_SD_DATA_BUFFER_MAX_SIZE];
     size_t sd_buffer_data_size;
 } gb = {
-    .sd_data_timer = 0,
+    .sd_data_timer = NULL,
     .sd_data_buffer = {0},
     .sd_buffer_data_size = 0,
 };

@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include "esp_log.h"
 #include "sdkconfig.h"
-
+#include "flash_task_config.h"
 
 #define TAG "SMC"
 static void on_init(void *arg) {
@@ -31,6 +31,7 @@ static void on_ready_to_lauch(void *arg) {
 }
 
 static void on_countdown(void *arg) {
+    flash_data_timer_start(1000);
     ESP_LOGI(TAG, "ON COUNTDOWN");
 }
 
