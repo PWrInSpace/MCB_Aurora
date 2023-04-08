@@ -14,8 +14,13 @@ import matplotlib.pyplot as plt
 # ]
 
 data_paths = [
-    "zwykla_850.txt",
-    "105263_850.txt",
+    "mala_1000.txt",
+    "mala_1600.txt",
+    "mala-spin_1600.txt",
+    "mala_2200.txt",
+    "zwykla_1000.txt",
+    "zwykla_1600.txt",
+    "zwykla_2200.txt",
 ]
 
 logging.getLogger().setLevel(logging.INFO)
@@ -39,36 +44,39 @@ for path in data_paths:
     logging.info(f"SNR:\tAverage {np.average(snr)}\tMAX {max(snr)}\tMin {min(snr)}")
 
     plt.plot(rssi, snr, "o", alpha = 0.3)
-    bar_plot_rssi_dict[path[:-8]] = np.average(rssi)
-    bar_plot_snr_dict[path[:-8]] = np.average(snr)
-    bar_plot_transmited_dict[path[:-8]] = received_packets[-1] / 500.0 * 100
-    bar_plot_received_dict[path[:-8]] = received_packets[-1] / 500.0 * 100
+    bar_plot_rssi_dict[path[:-4]] = np.average(rssi)
+    bar_plot_snr_dict[path[:-4]] = np.average(snr)
+    # bar_plot_transmited_dict[path[:-4]] = received_packets[-1] / 500.0 * 100
+    if np.size(received_packets) > 250:
+        bar_plot_received_dict[path[:-4]] = np.size(received_packets) / 500.0 * 100.0
+    else:
+        bar_plot_received_dict[path[:-4]] = np.size(received_packets) / 250.0 * 100.0
 
-plt.title("850m")
+# plt.title("850m")
 plt.ylabel("Signal to noise")
 plt.xlabel("RSSI")
 plt.grid(True)
-plt.legend([x[:-8] for x in data_paths])
+plt.legend([x[:-4] for x in data_paths])
 # plt.show()
 
 plt.figure(1)
-plt.title("Average rssi - 850m")
+plt.title("Average rssi")
 plt.bar(bar_plot_rssi_dict.keys(), bar_plot_rssi_dict.values())
 plt.grid(True)
 # plt.show()
 
 plt.figure(2)
-plt.title("Average snr - 850m")
+plt.title("Average snr")
 plt.bar(bar_plot_snr_dict.keys(), bar_plot_snr_dict.values())
 plt.grid(True)
 
-plt.figure(3)
-plt.title("Transmited - 850m")
-plt.bar(bar_plot_transmited_dict.keys(), bar_plot_transmited_dict.values())
-plt.grid(True)
+# plt.figure(3)
+# plt.title("Transmited")
+# plt.bar(bar_plot_transmited_dict.keys(), bar_plot_transmited_dict.values())
+# plt.grid(True)
 
 plt.figure(4)
-plt.title("Received - 850m")
+plt.title("Received")
 plt.bar(bar_plot_received_dict.keys(), bar_plot_received_dict.values())
 plt.grid(True)
 plt.show()

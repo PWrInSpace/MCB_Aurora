@@ -1,0 +1,4 @@
+INFO:root:Received 201 message
+INFO:root:Lost 49 message
+INFO:root:Unable to decode 16
+INFO:root:Precent of received 80.400000
