@@ -21,6 +21,8 @@
 #include "lora_task.h"
 #include <inttypes.h>
 #include "esp_sntp.h"
+#include "freertos/timers.h"
+#include "esp_now_config.h"
 
 // spi_t spi;
 // i2c_t i2c;
@@ -38,7 +40,37 @@ uint64_t get_time_ms(void) {
     return (uint64_t) (esp_timer_get_time() / 1000ULL);
 }
 
+// change to error from error api
+static void temp_on_error(ENA_ERROR error) {
+    ESP_LOGE(TAG, "ESP NOW ERROR %d", error);
+}
 
+
+static bool init_esp_now(void) {
+    esp_err_t status = ESP_OK;
+    uint8_t mac_address[] = MCB_MAC;
+    ENA_config_t cfg = {
+      .stack_depth = 8000,
+      .priority = 3,
+      .core_id = APP_CPU_NUM,
+    };
+    status |= ENA_init(mac_address);
+    status |= ENA_register_device(&esp_now_broadcast);
+    status |= ENA_register_device(&esp_now_pitot);
+    // status |= ENA_register_device(&esp_now_vent_valve);
+    // status |= ENA_register_device(&esp_now_main_valve);
+    // status |= ENA_register_device(&esp_now_tanwa);
+    status |= ENA_register_error_handler(temp_on_error);
+    status |= ENA_run(&cfg);
+
+    return status == ESP_OK ? true : false;
+}
+
+static void on_timer(TimerHandle_t timer) {
+    uint8_t test[] = "hello";
+    ENA_send(&esp_now_broadcast, test, sizeof(test), 3);
+}
+static TimerHandle_t timer;
 void app_main(void) {
     spi_init(VSPI_HOST, 23, 19, 18);
     lora_hw_spi_add_device(VSPI_HOST);
@@ -55,6 +87,10 @@ void app_main(void) {
         .implicit_header = 0,
         .frequency = 0
     };
+    init_esp_now();
+    timer = xTimerCreate("broadcast timer", pdMS_TO_TICKS(500),
+                                        pdTRUE, NULL, on_timer);
+    xTimerStart(timer, portMAX_DELAY);
     lora_init(&lora);
     lora_set_frequency(&lora, 868e6);
     lora_set_bandwidth(&lora, LORA_BW_250_kHz);
