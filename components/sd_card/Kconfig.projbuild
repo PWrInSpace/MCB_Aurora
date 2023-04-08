@@ -2,7 +2,7 @@ menu "SD Task"
 
     config SD_DATA_BUFFER_MAX_SIZE
         int "data buffer size"
-        default 256
+        default 512
 
     config SD_LOG_BUFFER_MAX_SIZE
         int "log buffer size"

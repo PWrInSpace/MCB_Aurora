@@ -1,5 +1,5 @@
 #include <string.h>
-#include "pysd_gen/gen_pysd.h"
+#include "gen_pysd.h"
 
 /**
  * @brief Get header size

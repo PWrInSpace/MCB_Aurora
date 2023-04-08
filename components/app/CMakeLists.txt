@@ -1,6 +1,6 @@
 idf_component_register(SRC_DIRS "."
                     INCLUDE_DIRS "."
                     REQUIRES cmock esp_now state_machine sys lora utils protobuf esp_timer
-                    cli sd_card)
+                    cli sd_card data)
 
 target_compile_options(${COMPONENT_LIB} PRIVATE "-Wno-format")

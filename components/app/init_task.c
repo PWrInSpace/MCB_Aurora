@@ -17,6 +17,7 @@
 #include "sd_card_config.h"
 #include "flash_task_config.h"
 #include "esp_now_config.h"
+#include "rocket_data.h"
 
 #define TAG "INIT"
 
@@ -42,6 +43,7 @@ static bool init_spi(void) {
 }
 
 static void TASK_init(void *arg) {
+    CHECK_RESULT_BOOL(rocket_data_init(), "data");
     CHECK_RESULT_BOOL(initialize_esp_now(), "ESP_NOW");
     CHECK_RESULT_BOOL(esp_now_broadcast_timer_start(500), "ESP NOW BROADCAST");
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");

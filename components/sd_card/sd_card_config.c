@@ -5,6 +5,7 @@
 
 #include "sd_task.h"
 #include "esp_log.h"
+#include "gen_pysd.h"
 
 #define TAG "SD_C"
 
@@ -40,8 +41,14 @@ static void on_sd_data_timer(TimerHandle_t xTimer) {
     // create sd string
     static int i = 0;
     i++;
-    ESP_LOGI(TAG, "Sending data to sd");
-    gb.sd_buffer_data_size = snprintf(gb.sd_data_buffer, sizeof(gb.sd_data_buffer), "Hello world :D %d\n", i);
+    rocket_data_t test = rocket_data_get();
+    test.mcb.uptime = i;
+    test.mcb.state = i + 10;
+    gb.sd_buffer_data_size = pysd_create_sd_frame(gb.sd_data_buffer,
+                                                sizeof(gb.sd_data_buffer),
+                                                test,
+                                                true);
+    ESP_LOGI(TAG, "Writing data to sd -> %d", gb.sd_buffer_data_size);
     SDT_send_data(gb.sd_data_buffer, gb.sd_buffer_data_size);
 }
 

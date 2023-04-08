@@ -18,6 +18,7 @@
 #include "init_task.h"
 #include "lora_hw_config.h"
 #include "lora_task.h"
+#include "gen_pysd.h"
 
 // spi_t spi;
 // i2c_t i2c;
@@ -26,8 +27,14 @@
 #include "sdkconfig.h"
 #define TAG "AURORA"
 
+char test[740];
+
+rocket_data_t test_data;
+
 void app_main(void) {
-    ESP_LOGI(TAG, "INIT TASK");
+    ESP_LOGI(TAG, "INIT TASK %d", pysd_get_sd_frame_size(test_data, true));
+    pysd_create_sd_frame(test, sizeof(test), test_data, true);
+    ESP_LOGI(TAG, "INIT TASK %s", test);
     run_init_task();
     vTaskDelete(NULL);
 }

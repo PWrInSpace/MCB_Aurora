@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include "/home/kuba/pwrinspace/git/MCB_Aurora/components/data/rocket_data.h"
+#include "rocket_data.h"
 
 #ifdef __cplusplus
 extern "C" {
