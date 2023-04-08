@@ -16,6 +16,7 @@
 #include "lora_task_config.h"
 #include "sd_card_config.h"
 #include "flash_task_config.h"
+#include "esp_now_config.h"
 
 #define TAG "INIT"
 
@@ -36,39 +37,13 @@ inline static void CHECK_RESULT_BOOL(esp_err_t res, char *message) {
     esp_restart();
 }
 
-
-// change to error from error api
-static void temp_on_error(ENA_ERROR error) {
-    ESP_LOGE(TAG, "ESP NOW ERROR %d", error);
-}
-
-static bool init_esp_now(void) {
-    esp_err_t status = ESP_OK;
-    uint8_t mac_address[] = MCB_MAC;
-    ENA_config_t cfg = {
-      .stack_depth = 8000,
-      .priority = 3,
-      .core_id = APP_CPU_NUM,
-    };
-    status |= ENA_init(mac_address);
-    status |= ENA_register_device(&esp_now_broadcast);
-    status |= ENA_register_device(&esp_now_pitot);
-    // status |= ENA_register_device(&esp_now_vent_valve);
-    // status |= ENA_register_device(&esp_now_main_valve);
-    // status |= ENA_register_device(&esp_now_tanwa);
-    status |= ENA_register_error_handler(temp_on_error);
-    status |= ENA_run(&cfg);
-
-    return status == ESP_OK ? true : false;
-}
-
-
 static bool init_spi(void) {
     return spi_init(VSPI_HOST, 23, 19, 18);
 }
 
 static void TASK_init(void *arg) {
-    CHECK_RESULT_BOOL(init_esp_now(), "ESP_NOW");
+    CHECK_RESULT_BOOL(initialize_esp_now(), "ESP_NOW");
+    CHECK_RESULT_BOOL(esp_now_broadcast_timer_start(500), "ESP NOW BROADCAST");
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
     CHECK_RESULT_BOOL(init_spi(), "SPI");
     CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");

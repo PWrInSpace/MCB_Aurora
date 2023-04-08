@@ -19,3 +19,10 @@ message LoRaFrame {
     required uint32 uptime = 3;
     required uint32 state = 4;
 }
+
+message LoRaCommand {
+    required uint32 lora_dev_id = 1;
+    required uint32 sys_dev_id = 2;
+    required uint32 command = 3;
+    required int32 payload = 4;
+}

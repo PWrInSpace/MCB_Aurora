@@ -27,7 +27,7 @@ void rocket_data_update_main_valve(main_valve_data_t *data) {
 }
 
 
-void rocket_data_update_vent_valve(main_valve_data_t *data) {
+void rocket_data_update_vent_valve(vent_valve_data_t *data) {
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
     memcpy(&gb.rocket_data.vent_valve, &data, sizeof(gb.rocket_data.vent_valve));
     xSemaphoreGive(gb.data_mutex);
