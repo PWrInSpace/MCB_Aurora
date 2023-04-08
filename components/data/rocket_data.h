@@ -8,7 +8,7 @@ typedef struct {
     mcb_data_t mcb;
     vent_valve_data_t vent_valve;
     main_valve_data_t main_valve;
-    recovery_data_t  recovery;
+    recovery_data_t recovery;
 } rocket_data_t;
 
 bool rocket_data_init(void);
