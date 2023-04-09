@@ -14,13 +14,13 @@ import matplotlib.pyplot as plt
 # ]
 
 data_paths = [
-    "mala_1000.txt",
-    "mala_1600.txt",
-    "mala-spin_1600.txt",
-    "mala_2200.txt",
-    "zwykla_1000.txt",
-    "zwykla_1600.txt",
-    "zwykla_2200.txt",
+    "small_650.txt",
+    "small_1000.txt",
+    "small_1500.txt",
+    "small_2000.txt",
+    "small_2_2000.txt",
+    # "big_650.txt",
+    # "big_1000.txt",
 ]
 
 logging.getLogger().setLevel(logging.INFO)
