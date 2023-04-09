@@ -135,14 +135,15 @@ static void flash_task(void *arg) {
     ESP_LOGI(TAG, "Formatting flash");
     format();
     open();
+    ESP_LOGI(TAG, "Flash formatted");
     gb.flash_formated = true;
 
     while (1) {
         if (uxQueueMessagesWaiting(gb.queue) > FLASH_DROP_VALUE) {
+            ESP_LOGW(TAG, "WRITING TO FLASH");
             while (uxQueueMessagesWaiting(gb.queue) > 0) {
                 xQueueReceive(gb.queue, gb.data_from_queue, portMAX_DELAY);
                 write(gb.data_from_queue, gb.data_size);
-                ESP_LOGI(TAG, "FLASH WRITE");
             }
             fflush(gb.flash.file);
         }

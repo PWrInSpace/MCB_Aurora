@@ -38,16 +38,12 @@ inline static void CHECK_RESULT_BOOL(esp_err_t res, char *message) {
     esp_restart();
 }
 
-static bool init_spi(void) {
-    return spi_init(VSPI_HOST, 23, 19, 18);
-}
-
 static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(rocket_data_init(), "data");
     CHECK_RESULT_BOOL(initialize_esp_now(), "ESP_NOW");
     CHECK_RESULT_BOOL(esp_now_broadcast_timer_start(500), "ESP NOW BROADCAST");
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
-    CHECK_RESULT_BOOL(init_spi(), "SPI");
+    CHECK_RESULT_BOOL(spi_init(VSPI_HOST, CONFIG_SPI_MOSI, CONFIG_SPI_MISO, CONFIG_SPI_SCK), "SPI");
     CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
     CHECK_RESULT_BOOL(sd_data_timer_start(1000), "SD CARD");
     CHECK_RESULT_BOOL(initialize_lora(), "LORA");

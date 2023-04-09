@@ -38,12 +38,7 @@ bool initialize_sd_card(void) {
 }
 
 static void on_sd_data_timer(TimerHandle_t xTimer) {
-    // create sd string
-    static int i = 0;
-    i++;
     rocket_data_t test = rocket_data_get();
-    test.mcb.uptime = i;
-    test.mcb.state = i + 10;
     gb.sd_buffer_data_size = pysd_create_sd_frame(gb.sd_data_buffer,
                                                 sizeof(gb.sd_data_buffer),
                                                 test,

@@ -4,6 +4,7 @@
 #include "esp_log.h"
 #include "sdkconfig.h"
 #include "flash_task_config.h"
+#include "flash_task.h"
 
 #define TAG "SMC"
 static void on_init(void *arg) {
@@ -11,10 +12,12 @@ static void on_init(void *arg) {
 }
 
 static void on_idle(void *arg) {
+    FT_erase_and_run_loop();
     ESP_LOGI(TAG, "ON IDLE");
 }
 
 static void on_recovery_arm(void *arg) {
+    flash_data_timer_start(1000);
     ESP_LOGI(TAG, "ON ARM");
 }
 
@@ -31,7 +34,6 @@ static void on_ready_to_lauch(void *arg) {
 }
 
 static void on_countdown(void *arg) {
-    flash_data_timer_start(1000);
     ESP_LOGI(TAG, "ON COUNTDOWN");
 }
 
