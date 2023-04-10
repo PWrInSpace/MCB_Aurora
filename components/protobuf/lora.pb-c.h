@@ -15,9 +15,8 @@ PROTOBUF_C__BEGIN_DECLS
 #endif
 
 
-typedef struct MainValveFrame MainValveFrame;
-typedef struct VentValveFrame VentValveFrame;
 typedef struct LoRaFrame LoRaFrame;
+typedef struct LoRaCommand LoRaCommand;
 
 
 /* --- enums --- */
@@ -25,82 +24,78 @@ typedef struct LoRaFrame LoRaFrame;
 
 /* --- messages --- */
 
-struct  MainValveFrame
-{
-  ProtobufCMessage base;
-  float thermocuple1;
-  float thermocuple2;
-  float battery;
-};
-#define MAIN_VALVE_FRAME__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&main_valve_frame__descriptor) \
-    , 0, 0, 0 }
-
-
-struct  VentValveFrame
-{
-  ProtobufCMessage base;
-  uint32_t thermistor1;
-  uint32_t thermistor2;
-  float tankpressure;
-  float batteryvoltage;
-};
-#define VENT_VALVE_FRAME__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&vent_valve_frame__descriptor) \
-    , 0, 0, 0, 0 }
-
-
 struct  LoRaFrame
 {
   ProtobufCMessage base;
-  MainValveFrame *mainvalve;
-  VentValveFrame *ventvalve;
+  /*
+   * mcb frame
+   */
+  uint32_t obc_state;
   uint32_t uptime;
-  uint32_t state;
+  uint32_t flight_time;
+  float mcb_battery;
+  float gps_lat;
+  float gps_long;
+  float gps_sat;
+  float mcb_altitude;
+  float mcb_velocity;
+  int32_t mcb_temperature;
+  float euler_fi;
+  float euler_psi;
+  float euler_theta;
+  /*
+   * recovery frame
+   */
+  uint32_t recov_pressure_1;
+  uint32_t recov_pressure_2;
+  uint32_t recov_byte_data;
+  /*
+   * pitot frame
+   */
+  float pitot_battery;
+  int32_t pitot_altitude;
+  int32_t pitot_velocity;
+  int32_t pitot_temperature;
+  /*
+   * main valve
+   */
+  float mval_battery;
+  uint32_t mval_byte_data;
+  /*
+   * vent valve
+   */
+  float vent_battery;
+  float tank_pressure;
+  uint32_t vent_byte_data;
+  /*
+   * tanwa frame
+   */
+  float tanwa_battery;
+  uint32_t tanwa_byte_data;
+  uint32_t tanwa_state;
+  float rocket_weight;
+  float tank_weight;
+  uint32_t esp_now_byte_data;
+  uint32_t errors;
 };
 #define LO_RA_FRAME__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&lo_ra_frame__descriptor) \
-    , NULL, NULL, 0, 0 }
+    , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 
 
-/* MainValveFrame methods */
-void   main_valve_frame__init
-                     (MainValveFrame         *message);
-size_t main_valve_frame__get_packed_size
-                     (const MainValveFrame   *message);
-size_t main_valve_frame__pack
-                     (const MainValveFrame   *message,
-                      uint8_t             *out);
-size_t main_valve_frame__pack_to_buffer
-                     (const MainValveFrame   *message,
-                      ProtobufCBuffer     *buffer);
-MainValveFrame *
-       main_valve_frame__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data);
-void   main_valve_frame__free_unpacked
-                     (MainValveFrame *message,
-                      ProtobufCAllocator *allocator);
-/* VentValveFrame methods */
-void   vent_valve_frame__init
-                     (VentValveFrame         *message);
-size_t vent_valve_frame__get_packed_size
-                     (const VentValveFrame   *message);
-size_t vent_valve_frame__pack
-                     (const VentValveFrame   *message,
-                      uint8_t             *out);
-size_t vent_valve_frame__pack_to_buffer
-                     (const VentValveFrame   *message,
-                      ProtobufCBuffer     *buffer);
-VentValveFrame *
-       vent_valve_frame__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data);
-void   vent_valve_frame__free_unpacked
-                     (VentValveFrame *message,
-                      ProtobufCAllocator *allocator);
+struct  LoRaCommand
+{
+  ProtobufCMessage base;
+  uint32_t lora_dev_id;
+  uint32_t sys_dev_id;
+  uint32_t command;
+  int32_t payload;
+};
+#define LO_RA_COMMAND__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&lo_ra_command__descriptor) \
+    , 0, 0, 0, 0 }
+
+
 /* LoRaFrame methods */
 void   lo_ra_frame__init
                      (LoRaFrame         *message);
@@ -120,16 +115,32 @@ LoRaFrame *
 void   lo_ra_frame__free_unpacked
                      (LoRaFrame *message,
                       ProtobufCAllocator *allocator);
+/* LoRaCommand methods */
+void   lo_ra_command__init
+                     (LoRaCommand         *message);
+size_t lo_ra_command__get_packed_size
+                     (const LoRaCommand   *message);
+size_t lo_ra_command__pack
+                     (const LoRaCommand   *message,
+                      uint8_t             *out);
+size_t lo_ra_command__pack_to_buffer
+                     (const LoRaCommand   *message,
+                      ProtobufCBuffer     *buffer);
+LoRaCommand *
+       lo_ra_command__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   lo_ra_command__free_unpacked
+                     (LoRaCommand *message,
+                      ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
-typedef void (*MainValveFrame_Closure)
-                 (const MainValveFrame *message,
-                  void *closure_data);
-typedef void (*VentValveFrame_Closure)
-                 (const VentValveFrame *message,
-                  void *closure_data);
 typedef void (*LoRaFrame_Closure)
                  (const LoRaFrame *message,
+                  void *closure_data);
+typedef void (*LoRaCommand_Closure)
+                 (const LoRaCommand *message,
                   void *closure_data);
 
 /* --- services --- */
@@ -137,9 +148,8 @@ typedef void (*LoRaFrame_Closure)
 
 /* --- descriptors --- */
 
-extern const ProtobufCMessageDescriptor main_valve_frame__descriptor;
-extern const ProtobufCMessageDescriptor vent_valve_frame__descriptor;
 extern const ProtobufCMessageDescriptor lo_ra_frame__descriptor;
+extern const ProtobufCMessageDescriptor lo_ra_command__descriptor;
 
 PROTOBUF_C__END_DECLS
 
