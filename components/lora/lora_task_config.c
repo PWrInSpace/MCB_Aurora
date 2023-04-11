@@ -16,8 +16,10 @@ static void lora_process(uint8_t *packet, size_t packet_size) {
     if (received != NULL) {
         ESP_LOGI(TAG, "Received LORA_ID %d, DEV_ID %d, COMMAND %d, PLD %d", received->lora_dev_id,
                  received->sys_dev_id, received->command, received->payload);
+
         lo_ra_command__free_unpacked(received, NULL);
         cmd_message_t received_command = cmd_create_message(received->command, received->payload);
+
         if (lora_cmd_process_command(received->lora_dev_id, received->sys_dev_id,
                                      &received_command) == false) {
             ESP_LOGE(TAG, "Unable to prcess command :C");
