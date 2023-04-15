@@ -19,6 +19,7 @@
 #include "init_task.h"
 #include "lora_hw_config.h"
 #include "lora_task.h"
+#include "processing_task_config.h"
 
 // spi_t spi;
 // i2c_t i2c;
@@ -27,10 +28,18 @@
 #include "sdkconfig.h"
 #define TAG "AURORA"
 
+static void test(void *arg) {
+    ESP_LOGI(TAG, "New processing function!!!");
+}
+
 void app_main(void) {
-    ESP_LOGI(TAG, "INIT TASK");
-    run_init_task();
-    vTaskDelete(NULL);
+    initialize_processing_task();
+    vTaskDelay(6000);
+    ESP_LOGW(TAG, "Changing processing function");
+    sensors_change_process_function(test, 100);
+    // ESP_LOGI(TAG, "INIT TASK");
+    // run_init_task();
+    // vTaskDelete(NULL);
 }
 
 // typedef struct {

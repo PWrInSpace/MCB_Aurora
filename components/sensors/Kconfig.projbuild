@@ -1,0 +1,20 @@
+menu "Sensors task"
+    config SENSORS_TASK_DEPTH
+        int "Sensors task stack depth"
+        default 4096
+
+    config SENSORS_TASK_PRIORITY
+        int "Sensors task prioirty"
+        range 0 20
+        default 2
+
+    config SENSORS_TASK_CPU
+        int "Sensor task cpu number"
+        range 0 1
+        default 1
+
+    config SENSORS_TASK_PERIOD_MS
+        int "Sensor task loop execution period (ms)"
+        range 0 10000
+        default 10
+endmenu
