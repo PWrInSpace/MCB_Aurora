@@ -1,5 +1,4 @@
 // Copyright 2022 PWrInSpace Kuba
-
 #include <memory.h>
 #include "processing_task.h"
 #include "freertos/FreeRTOS.h"
@@ -28,6 +27,10 @@ static struct {
 };
 
 bool sensors_get_data(void *buffer, size_t buffer_size, uint32_t timeout_ms) {
+    if (gb.data_mutex == NULL) {
+        return false;
+    }
+
     if (gb.data_buffer == NULL || gb.data_mutex == NULL) {
         return false;
     }
@@ -40,7 +43,6 @@ bool sensors_get_data(void *buffer, size_t buffer_size, uint32_t timeout_ms) {
         ESP_LOGE(TAG, "Semaphore error");
         return false;
     }
-
     memcpy(buffer, gb.data_buffer, buffer_size);
     xSemaphoreGive(gb.data_mutex);
 
@@ -48,6 +50,10 @@ bool sensors_get_data(void *buffer, size_t buffer_size, uint32_t timeout_ms) {
 }
 
 bool sensors_change_process_function(sensors_process fnc, uint32_t timeout_ms) {
+    if (gb.data_mutex == NULL) {
+        return false;
+    }
+
     if (fnc == NULL) {
         return false;
     }
@@ -117,7 +123,7 @@ static bool initialize_rtos(void) {
 }
 
 bool sensors_create_task(sensors_task_cfg_t *cfg) {
-    if (cfg->sensors_read_fnc == NULL || cfg->sensors_process_fnc == NULL) {
+    if (cfg->sensors_read_fnc == NULL) {
         return false;
     }
 
@@ -129,7 +135,7 @@ bool sensors_create_task(sensors_task_cfg_t *cfg) {
     gb.sensors_process_fnc = cfg->sensors_process_fnc;
     gb.data_buffer_size = cfg->data_size;
 
-    gb.data_buffer = (void*)calloc(0, gb.data_buffer_size);
+    gb.data_buffer = (void*)calloc(1, gb.data_buffer_size);
     if (gb.data_buffer == NULL) {
         ESP_LOGE(TAG, "Malloc error");
         return false;

@@ -10,6 +10,7 @@
 #include "lora_hw_config.h"
 #include "spi.h"
 #include "utils.h"
+#include "processing_task_config.h"
 
 #define TAG "INIT"
 
@@ -119,6 +120,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(init_state_machine(), "STATE_MACHINE");
     CHECK_RESULT_BOOL(init_spi(), "SPI");
     CHECK_RESULT_BOOL(init_lora(), "LORA");
+    CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
     vTaskDelete(NULL);
 }
 

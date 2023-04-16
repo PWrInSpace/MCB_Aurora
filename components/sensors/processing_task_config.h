@@ -5,9 +5,20 @@
 #include "processing_task.h"
 
 typedef struct {
-    uint8_t test;
+    int test1;
+    int test2;
+    int test3;
+    int test4;
+    int test5;
+    int test6;
+    float test_float;
 } sensors_data_t;
 
-
+/**
+ * @brief Initialize configured processing task
+ *
+ * @return true :D
+ * @return false :C
+ */
 bool initialize_processing_task(void);
 #endif

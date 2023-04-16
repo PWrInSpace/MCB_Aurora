@@ -1,5 +1,5 @@
 idf_component_register(SRC_DIRS "."
                     INCLUDE_DIRS "."
-                    REQUIRES cmock esp_now state_machine sys lora utils)
+                    REQUIRES cmock esp_now state_machine sys lora utils sensors)
 
 target_compile_options(${COMPONENT_LIB} PRIVATE "-Wno-format")
