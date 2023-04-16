@@ -24,8 +24,6 @@ typedef enum {
 
 typedef bool (*FT_error_handler) (FT_ERROR_CODE error_code);
 
-typedef bool (*FT_can_write) (void);
-
 typedef struct {
     size_t data_size;   // size of transmitting data
 
@@ -33,7 +31,6 @@ typedef struct {
     BaseType_t core_id;
     UBaseType_t priority;
 
-    FT_can_write can_write_to_flash_fnc;
     FT_error_handler error_handler_fnc;
 } flash_task_cfg_t;
 

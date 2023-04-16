@@ -1,4 +1,7 @@
 menu "PinOut"
+    config SPI_HOST
+        int "Spi host"
+        default 3
     config SPI_MOSI
         int "Spi mosi pin"
         default 23
@@ -23,4 +26,7 @@ menu "PinOut"
         int "LoRa cs pin"
         default 4
 
+    config SD_CS
+        int "SD cs pin"
+        default 5
 endmenu

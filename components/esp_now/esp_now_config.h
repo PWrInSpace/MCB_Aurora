@@ -21,4 +21,14 @@ extern const ENA_device_t esp_now_vent_valve;  // :CCC
 extern const ENA_device_t esp_now_main_valve;  // :CCC
 extern const ENA_device_t esp_now_tanwa;  // :CCC
 
+
+bool initialize_esp_now(void);
+
+bool esp_now_broadcast_timer_start(uint32_t period_ms);
+
+bool esp_now_broadcast_timer_change_period(uint32_t period_ms);
+
+bool esp_now_broadcast_timer_terminate(void);
+
+
 #endif

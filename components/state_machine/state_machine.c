@@ -160,7 +160,7 @@ static void SM_loop(void *arg) {
     while (1) {
         assert(sm.current_state < sm.states_quantity);
         if (ulTaskNotifyTake(pdTRUE, 0)) {
-            xSemaphoreTake(sm.current_state_mutex, pdTRUE);
+            xSemaphoreTake(sm.current_state_mutex, portMAX_DELAY);
             if (sm.states[sm.current_state].callback != NULL) {
                 sm.states[sm.current_state].callback(sm.states[sm.current_state].arg);
             }

@@ -59,7 +59,7 @@ typedef enum {
     VALVE_CLOSE
 } valve_commands_t;
 
-rf_cmd_command_t valve_commands[] = {
+cmd_command_t valve_commands[] = {
     {VALVE_OPEN, on_valve_open_command},
     {VALVE_CLOSE, on_valve_close_command}
 };
@@ -69,70 +69,75 @@ typedef enum {
     PITOT_TWO
 } pitot_commands_t;
 
-rf_cmd_command_t pitot_commands[] = {
+cmd_command_t pitot_commands[] = {
     {PITOT_ONE, on_pitot_one_command},
     {PITOT_TWO, on_pitot_two_command}
 };
 
-rf_cmd_device_t devices[] = {
-    {VALVE, valve_commands, sizeof(valve_commands) / sizeof(rf_cmd_command_t)},
-    {PITOT, pitot_commands, sizeof(pitot_commands) / sizeof(rf_cmd_command_t)},
+cmd_device_t devices[] = {
+    {VALVE, valve_commands, sizeof(valve_commands) / sizeof(cmd_command_t)},
+    {PITOT, pitot_commands, sizeof(pitot_commands) / sizeof(cmd_command_t)},
 };
 
+static cmd_t cfg = {
+    .lora_dev_id = LORA_DEV_ID,
+    .devices = devices,
+    .number_of_devices = sizeof(devices) / sizeof(devices[0]),
+};
 
-TEST_CASE("Init in standard mode", "[RF_CMD]") {
-    rf_cmd_config_t cfg = {
-        .devices = devices,
-        .number_of_devices = sizeof(devices) / sizeof(rf_cmd_device_t)
-    };
-    TEST_ASSERT_EQUAL(true, rf_cmd_init_standard_mode(&cfg));
+TEST_CASE("Init in standard mode", "[cmd]") {
+    TEST_ASSERT_EQUAL(true, cmd_init_standard_mode(&cfg));
 }
 
-TEST_CASE("Try prcoess lora in standard mode", "[RF_CMD]") {
-    rf_cmd_message_t mess = rf_cmd_create_message(PITOT_ONE, 123);
-    TEST_ASSERT_EQUAL(false, rf_cmd_process_lora_command(0x12, PITOT, &mess));
+TEST_CASE("Try prcoess lora in standard mode", "[cmd]") {
+    cmd_message_t mess = cmd_create_message(PITOT_ONE, 123);
+    TEST_ASSERT_EQUAL(false, cmd_process_lora_command(&cfg, 0x12, PITOT, &mess));
 }
 
-TEST_CASE("Process commands with invalid dev", "[RF_CMD]") {
-    rf_cmd_message_t mess = rf_cmd_create_message(PITOT_ONE, 123);
-    TEST_ASSERT_EQUAL(false, rf_cmd_process_command(123, &mess));
+TEST_CASE("Process commands with invalid dev", "[cmd]") {
+    cmd_message_t mess = cmd_create_message(PITOT_ONE, 123);
+    TEST_ASSERT_EQUAL(false, cmd_process_command(&cfg, 123, &mess));
 }
 
-TEST_CASE("Process commands in normal mode", "[RF_CMD]") {
-    rf_cmd_message_t mess = rf_cmd_create_message(PITOT_ONE, 123);
-    TEST_ASSERT_EQUAL(true, rf_cmd_process_command(PITOT, &mess));
+TEST_CASE("Process commands in normal mode", "[cmd]") {
+    cmd_message_t mess = cmd_create_message(PITOT_ONE, 123);
+    TEST_ASSERT_EQUAL(true, cmd_process_command(&cfg, PITOT, &mess));
     TEST_ASSERT_EQUAL(123, outputs.payload_pitot_one);
-    mess = rf_cmd_create_message(VALVE_OPEN, 152);
-    TEST_ASSERT_EQUAL(true, rf_cmd_process_command(VALVE, &mess));
+    mess = cmd_create_message(VALVE_OPEN, 152);
+    TEST_ASSERT_EQUAL(true, cmd_process_command(&cfg, VALVE, &mess));
     TEST_ASSERT_EQUAL(152, outputs.payload_valve_open);
 }
 
-TEST_CASE("Init in lora mode", "[RF_CMD]") {
-    rf_cmd_lora_config_t cfg = {
-        .lora_dev_id = LORA_DEV_ID,
-        .devices = devices,
-        .number_of_devices = sizeof(devices) / sizeof(rf_cmd_device_t)
-    };
-    TEST_ASSERT_EQUAL(true, rf_cmd_init_lora_mode(&cfg));
+TEST_CASE("Init in lora with invalid id", "[cmd]") {
+    cfg.lora_dev_id = 0x00;
+    TEST_ASSERT_EQUAL(false, cmd_init_lora_mode(&cfg));
+    cfg.lora_dev_id = 0x03;
+    TEST_ASSERT_EQUAL(false, cmd_init_lora_mode(&cfg));
+}
+
+TEST_CASE("Init in lora mode", "[cmd]") {
+    cfg.lora_dev_id = LORA_DEV_ID;
+    TEST_ASSERT_EQUAL(true, cmd_init_lora_mode(&cfg));
 }
 
 
-TEST_CASE("Process commands in lora mode", "[RF_CMD]") {
+TEST_CASE("Process commands in lora mode", "[cmd]") {
     clear_outputs();
 
-    rf_cmd_message_t mess = rf_cmd_create_message(PITOT_ONE, 123);
-    TEST_ASSERT_EQUAL(true, rf_cmd_process_lora_command(LORA_DEV_ID, PITOT, &mess));
+    cmd_message_t mess = cmd_create_message(PITOT_ONE, 123);
+    TEST_ASSERT_EQUAL(true, cmd_process_lora_command(&cfg, LORA_DEV_ID, PITOT, &mess));
     TEST_ASSERT_EQUAL(123, outputs.payload_pitot_one);
-    mess = rf_cmd_create_message(VALVE_OPEN, 152);
-    TEST_ASSERT_EQUAL(false, rf_cmd_process_lora_command(LORA_DEV_ID + 0x22, VALVE, &mess));
+    mess = cmd_create_message(VALVE_OPEN, 152);
+    TEST_ASSERT_EQUAL(false, cmd_process_lora_command(&cfg, LORA_DEV_ID + 0x22, VALVE, &mess));
 }
 
-TEST_CASE("Check privilage mode", "[RF_CMD]") {
+TEST_CASE("Check privilage mode", "[cmd]") {
     clear_outputs();
 
-    rf_cmd_message_t mess = rf_cmd_create_message(PITOT_TWO, 123);
-    TEST_ASSERT_EQUAL(true, rf_cmd_process_lora_command(
-        LORA_DEV_ID | RF_CMD_PRIVILAGE_MASK,
+    cmd_message_t mess = cmd_create_message(PITOT_TWO, 123);
+    TEST_ASSERT_EQUAL(true, cmd_process_lora_command(
+        &cfg,
+        LORA_DEV_ID | CMD_PRIVILAGE_MASK,
         PITOT,
         &mess));
     TEST_ASSERT_EQUAL(PRIVILAGE_OUTPUT, outputs.payload_pitot_two);

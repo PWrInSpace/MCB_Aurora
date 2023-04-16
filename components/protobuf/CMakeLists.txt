@@ -1,6 +1,6 @@
 idf_component_register(SRC_DIRS "."
                     INCLUDE_DIRS "."
-                    REQUIRES cmock protobuf-c)
+                    REQUIRES cmock protobuf-c data)
 
 execute_process (
     COMMAND bash -c "portoc --c_out=. lora.proto"
