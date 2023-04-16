@@ -15,10 +15,10 @@
 #include "console.h"
 #include "flash_task.h"
 #include "sd_task.h"
-#include "state_machine_wrapper.h"
 #include "init_task.h"
 #include "lora_hw_config.h"
 #include "lora_task.h"
+#include "gen_pysd.h"
 
 // spi_t spi;
 // i2c_t i2c;
@@ -26,6 +26,10 @@
 
 #include "sdkconfig.h"
 #define TAG "AURORA"
+
+char test[740];
+
+rocket_data_t test_data;
 
 void app_main(void) {
     ESP_LOGI(TAG, "INIT TASK");
@@ -72,16 +76,7 @@ void app_main(void) {
 // }
 
 
-// static esp_console_cmd_t cmd[] = {
-//     {"flash-read", "123", NULL, read_flash, NULL},
-//     {"flash-start", "3223", NULL, flash_start, NULL},
-//     {"flash-terminate", "12313", NULL, flash_terminate, NULL}
-// };
-// static void init_console() {
-//     console_init();
-//     esp_err_t ret = console_register_commands(cmd, sizeof(cmd)/sizeof(cmd[0]));
-//     ESP_LOGW(TAG, "%s", esp_err_to_name(ret));
-// }
+
 
 // static bool can_write() {
 //     return true;

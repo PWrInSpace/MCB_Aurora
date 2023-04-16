@@ -9,11 +9,6 @@
 #include "esp_log.h"
 #include "esp_rom_gpio.h"
 #include "freertos/task.h"
-#include "sdkconfig.h"
-
-#define LORA_CS_PIN CONFIG_LORA_CS
-#define LORA_RS_PIN CONFIG_LORA_RS
-#define LORA_D0_PIN CONFIG_LORA_D0
 
 /**
  * @brief Initialize spi for lora
@@ -51,8 +46,26 @@ bool lora_hw_attach_d0_interrupt(gpio_isr_t interrupt_cb);
  */
 bool lora_hw_spi_transmit(uint8_t _in[2], uint8_t _out[2]);
 
+/**
+ * @brief Lora delay fnc
+ * 
+ * @param _ms delay ms
+ */
 void lora_hw_delay(size_t _ms);
 
+/**
+ * @brief Lora set gpio fnc
+ * 
+ * @param _gpio_num gpio pin number
+ * @param _level 1 - High, 0 - Low
+ * @return true :D
+ * @return false :C
+ */
 bool lora_hw_gpio_set_level(uint8_t _gpio_num, uint32_t _level);
 
+/**
+ * @brief Lora log fnc
+ * 
+ * @param info log message
+ */
 void lora_hw_log(const char* info);

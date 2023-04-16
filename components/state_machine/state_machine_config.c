@@ -1,18 +1,23 @@
 // Copyright 2022 PWrInSpace, Kuba
-#include "state_machine_wrapper.h"
+#include "state_machine_config.h"
 #include <stddef.h>
 #include "esp_log.h"
+#include "sdkconfig.h"
+#include "flash_task_config.h"
+#include "flash_task.h"
 
-#define TAG "SMW"
+#define TAG "SMC"
 static void on_init(void *arg) {
     ESP_LOGI(TAG, "ON INIT");
 }
 
 static void on_idle(void *arg) {
+    FT_erase_and_run_loop();
     ESP_LOGI(TAG, "ON IDLE");
 }
 
 static void on_recovery_arm(void *arg) {
+    flash_data_timer_start(1000);
     ESP_LOGI(TAG, "ON ARM");
 }
 
@@ -72,8 +77,17 @@ static state_config_t states_cfg[] = {
     {ABORT, on_abort, NULL},
 };
 
+bool initialize_state_machine(void) {
+    ESP_LOGI(TAG, "Initializing state machine");
+    state_machine_task_cfg_t task_cfg = {
+        .stack_depth = CONFIG_SM_TASK_STACK_DEPTH,
+        .core_id = CONFIG_SM_TASK_CORE_ID,
+        .priority = CONFIG_SM_TASK_PRIORITY,
+    };
 
-void SMW_get_states_config(state_config_t **cfg, uint8_t *nb_of_states) {
-    *cfg = states_cfg;
-    *nb_of_states = sizeof(states_cfg)/sizeof(state_config_t);
+    SM_Response status = SM_OK;
+    SM_init();
+    status |= SM_set_states(states_cfg, sizeof(states_cfg)/sizeof(states_cfg[0]));
+    status |= SM_run(&task_cfg);
+    return status == SM_OK ? true : false;
 }

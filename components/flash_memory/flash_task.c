@@ -23,7 +23,6 @@ static struct {
 
     bool flash_formated;
 
-    FT_can_write can_write_fnc;
     FT_error_handler error_handler_fnc;
 
     struct {
@@ -38,7 +37,6 @@ static struct {
     .data_from_queue = NULL,
     .data_size = 0,
     .flash_formated = false,
-    .can_write_fnc = NULL,
     .error_handler_fnc = NULL,
     .flash.wrote_size = 0,
     .flash.max_size = 0,
@@ -137,14 +135,15 @@ static void flash_task(void *arg) {
     ESP_LOGI(TAG, "Formatting flash");
     format();
     open();
+    ESP_LOGI(TAG, "Flash formatted");
     gb.flash_formated = true;
 
     while (1) {
         if (uxQueueMessagesWaiting(gb.queue) > FLASH_DROP_VALUE) {
+            ESP_LOGW(TAG, "WRITING TO FLASH");
             while (uxQueueMessagesWaiting(gb.queue) > 0) {
                 xQueueReceive(gb.queue, gb.data_from_queue, portMAX_DELAY);
                 write(gb.data_from_queue, gb.data_size);
-                ESP_LOGI(TAG, "FLASH WRITE");
             }
             fflush(gb.flash.file);
         }
@@ -158,11 +157,6 @@ static void flash_task(void *arg) {
 
 bool FT_init(flash_task_cfg_t *cfg) {
     if (gb.task != NULL) {
-        return false;
-    }
-
-    if (cfg->can_write_to_flash_fnc == NULL) {
-        ESP_LOGE(TAG, "One or more intrface functions is equal to NULL");
         return false;
     }
 
@@ -183,7 +177,6 @@ bool FT_init(flash_task_cfg_t *cfg) {
     }
 
     gb.data_size = cfg->data_size;
-    gb.can_write_fnc = cfg->can_write_to_flash_fnc;
     gb.error_handler_fnc = cfg->error_handler_fnc;
 
     xTaskCreatePinnedToCore(
@@ -204,10 +197,6 @@ bool FT_init(flash_task_cfg_t *cfg) {
 }
 
 bool FT_send_data(void *data) {
-    if (gb.can_write_fnc() == false) {
-        return false;
-    }
-
     if (gb.flash_formated == false) {
         return false;
     }

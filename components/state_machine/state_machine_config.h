@@ -3,6 +3,7 @@
 #define STATE_MACHINE_WRAPPER_H
 
 #include "state_machine.h"
+#include "stdbool.h"
 
 typedef enum {
     INIT = 0,
@@ -18,15 +19,8 @@ typedef enum {
     ON_GROUND,
     HOLD,
     ABORT,
-} STATE;
+} states_t;
 
-/**
- * @brief Get the states config object
- *
- * @param cfg pointer to overwrite by pointer to config
- *             (create state_config_t * and pass as argument)
- * @param nb_of_states number of states
- */
-void SMW_get_states_config(state_config_t **cfg, uint8_t *nb_of_states);
+bool initialize_state_machine(void);
 
 #endif

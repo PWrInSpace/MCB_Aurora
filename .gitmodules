@@ -1,0 +1,4 @@
+[submodule "pySD"]
+	path = pySD
+	url = git@github.com:PWrInSpace/pySD.git
+	branch = refactor

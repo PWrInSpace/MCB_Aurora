@@ -1,27 +1,8 @@
-menu "Flash Task"
-    config FLASH_DIR
-        string "Flash directiory"
-        default "/spiffs"
-
-    config FLASH_FILE
-        string "Flash file name"
-        default "flash"
-
-    config FLASH_QUEUE_SIZE
-        int "Flash data queue size"
-        default 20
-
-    config FLASH_DATA_DROP_VALUE
-        int "Data drop value"
-        range 0 FLASH_QUEUE_SIZE
-        default 10
-endmenu
-
 menu "SD Task"
 
     config SD_DATA_BUFFER_MAX_SIZE
         int "data buffer size"
-        default 256
+        default 512
 
     config SD_LOG_BUFFER_MAX_SIZE
         int "log buffer size"
@@ -47,4 +28,19 @@ menu "SD Task"
         int "Data drop value"
         range 0 SD_DATA_QUEUE_SIZE
         default 10
+
+    config SD_TASK_STACK_DEPTH
+        int "task stack depth"
+        default 8100
+
+    config SD_TASK_PRIORITY
+        int "task priority"
+        range 0 20
+        default 5
+
+    config SD_TASK_CORE_ID
+        int "task core id"
+        range 0 1
+        default 1
+
 endmenu
