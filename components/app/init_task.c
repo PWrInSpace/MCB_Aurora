@@ -10,6 +10,7 @@
 #include "lora_hw_config.h"
 #include "spi.h"
 #include "utils.h"
+#include "processing_task_config.h"
 #include "lora.pb-c.h"
 #include "esp_timer.h"
 #include "console_config.h"
@@ -18,6 +19,7 @@
 #include "flash_task_config.h"
 #include "esp_now_config.h"
 #include "rocket_data.h"
+
 
 #define TAG "INIT"
 
@@ -48,6 +50,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(sd_data_timer_start(1000), "SD CARD");
     CHECK_RESULT_BOOL(initialize_lora(), "LORA");
     CHECK_RESULT_BOOL(initialize_flash_memory(), "FLASH");
+    CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
     CHECK_RESULT_ESP(init_console(), "CLI");
     vTaskDelete(NULL);
 }
