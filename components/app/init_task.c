@@ -46,17 +46,15 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
     CHECK_RESULT_BOOL(spi_init(VSPI_HOST, CONFIG_SPI_MOSI, CONFIG_SPI_MISO, CONFIG_SPI_SCK), "SPI");
     CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
-    vTaskDelay(1000);
-    // CHECK_RESULT_BOOL(sd_data_timer_start(50), "SD CARD");
+    CHECK_RESULT_BOOL(initialize_lora(), "LORA");
+    CHECK_RESULT_BOOL(initialize_flash_memory(), "FLASH");
+    CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
+    CHECK_RESULT_ESP(init_console(), "CLI");
+    vTaskDelay(pdMS_TO_TICKS(200));
     CHECK_RESULT_BOOL(initialize_timers(), "TIMERS");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 50, TIMER_TYPE_PERIODIC), "SD TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_ESP_NOW_BROADCAST, 500, TIMER_TYPE_PERIODIC),
                       "ESP_NOW_TIMER");
-
-    // CHECK_RESULT_BOOL(initialize_lora(), "LORA");
-    // CHECK_RESULT_BOOL(initialize_flash_memory(), "FLASH");
-    // CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
-    // CHECK_RESULT_ESP(init_console(), "CLI");
     vTaskDelete(NULL);
 }
 

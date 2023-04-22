@@ -9,12 +9,6 @@
 
 #define TAG "ENC"
 
-static struct {
-    TimerHandle_t broadcast_timer;
-} gb = {
-    .broadcast_timer = NULL,
-};
-
 static void callback_pitot(uint8_t *data, size_t size);
 static void callback_vent_valve(uint8_t *data, size_t size);
 static void callback_main_valve(uint8_t *data, size_t size);
@@ -70,41 +64,6 @@ static void callback_main_valve(uint8_t *data, size_t size) {
 
 static void callback_tanwa(uint8_t *data, size_t size) {
     ESP_LOGI(TAG, "Tanwa receive, size %d", size);
-}
-
-static void on_broadcast_timer(TimerHandle_t timer) {
-    uint8_t state = SM_get_current_state();
-    ENA_send(&esp_now_broadcast, &state, sizeof(state), 0);
-}
-
-bool esp_now_broadcast_timer_start(uint32_t period_ms) {
-    gb.broadcast_timer = xTimerCreate("broadcast timer", pdMS_TO_TICKS(period_ms),
-                                        pdTRUE, NULL, on_broadcast_timer);
-    if (gb.broadcast_timer == NULL) {
-        return false;
-    }
-
-    if (xTimerStart(gb.broadcast_timer, pdMS_TO_TICKS(100)) == pdFAIL){
-        return false;
-    }
-
-    return true;
-}
-
-bool esp_now_broadcast_timer_change_period(uint32_t period_ms) {
-    if (xTimerChangePeriod(gb.broadcast_timer, pdMS_TO_TICKS(period_ms), pdMS_TO_TICKS(100)) == pdFAIL) {
-        return false;
-    }
-
-    return true;
-}
-
-bool esp_now_broadcast_timer_terminate(void) {
-    if (xTimerDelete(gb.broadcast_timer, pdMS_TO_TICKS(100)) == pdFAIL) {
-        return false;
-    }
-
-    return true;
 }
 
 static void temp_on_error(ENA_ERROR error) {
