@@ -150,7 +150,7 @@ static void flash_task(void *arg) {
 
         check_termiate_condition();
 
-        vTaskDelay(pdMS_TO_TICKS(1));
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 

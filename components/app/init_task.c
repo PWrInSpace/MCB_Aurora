@@ -20,6 +20,7 @@
 #include "state_machine_config.h"
 #include "system_timer_config.h"
 #include "utils.h"
+#include "mission_timer.h"
 
 #define TAG "INIT"
 
@@ -51,6 +52,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
     CHECK_RESULT_ESP(init_console(), "CLI");
     vTaskDelay(pdMS_TO_TICKS(200));
+    CHECK_RESULT_BOOL(mission_timer_init(13000), "Mission timer");
     CHECK_RESULT_BOOL(initialize_timers(), "TIMERS");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 50, TIMER_TYPE_PERIODIC), "SD TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_ESP_NOW_BROADCAST, 500, TIMER_TYPE_PERIODIC),
