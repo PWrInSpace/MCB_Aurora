@@ -4,6 +4,7 @@
 #include "rocket_data.h"
 #include "esp_now_config.h"
 #include "state_machine.h"
+#include "flash_task.h"
 
 void on_sd_timer(void *arg){
     rocket_data_t test = rocket_data_get();
@@ -19,10 +20,15 @@ static void on_broadcast_timer(void *arg) {
     ENA_send(&esp_now_broadcast, &state, sizeof(state), 0);
 }
 
+static void on_flash_data_timer(void *arg) {
+    rocket_data_t data = rocket_data_get();
+    FT_send_data(&data);
+}
 
 static sys_timer_t timers[] = {
-    {TIMER_SD_DATA,             on_sd_timer,            NULL, NULL},
-    {TIMER_ESP_NOW_BROADCAST,   on_broadcast_timer,     NULL, NULL},
+    {TIMER_SD_DATA,             on_sd_timer,            NULL,   NULL},
+    {TIMER_ESP_NOW_BROADCAST,   on_broadcast_timer,     NULL,   NULL},
+    {TIMER_FLASH_DATA,          on_flash_data_timer,    NULL,   NULL}
     // {TIMER_FLASH_DATA, }
 };
 

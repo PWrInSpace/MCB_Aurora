@@ -6,7 +6,8 @@
 #include "esp_err.h"
 #include "utils.h"
 #include "sdkconfig.h"
-
+#include "spi.h"
+extern SemaphoreHandle_t mutex_spi;
 
 static spi_device_handle_t __spi;
 
@@ -15,7 +16,7 @@ static spi_device_handle_t __spi;
 bool lora_hw_spi_add_device(spi_host_device_t host) {
     esp_err_t ret;
 
-    spi_device_interface_config_t dev = {.clock_speed_hz = 9000000,
+    spi_device_interface_config_t dev = {.clock_speed_hz = 400000,
                                          .mode = 0,
                                          .spics_io_num = -1,
                                          .queue_size = 1,
@@ -45,10 +46,11 @@ bool lora_hw_attach_d0_interrupt(gpio_isr_t interrupt_cb) {
 bool lora_hw_spi_transmit(uint8_t _in[2], uint8_t _out[2]) {
     spi_transaction_t t = {
         .flags = 0, .length = 8 * sizeof(uint8_t) * 2, .tx_buffer = _out, .rx_buffer = _in};
-
+    xSemaphoreTake(mutex_spi, portMAX_DELAY);
     gpio_set_level(CONFIG_LORA_CS, 0);
     spi_device_transmit(__spi, &t);
     gpio_set_level(CONFIG_LORA_CS, 1);
+    xSemaphoreGive(mutex_spi);
     return true;
 }
 

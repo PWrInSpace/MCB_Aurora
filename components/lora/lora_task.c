@@ -149,12 +149,12 @@ bool lora_task_init(lora_api_config_t *cfg) {
     gb.irq_notification = xSemaphoreCreateBinary();
     // init_irq_norification();
     if (gb.irq_notification == NULL) {
-        ESP_LOGI(TAG, "DUPA");
         return false;
     }
 
-    gb.receive_window_timer = xTimerCreate("Transmit timer", LORA_TASK_RECEIVE_WINDOW, pdFALSE,
-                                           NULL, on_receive_window_timer);
+    gb.receive_window_timer =
+        xTimerCreate("Transmit timer", pdMS_TO_TICKS(LORA_TASK_RECEIVE_WINDOW), pdFALSE, NULL,
+                     on_receive_window_timer);
     ESP_LOGI(TAG, "Starting timer");
     lora_change_state_to_receive();
     turn_on_receive_window_timer();
