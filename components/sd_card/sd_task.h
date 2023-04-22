@@ -26,6 +26,7 @@ typedef enum {
 
 
 typedef void (*error_handler)(SD_TASK_ERR error_code);
+typedef size_t (*create_sd_frame)(char *buffer, size_t buffer_size, void* data, size_t size);
 
 
 typedef struct {
@@ -36,11 +37,14 @@ typedef struct {
     char *log_path;
     size_t log_path_size;
 
+    size_t data_size;
+
     uint32_t stack_depth;
     BaseType_t core_id;
     UBaseType_t priority;
 
     error_handler error_handler_fnc;
+    create_sd_frame create_sd_frame_fnc;
 } sd_task_cfg_t;
 
 /**
@@ -60,7 +64,7 @@ bool SDT_init(sd_task_cfg_t *cfg);
  * @return true :)
  * @return false :C
  */
-bool SDT_send_data(char *data, size_t data_size);
+bool SDT_send_data(void *data, size_t data_size);
 
 /**
  * @brief Send log to save

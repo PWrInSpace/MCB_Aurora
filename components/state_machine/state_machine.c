@@ -118,6 +118,20 @@ SM_Response SM_change_state(state_id new_state) {
     return SM_STATE_CHANGE_ERROR;
 }
 
+SM_Response SM_force_change_state(state_id new_state) {
+    if (new_state >= sm.states_quantity) {
+        return SM_STATE_CHANGE_ERROR;
+    }
+
+    ESP_LOGI(TAG, "Changing state from %d to %d", sm.current_state, new_state);
+    xSemaphoreTake(sm.current_state_mutex, portMAX_DELAY);
+    sm.current_state = new_state;
+    xSemaphoreGive(sm.current_state_mutex);
+    xTaskNotifyGive(sm.state_task);
+    return SM_OK;
+
+}
+
 SM_Response SM_change_state_ISR(state_id new_state) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 

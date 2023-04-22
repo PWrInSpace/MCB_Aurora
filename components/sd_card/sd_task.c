@@ -6,6 +6,7 @@
 #include "freertos/projdefs.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
+#include "gen_pysd.h"
 #include "sd_task.h"
 
 static struct {
@@ -16,6 +17,8 @@ static struct {
     QueueHandle_t log_queue;
     SemaphoreHandle_t data_write_mutex;  // prevent race condition during path changing
 
+    void *data_from_queue;
+    size_t data_from_queue_size;
     char data_buffer[SD_DATA_BUFFER_MAX_SIZE];
     char log_buffer[SD_LOG_BUFFER_MAX_SIZE];
 
@@ -23,6 +26,7 @@ static struct {
     char log_path[SD_PATH_SIZE];
 
     error_handler error_handler_fnc;
+    create_sd_frame create_sd_frame_fnc;
 } mem = {
     .sd_task = NULL,
     .log_queue = NULL,
@@ -43,6 +47,7 @@ static void terminate_task(void) {
     vQueueDelete(mem.log_queue);
     mem.data_queue = NULL;
     mem.log_queue = NULL;
+    free(mem.data_from_queue);
     vTaskDelete(NULL);
 }
 
@@ -68,12 +73,17 @@ static bool write_to_sd(FILE *file, char *data, size_t size) {
 
 static void data_get_from_queue_and_save(void) {
     FILE *data_file = fopen(mem.data_path, "a");
+    size_t frame_size;
     ESP_LOGI(TAG, "SD save");
     while (uxQueueMessagesWaiting(mem.data_queue) > 0) {
-        if (xQueueReceive(mem.data_queue, &mem.data_buffer, 0) == pdFALSE) {
+        if (xQueueReceive(mem.data_queue, mem.data_from_queue, 0) == pdFALSE) {
             report_error(SD_QUEUE_READ);
         } else {
-            if (write_to_sd(data_file, mem.data_buffer, sizeof(mem.data_buffer)) == true) {
+            frame_size = mem.create_sd_frame_fnc(mem.data_buffer, sizeof(mem.data_buffer),
+                                                 mem.data_from_queue, mem.data_from_queue_size);
+            ESP_LOGI(TAG, "Writing %s", mem.data_buffer);
+
+            if (write_to_sd(data_file, mem.data_buffer, frame_size) == true) {
                 report_error(SD_WRITE);
             }
         }
@@ -81,7 +91,6 @@ static void data_get_from_queue_and_save(void) {
     }
     fclose(data_file);
 }
-
 
 static void data_check_and_save(void) {
     if (uxQueueMessagesWaiting(mem.data_queue) > SD_DATA_DROP_VALUE) {
@@ -92,8 +101,7 @@ static void data_check_and_save(void) {
 static void log_check_and_save(void) {
     while (uxQueueMessagesWaiting(mem.log_queue) > 0) {
         xQueueReceive(mem.log_queue, &mem.log_buffer, 0);
-        if (SD_write(&mem.sd_card, mem.log_path,
-                mem.log_buffer, sizeof(mem.log_buffer)) == false) {
+        if (SD_write(&mem.sd_card, mem.log_path, mem.log_buffer, sizeof(mem.log_buffer)) == false) {
             report_error(SD_WRITE);
         }
         vTaskDelay(pdMS_TO_TICKS(1));
@@ -146,7 +154,7 @@ static bool create_unique_path(char *path, size_t size) {
     return false;
 }
 
-static void initialize_sd_card(sd_task_cfg_t *task_cfg) {
+static bool initialize_sd_card(sd_task_cfg_t *task_cfg) {
     sd_card_config_t card_cfg = {
         .spi_host = task_cfg->spi_host,
         .cs_pin = task_cfg->cs_pin,
@@ -174,46 +182,67 @@ static void initialize_sd_card(sd_task_cfg_t *task_cfg) {
 
     ESP_LOGI(TAG, "Using data path %s", mem.data_path);
     ESP_LOGI(TAG, "Using log path %s", mem.log_path);
+
+    return true;
 }
 
 static bool initialize_task(sd_task_cfg_t *task_cfg) {
-    mem.data_queue = xQueueCreate(SD_DATA_QUEUE_SIZE, sizeof(char[SD_DATA_BUFFER_MAX_SIZE]));
+    if (task_cfg->create_sd_frame_fnc == NULL) {
+        return false;
+    }
+    mem.create_sd_frame_fnc = task_cfg->create_sd_frame_fnc;
+
+    mem.data_from_queue_size = task_cfg->data_size;
+    mem.data_from_queue = malloc(task_cfg->data_size);
+    if (mem.data_from_queue == NULL) {
+        return false;
+    }
+
+    mem.data_queue = xQueueCreate(SD_DATA_QUEUE_SIZE, mem.data_from_queue_size);
     if (mem.data_queue == NULL) {
+        free(mem.data_from_queue);
         return false;
     }
 
     mem.log_queue = xQueueCreate(SD_LOG_QUEUE_SIZE, sizeof(char[SD_LOG_BUFFER_MAX_SIZE]));
     if (mem.log_queue == NULL) {
         vQueueDelete(mem.data_queue);
+        free(mem.data_from_queue);
         mem.data_queue = NULL;
         return false;
     }
+
     // prevent race condition during path changing
     mem.data_write_mutex = xSemaphoreCreateMutex();
+    if (mem.data_write_mutex == NULL) {
+        vQueueDelete(mem.data_queue);
+        vQueueDelete(mem.log_queue);
+        mem.data_queue = NULL;
+        mem.log_queue = NULL;
+        free(mem.data_from_queue);
+        return false;
+    }
 
-    xTaskCreatePinnedToCore(
-        sdTask,
-        "sd task",
-        task_cfg->stack_depth,
-        NULL,
-        task_cfg->priority,
-        &mem.sd_task,
-        task_cfg->core_id);
+    xTaskCreatePinnedToCore(sdTask, "sd task", task_cfg->stack_depth, NULL, task_cfg->priority,
+                            &mem.sd_task, task_cfg->core_id);
 
     if (mem.sd_task == NULL) {
         vQueueDelete(mem.data_queue);
         vQueueDelete(mem.log_queue);
         mem.data_queue = NULL;
         mem.log_queue = NULL;
+        free(mem.data_from_queue);
         return false;
     }
 
     return true;
 }
 
-
 bool SDT_init(sd_task_cfg_t *task_cfg) {
-    initialize_sd_card(task_cfg);
+    if (initialize_sd_card(task_cfg) == false) {
+        ESP_LOGE(TAG, "Unable to initialzie sd card");
+        // return false;
+    }
 
     if (initialize_task(task_cfg) == false) {
         ESP_LOGE(TAG, "Unable to initialzie sd task");
@@ -223,12 +252,12 @@ bool SDT_init(sd_task_cfg_t *task_cfg) {
     return true;
 }
 
-bool SDT_send_data(char *data, size_t data_size) {
+bool SDT_send_data(void *data, size_t data_size) {
     if (mem.data_queue == NULL) {
         return false;
     }
 
-    if (data_size > SD_DATA_BUFFER_MAX_SIZE) {
+    if (data_size != mem.data_from_queue_size) {
         return false;
     }
 
@@ -271,6 +300,4 @@ bool SDT_change_data_path(char *new_path, size_t path_size) {
     return true;
 }
 
-void SDT_terminate_task(void) {
-    xTaskNotifyGive(mem.sd_task);
-}
+void SDT_terminate_task(void) { xTaskNotifyGive(mem.sd_task); }

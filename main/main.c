@@ -20,15 +20,12 @@
 #include "lora_task.h"
 #include "gen_pysd.h"
 
-
 // spi_t spi;
 // i2c_t i2c;
 // sd_card_t sd;
 
 #include "sdkconfig.h"
 #define TAG "AURORA"
-
-char test[740];
 
 void app_main(void) {
     ESP_LOGI(TAG, "INIT TASK");
