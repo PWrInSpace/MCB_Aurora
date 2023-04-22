@@ -1,16 +1,8 @@
 // Copyright 2022 PWr in Space, Kuba
+#include "sd_task.h"
+
 #include "esp_log.h"
 #define TAG "SDT"
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/projdefs.h"
-#include "freertos/queue.h"
-#include "freertos/task.h"
-#include "gen_pysd.h"
-#include "sd_task.h"
-#include "spi.h"
-
-extern SemaphoreHandle_t mutex_spi;
 
 static struct {
     sd_card_t sd_card;
@@ -19,6 +11,7 @@ static struct {
     QueueHandle_t data_queue;
     QueueHandle_t log_queue;
     SemaphoreHandle_t data_write_mutex;  // prevent race condition during path changing
+    SemaphoreHandle_t spi_mutex;
 
     void *data_from_queue;
     size_t data_from_queue_size;
@@ -55,39 +48,24 @@ static void terminate_task(void) {
 }
 
 static bool write_to_sd(FILE *file, char *data, size_t size) {
-    
-
     if (file == NULL) {
         return false;
     }
+    xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
 
     fprintf(file, data, mem.sd_card.card->cid.name);
+    xSemaphoreGive(mem.spi_mutex);
+
     return true;
 }
 
 static void data_get_from_queue_and_save(void) {
-    xSemaphoreTake(mutex_spi, portMAX_DELAY);
-    if (mem.sd_card.mounted == false) {
-        if (SD_mount(&mem.sd_card) == false) {
-
-            xSemaphoreGive(mutex_spi);
-            return;
-        }
-    }
-
-    if (SD_is_ok(&mem.sd_card) == false) {
-        SD_remount(&mem.sd_card);
-        xSemaphoreGive(mutex_spi);
-        ESP_LOGE(TAG, "RESETING QUEUE");
-        xQueueReset(mem.data_queue);
-        return;
-    }
-
+    xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
     FILE *data_file = fopen(mem.data_path, "a");
-    xSemaphoreGive(mutex_spi);
+    xSemaphoreGive(mem.spi_mutex);
 
     size_t frame_size;
-    int iterator = 0;
+    int data_timeout = 0;
     ESP_LOGW(TAG, "SD save");
     while (uxQueueMessagesWaiting(mem.data_queue) > 0) {
         if (xQueueReceive(mem.data_queue, mem.data_from_queue, 0) == pdFALSE) {
@@ -95,24 +73,46 @@ static void data_get_from_queue_and_save(void) {
         } else {
             frame_size = mem.create_sd_frame_fnc(mem.data_buffer, sizeof(mem.data_buffer),
                                                  mem.data_from_queue, mem.data_from_queue_size);
-            xSemaphoreTake(mutex_spi, portMAX_DELAY);
-            if (write_to_sd(data_file, mem.data_buffer, frame_size) == true) {
+            if (write_to_sd(data_file, mem.data_buffer, frame_size) == false) {
+                xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
+                SD_remount(&mem.sd_card);
+                xSemaphoreGive(mem.spi_mutex);
                 report_error(SD_WRITE);
             }
-            xSemaphoreGive(mutex_spi);
         }
-        iterator++;
-        if (iterator > 40) {
+
+        data_timeout++;
+        if (data_timeout > SD_DATA_TIMEOUT_LOOP) {
+            ESP_LOGI(TAG, "TIMEOUT");
             break;
         }
-        // vTaskDelay(pdMS_TO_TICKS(1));
+        vTaskDelay(pdMS_TO_TICKS(1));
     }
-    xSemaphoreTake(mutex_spi, portMAX_DELAY);
+
+    ESP_LOGI(TAG, "FILE CLOSE");
+    xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
     fclose(data_file);
-    xSemaphoreGive(mutex_spi);
+    xSemaphoreGive(mem.spi_mutex);
+}
+
+static bool check_sd_status(void) {
+    if (mem.sd_card.mounted == true) {
+        return true;
+    }
+
+    xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
+    bool result = SD_mount(&mem.sd_card);
+    xSemaphoreGive(mem.spi_mutex);
+    xQueueReset(mem.data_queue);
+
+    return result;
 }
 
 static void data_check_and_save(void) {
+    if (check_sd_status() == false) {
+        return;
+    }
+
     if (uxQueueMessagesWaiting(mem.data_queue) < SD_DATA_DROP_VALUE) {
         return;
     }
@@ -121,10 +121,22 @@ static void data_check_and_save(void) {
 }
 
 static void log_check_and_save(void) {
+    if (check_sd_status() == false) {
+        return;
+    }
+
+    int data_timeout = 0;
     while (uxQueueMessagesWaiting(mem.log_queue) > 0) {
         xQueueReceive(mem.log_queue, &mem.log_buffer, 0);
+        xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
         if (SD_write(&mem.sd_card, mem.log_path, mem.log_buffer, sizeof(mem.log_buffer)) == false) {
             report_error(SD_WRITE);
+        }
+        xSemaphoreGive(mem.spi_mutex);
+
+        data_timeout++;
+        if (data_timeout > SD_DATA_TIMEOUT_LOOP) {
+            return;
         }
         vTaskDelay(pdMS_TO_TICKS(1));
     }
@@ -214,6 +226,7 @@ static bool initialize_task(sd_task_cfg_t *task_cfg) {
     }
     mem.create_sd_frame_fnc = task_cfg->create_sd_frame_fnc;
 
+    mem.spi_mutex = task_cfg->spi_mutex;
     mem.data_from_queue_size = task_cfg->data_size;
     mem.data_from_queue = malloc(task_cfg->data_size);
     if (mem.data_from_queue == NULL) {
@@ -283,13 +296,9 @@ bool SDT_send_data(void *data, size_t data_size) {
         return false;
     }
 
-    // xSemaphoreTake(mutex_spi, portMAX_DELAY);
-    // if (SD_is_ok(&mem.sd_card) == false) {
-    //     SD_remount(&mem.sd_card);
-    //     xSemaphoreGive(mutex_spi);
-    //     return false;
-    // }
-    // xSemaphoreGive(mutex_spi);
+    if (mem.sd_card.mounted == false) {
+        return false;
+    }
 
     if (xQueueSend(mem.data_queue, data, 0) == pdFALSE) {
         ESP_LOGW(TAG, "Unable to add data to sd mem.queue");

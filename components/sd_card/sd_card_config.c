@@ -8,8 +8,11 @@
 #include "init_task.h"
 #include "gen_pysd.h"
 #include "esp_timer.h"
+#include "spi.h"
 
 #define TAG "SD_C"
+
+extern SemaphoreHandle_t mutex_spi;
 
 static size_t convert_data_to_frame(char *buf, size_t buf_size, void* data, size_t size) {
     rocket_data_t* rocket_data = (rocket_data_t*)data;
@@ -33,6 +36,7 @@ bool initialize_sd_card(void) {
         .error_handler_fnc = NULL,
         .data_size = sizeof(rocket_data_t),
         .create_sd_frame_fnc = convert_data_to_frame,
+        .spi_mutex = mutex_spi,
     };
 
     return SDT_init(&cfg);

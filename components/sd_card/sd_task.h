@@ -5,6 +5,10 @@
 #include <stdint.h>
 #include "sdcard.h"
 #include "sdkconfig.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/projdefs.h"
+#include "freertos/queue.h"
+#include "freertos/task.h"
 
 #define SD_LOG_BUFFER_MAX_SIZE CONFIG_SD_LOG_BUFFER_MAX_SIZE
 #define SD_DATA_BUFFER_MAX_SIZE CONFIG_SD_DATA_BUFFER_MAX_SIZE
@@ -12,6 +16,7 @@
 
 #define SD_DATA_QUEUE_SIZE CONFIG_SD_DATA_QUEUE_SIZE
 #define SD_LOG_QUEUE_SIZE CONFIG_SD_LOG_QUEUE_SIZE
+#define SD_DATA_TIMEOUT_LOOP 20
 
 #define SD_DATA_DROP_VALUE CONFIG_SD_DATA_DROP_VALUE
 
@@ -42,6 +47,8 @@ typedef struct {
     uint32_t stack_depth;
     BaseType_t core_id;
     UBaseType_t priority;
+
+    SemaphoreHandle_t spi_mutex;
 
     error_handler error_handler_fnc;
     create_sd_frame create_sd_frame_fnc;

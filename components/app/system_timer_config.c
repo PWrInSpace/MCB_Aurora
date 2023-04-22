@@ -5,6 +5,7 @@
 #include "esp_now_config.h"
 #include "state_machine.h"
 #include "flash_task.h"
+#include "esp_log.h"
 
 void on_sd_timer(void *arg){
     rocket_data_t test = rocket_data_get();

@@ -57,8 +57,6 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 30, TIMER_TYPE_PERIODIC), "SD TIMER");
     // CHECK_RESULT_BOOL(sys_timer_start(TIMER_ESP_NOW_BROADCAST, 500, TIMER_TYPE_PERIODIC),
     //                   "ESP_NOW_TIMER");
-    vTaskDelay(pdMS_TO_TICKS(5000));
-
     vTaskDelete(NULL);
 }
 
