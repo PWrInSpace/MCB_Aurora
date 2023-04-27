@@ -21,6 +21,8 @@ static struct {
     char data_path[SD_PATH_SIZE];
     char log_path[SD_PATH_SIZE];
 
+    uint32_t try_to_mount_counter;
+
     error_handler error_handler_fnc;
     create_sd_frame create_sd_frame_fnc;
 } mem = {
@@ -37,59 +39,52 @@ static void report_error(SD_TASK_ERR error_code) {
     mem.error_handler_fnc(error_code);
 }
 
-static void terminate_task(void) {
-    ESP_LOGI(TAG, "Terminating SD TASK");
-    vQueueDelete(mem.data_queue);
-    vQueueDelete(mem.log_queue);
-    mem.data_queue = NULL;
-    mem.log_queue = NULL;
-    free(mem.data_from_queue);
-    vTaskDelete(NULL);
-}
 
 static bool write_to_sd(FILE *file, char *data, size_t size) {
     if (file == NULL) {
         return false;
     }
-    xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
 
+    xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
     fprintf(file, data, mem.sd_card.card->cid.name);
     xSemaphoreGive(mem.spi_mutex);
 
     return true;
 }
 
-static void data_get_from_queue_and_save(void) {
+static void get_data_from_queue_and_save(FILE * data_file) {
+    size_t frame_size;
+    if (xQueueReceive(mem.data_queue, mem.data_from_queue, 0) == pdFALSE) {
+            report_error(SD_QUEUE_READ);
+    } else {
+        frame_size = mem.create_sd_frame_fnc(mem.data_buffer, sizeof(mem.data_buffer),
+                                             mem.data_from_queue, mem.data_from_queue_size);
+        if (write_to_sd(data_file, mem.data_buffer, frame_size) == false) {
+            xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
+            SD_remount(&mem.sd_card);
+            xSemaphoreGive(mem.spi_mutex);
+            report_error(SD_WRITE);
+        }
+    }
+}
+
+static void prepare_data_file_and_save(void) {
     xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
     FILE *data_file = fopen(mem.data_path, "a");
     xSemaphoreGive(mem.spi_mutex);
 
-    size_t frame_size;
-    int data_timeout = 0;
-    ESP_LOGW(TAG, "SD save");
+    int received_data_counter = 0;
     while (uxQueueMessagesWaiting(mem.data_queue) > 0) {
-        if (xQueueReceive(mem.data_queue, mem.data_from_queue, 0) == pdFALSE) {
-            report_error(SD_QUEUE_READ);
-        } else {
-            frame_size = mem.create_sd_frame_fnc(mem.data_buffer, sizeof(mem.data_buffer),
-                                                 mem.data_from_queue, mem.data_from_queue_size);
-            if (write_to_sd(data_file, mem.data_buffer, frame_size) == false) {
-                xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
-                SD_remount(&mem.sd_card);
-                xSemaphoreGive(mem.spi_mutex);
-                report_error(SD_WRITE);
-            }
-        }
+        get_data_from_queue_and_save(data_file);
 
-        data_timeout++;
-        if (data_timeout > SD_DATA_TIMEOUT_LOOP) {
+        received_data_counter++;
+        if (received_data_counter > SD_MAX_DATA_RECEIVE) {
             ESP_LOGI(TAG, "TIMEOUT");
             break;
         }
         vTaskDelay(pdMS_TO_TICKS(1));
     }
 
-    ESP_LOGI(TAG, "FILE CLOSE");
     xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
     fclose(data_file);
     xSemaphoreGive(mem.spi_mutex);
@@ -99,6 +94,12 @@ static bool check_sd_status(void) {
     if (mem.sd_card.mounted == true) {
         return true;
     }
+
+    if (mem.try_to_mount_counter < SD_TRY_TO_REMOUNT_DELAY) {
+        mem.try_to_mount_counter++;
+        return false;
+    }
+    mem.try_to_mount_counter = 0;
 
     xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
     bool result = SD_mount(&mem.sd_card);
@@ -117,7 +118,7 @@ static void data_check_and_save(void) {
         return;
     }
 
-    data_get_from_queue_and_save();
+    prepare_data_file_and_save();
 }
 
 static void log_check_and_save(void) {
@@ -125,7 +126,7 @@ static void log_check_and_save(void) {
         return;
     }
 
-    int data_timeout = 0;
+    int received_data_counter = 0;
     while (uxQueueMessagesWaiting(mem.log_queue) > 0) {
         xQueueReceive(mem.log_queue, &mem.log_buffer, 0);
         xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
@@ -134,12 +135,22 @@ static void log_check_and_save(void) {
         }
         xSemaphoreGive(mem.spi_mutex);
 
-        data_timeout++;
-        if (data_timeout > SD_DATA_TIMEOUT_LOOP) {
+        received_data_counter++;
+        if (received_data_counter > SD_MAX_DATA_RECEIVE) {
             return;
         }
         vTaskDelay(pdMS_TO_TICKS(1));
     }
+}
+
+static void terminate_task(void) {
+    ESP_LOGI(TAG, "Terminating SD TASK");
+    vQueueDelete(mem.data_queue);
+    vQueueDelete(mem.log_queue);
+    mem.data_queue = NULL;
+    mem.log_queue = NULL;
+    free(mem.data_from_queue);
+    vTaskDelete(NULL);
 }
 
 static void check_terminate_condition(void) {
@@ -147,7 +158,7 @@ static void check_terminate_condition(void) {
         return;
     }
 
-    data_get_from_queue_and_save();
+    prepare_data_file_and_save();
     log_check_and_save();
     terminate_task();
 }
@@ -169,6 +180,14 @@ static void sdTask(void *args) {
     }
 }
 
+static bool check_if_file_exists(char *path) {
+    bool res;
+    xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
+    res = SD_file_exists(path);
+    xSemaphoreGive(mem.spi_mutex);
+    return res;
+}
+
 static bool create_unique_path(char *path, size_t size) {
     char temp_path[SD_PATH_SIZE] = {0};
     int ret = 0;
@@ -179,7 +198,7 @@ static bool create_unique_path(char *path, size_t size) {
             return false;
         }
 
-        if (SD_file_exists(temp_path) == false) {
+        if (check_if_file_exists(temp_path) == false) {
             ESP_LOGI(TAG, "TEST %s", temp_path);
             memcpy(path, temp_path, size);
             return true;
@@ -226,7 +245,6 @@ static bool initialize_task(sd_task_cfg_t *task_cfg) {
     }
     mem.create_sd_frame_fnc = task_cfg->create_sd_frame_fnc;
 
-    mem.spi_mutex = task_cfg->spi_mutex;
     mem.data_from_queue_size = task_cfg->data_size;
     mem.data_from_queue = malloc(task_cfg->data_size);
     if (mem.data_from_queue == NULL) {
@@ -274,6 +292,8 @@ static bool initialize_task(sd_task_cfg_t *task_cfg) {
 }
 
 bool SDT_init(sd_task_cfg_t *task_cfg) {
+    mem.spi_mutex = task_cfg->spi_mutex;
+
     if (initialize_sd_card(task_cfg) == false) {
         ESP_LOGE(TAG, "Unable to initialzie sd card");
         // return false;

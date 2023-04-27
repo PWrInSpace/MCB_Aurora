@@ -172,6 +172,15 @@ state_id SM_get_current_state(void) {
     return current_state;
 }
 
+state_id SM_get_previous_state(void) {
+    state_id previous_state;
+    xSemaphoreTake(sm.current_state_mutex, portMAX_DELAY);
+    previous_state = sm.previous_state;
+    xSemaphoreGive(sm.current_state_mutex);
+
+    return previous_state;
+}
+
 state_id SM_get_current_state_ISR(void) {
     state_id current_state;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;

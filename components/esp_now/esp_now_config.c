@@ -74,9 +74,9 @@ bool initialize_esp_now(void) {
     esp_err_t status = ESP_OK;
     uint8_t mac_address[] = MCB_MAC;
     ENA_config_t cfg = {
-      .stack_depth = 8000,
-      .priority = 3,
-      .core_id = APP_CPU_NUM,
+      .stack_depth = ESP_NOW_TASK_STACK_DEPTH,
+      .priority = ESP_NOW_TASK_PRIORITY,
+      .core_id = ESP_NOW_TASK_CORE_ID,
     };
     status |= ENA_init(mac_address);
     status |= ENA_register_device(&esp_now_broadcast);

@@ -52,4 +52,6 @@ bool lora_task_init(lora_api_config_t *cfg);
  */
 void lora_task_irq_notify(void *arg);
 
+bool lora_change_receive_window_period(uint32_t period_ms);
+
 #endif
