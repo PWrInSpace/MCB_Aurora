@@ -6,6 +6,7 @@
 #include "esp_now_api.h"
 #include "rocket_data.h"
 #include "state_machine.h"
+#include "errors_config.h"
 
 #define TAG "ENC"
 
@@ -51,7 +52,6 @@ const ENA_device_t esp_now_tanwa = {
 
 static void callback_pitot(uint8_t *data, size_t size) {
     ESP_LOGI(TAG, "Pitot receive, size %d", size);
-    // if (size == sizeof())
 }
 
 static void callback_vent_valve(uint8_t *data, size_t size) {
@@ -108,7 +108,19 @@ bool esp_now_broadcast_timer_terminate(void) {
 }
 
 static void temp_on_error(ENA_ERROR error) {
+    error_code_t err_code;
+    if (error == ENA_SEND || error == ENA_SEND_CB_QUEUE || error == ENA_SEND_REPLY) {
+        err_code = ERROR_ESP_NOW_SEND;
+    } else if (error == ENA_REC || error == ENA_REC_CB_QUEUE) {
+        err_code = ERROR_ESP_NOW_RECEIVE;
+    } else if (error == ENA_DEVICES_NULL || error == ENA_UNKNOWN_DEV) {
+        err_code = ERROR_ESP_NOW_DEVICE;
+    } else {
+        err_code = ERROR_ESP_UNKNOWN;
+    }
+
     ESP_LOGE(TAG, "ESP NOW ERROR %d", error);
+    errors_add(ERROR_TYPE_ESP_NOW, err_code, 200);
 }
 
 bool initialize_esp_now(void) {

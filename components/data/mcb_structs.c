@@ -1,3 +1,4 @@
+// Copyright 2022 PWrInSpace, Kuba
 #include "mcb_structs.h"
 #include "state_machine.h"
 #include "utils.h"

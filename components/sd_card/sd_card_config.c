@@ -2,7 +2,7 @@
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
-
+#include "errors_config.h"
 #include "sd_task.h"
 #include "esp_log.h"
 #include "gen_pysd.h"
@@ -19,6 +19,18 @@ static struct {
     .sd_buffer_data_size = 0,
 };
 
+void on_error(SD_TASK_ERR error) {
+    error_code_t err_code;
+    if (error == SD_WRITE || error == SD_QUEUE_READ) {
+        err_code = ERROR_SD_WRITE;
+    } else {
+        err_code = ERROR_MEMORY_UNKNOWN;
+    }
+
+    ESP_LOGE(TAG, "SD error %d", error);
+    errors_add(ERROR_TYPE_MEMORY, err_code, 200);
+}
+
 bool initialize_sd_card(void) {
     ESP_LOGI(TAG, "Initializing sd task");
     sd_task_cfg_t cfg = {
@@ -31,7 +43,7 @@ bool initialize_sd_card(void) {
         .stack_depth = CONFIG_SD_TASK_STACK_DEPTH,
         .priority = CONFIG_SD_TASK_PRIORITY,
         .core_id = CONFIG_SD_TASK_CORE_ID,
-        .error_handler_fnc = NULL,
+        .error_handler_fnc = on_error,
     };
 
     return SDT_init(&cfg);

@@ -1,0 +1,6 @@
+menu "Errors"
+    config MAX_NUMBER_OF_ERRORS
+        int "Max number of errors"
+        default 8
+
+endmenu

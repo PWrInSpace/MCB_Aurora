@@ -19,6 +19,7 @@
 #include "flash_task_config.h"
 #include "esp_now_config.h"
 #include "rocket_data.h"
+#include "errors_config.h"
 
 
 #define TAG "INIT"
@@ -51,6 +52,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_lora(), "LORA");
     CHECK_RESULT_BOOL(initialize_flash_memory(), "FLASH");
     CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
+    CHECK_RESULT_BOOL(initialize_errors(), "Errors");
     CHECK_RESULT_ESP(init_console(), "CLI");
     vTaskDelete(NULL);
 }
