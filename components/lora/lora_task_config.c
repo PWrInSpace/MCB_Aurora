@@ -8,6 +8,7 @@
 #include "lora_task.h"
 #include "sdkconfig.h"
 #include "utils.h"
+#include "errors_config.h"
 
 #define TAG "LORA_C"
 
@@ -21,9 +22,11 @@ static void lora_process(uint8_t *packet, size_t packet_size) {
         lo_ra_command__free_unpacked(received, NULL);
         if (lora_cmd_process_command(received->lora_dev_id, received->sys_dev_id,
                                      &received_command) == false) {
+            errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_COMMAND_NOT_FOUND, 200);
             ESP_LOGE(TAG, "Unable to prcess command :C");
         }
     } else {
+        errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 200);
         ESP_LOGE(TAG, "Unable to decode received package");
     }
 }

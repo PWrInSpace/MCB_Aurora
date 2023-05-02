@@ -15,6 +15,7 @@
 #include "lora_task_config.h"
 #include "processing_task_config.h"
 #include "rocket_data.h"
+#include "errors_config.h"
 #include "sd_card_config.h"
 #include "spi.h"
 #include "state_machine_config.h"
@@ -50,6 +51,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_esp_now(), "ESP_NOW");
     CHECK_RESULT_BOOL(initialize_flash_memory(), "FLASH");
     CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
+    CHECK_RESULT_BOOL(initialize_errors(), "Errors");
     CHECK_RESULT_BOOL(mission_timer_init(13000), "Mission timer");
     vTaskDelay(pdMS_TO_TICKS(200));
     CHECK_RESULT_BOOL(initialize_timers(), "TIMERS");

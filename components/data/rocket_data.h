@@ -1,3 +1,4 @@
+// Copyright 2022 PWrInSpace, Kuba
 #ifndef ROCKET_DATA_H
 #define ROCKET_DATA_H
 

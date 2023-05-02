@@ -1,3 +1,4 @@
+// Copyright 2022 PWrInSpace, Kuba
 #include <memory.h>
 #include "rocket_data.h"
 #include "freertos/FreeRTOS.h"

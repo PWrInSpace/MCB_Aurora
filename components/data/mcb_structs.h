@@ -1,3 +1,4 @@
+// Copyright 2022 PWrInSpace, Kuba
 #ifndef MCB_STRUCTS_H
 #define MCB_STRUCTS_H
 
