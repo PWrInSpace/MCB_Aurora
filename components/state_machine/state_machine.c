@@ -16,6 +16,7 @@
 static struct {
     state_config_t *states;
     uint8_t states_quantity;
+    uint8_t previous_state;
     uint8_t current_state;
 
     end_looped_function end_function;
@@ -28,6 +29,7 @@ static struct {
 void SM_init() {
     sm.states = NULL;
     sm.states_quantity = 0;
+    sm.previous_state = 0;
     sm.current_state = 0;
     sm.end_function = NULL;
     sm.end_fct_frq_ms = 0;
@@ -107,6 +109,7 @@ static bool SM_check_new_state(state_id new_state) {
 SM_Response SM_change_state(state_id new_state) {
     xSemaphoreTake(sm.current_state_mutex, portMAX_DELAY);
     if (SM_check_new_state(new_state)) {
+        sm.previous_state = sm.current_state;
         sm.current_state += 1;
         ESP_LOGI(TAG, "Changing state from %d to %d", sm.current_state - 1, sm.current_state);
         xSemaphoreGive(sm.current_state_mutex);
@@ -116,6 +119,33 @@ SM_Response SM_change_state(state_id new_state) {
     xSemaphoreGive(sm.current_state_mutex);
 
     return SM_STATE_CHANGE_ERROR;
+}
+
+SM_Response SM_force_change_state(state_id new_state) {
+    if (new_state >= sm.states_quantity) {
+        return SM_STATE_CHANGE_ERROR;
+    }
+
+    ESP_LOGI(TAG, "Changing state from %d to %d", sm.current_state, new_state);
+    xSemaphoreTake(sm.current_state_mutex, portMAX_DELAY);
+    sm.previous_state = sm.current_state;
+    sm.current_state = new_state;
+    xSemaphoreGive(sm.current_state_mutex);
+    xTaskNotifyGive(sm.state_task);
+    return SM_OK;
+}
+
+SM_Response SM_change_to_previous_state(bool run_callback) {
+    ESP_LOGI(TAG, "Changing state from %d to %d", sm.current_state, sm.previous_state);
+    xSemaphoreTake(sm.current_state_mutex, portMAX_DELAY);
+    sm.current_state = sm.previous_state;
+    xSemaphoreGive(sm.current_state_mutex);
+
+    if (run_callback == true) {
+        xTaskNotifyGive(sm.state_task);
+    }
+
+    return SM_OK;
 }
 
 SM_Response SM_change_state_ISR(state_id new_state) {
@@ -140,6 +170,15 @@ state_id SM_get_current_state(void) {
     xSemaphoreGive(sm.current_state_mutex);
 
     return current_state;
+}
+
+state_id SM_get_previous_state(void) {
+    state_id previous_state;
+    xSemaphoreTake(sm.current_state_mutex, portMAX_DELAY);
+    previous_state = sm.previous_state;
+    xSemaphoreGive(sm.current_state_mutex);
+
+    return previous_state;
 }
 
 state_id SM_get_current_state_ISR(void) {

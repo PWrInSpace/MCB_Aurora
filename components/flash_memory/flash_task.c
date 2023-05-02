@@ -150,7 +150,7 @@ static void flash_task(void *arg) {
 
         check_termiate_condition();
 
-        vTaskDelay(pdMS_TO_TICKS(1));
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
@@ -159,7 +159,6 @@ bool FT_init(flash_task_cfg_t *cfg) {
     if (gb.task != NULL) {
         return false;
     }
-
     gb.queue = xQueueCreate(FLASH_QUEUE_SIZE, cfg->data_size);
     if (gb.queue == NULL) {
         return false;

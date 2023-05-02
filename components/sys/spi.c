@@ -1,6 +1,10 @@
 // Copyright 2022 PWrInSpace, Kuba
 
 #include "spi.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+
+SemaphoreHandle_t mutex_spi;
 
 static struct {
     spi_bus_config_t spi_bus;
@@ -17,7 +21,7 @@ bool spi_init(spi_host_device_t host, uint8_t mosi, uint8_t miso, uint8_t sck) {
     spi.spi_bus.quadhd_io_num = -1;
     spi.spi_bus.max_transfer_sz = 4000;
     spi.spi_host = host;
-
+    mutex_spi = xSemaphoreCreateMutex();
     ret = spi_bus_initialize(spi.spi_host, &spi.spi_bus, SDSPI_DEFAULT_DMA);
     return ret == ESP_OK ? true : false;
 }

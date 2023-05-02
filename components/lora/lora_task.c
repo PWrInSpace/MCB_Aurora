@@ -41,7 +41,7 @@ static void notify_end_of_rx_window(void) { xTaskNotifyGive(gb.task); }
 static void on_receive_window_timer(TimerHandle_t timer) { notify_end_of_rx_window(); }
 
 static void lora_change_state_to_receive() {
-    ESP_LOGI(TAG, "Changing state to receive");
+    // ESP_LOGI(TAG, "Changing state to receive");
     if (gb.lora_state == LORA_RECEIVE) {
         return;
     }
@@ -52,7 +52,7 @@ static void lora_change_state_to_receive() {
 }
 
 static void lora_change_state_to_transmit() {
-    ESP_LOGI(TAG, "Changing state to transmit");
+    // ESP_LOGI(TAG, "Changing state to transmit");
     if (gb.lora_state == LORA_TRANSMIT) {
         return;
     }
@@ -81,7 +81,7 @@ static size_t on_lora_receive(uint8_t *rx_buffer, size_t buffer_len) {
     if (lora_received(&gb.lora) == LORA_OK) {
         len = lora_receive_packet(&gb.lora, rx_buffer, buffer_len);
         rx_buffer[len] = '\0';
-        ESP_LOGI(TAG, "Received %s", rx_buffer);
+        ESP_LOGI(TAG, "Received %s, len %d", rx_buffer, len);
     }
     return len;
 }
@@ -149,12 +149,12 @@ bool lora_task_init(lora_api_config_t *cfg) {
     gb.irq_notification = xSemaphoreCreateBinary();
     // init_irq_norification();
     if (gb.irq_notification == NULL) {
-        ESP_LOGI(TAG, "DUPA");
         return false;
     }
 
-    gb.receive_window_timer = xTimerCreate("Transmit timer", LORA_TASK_RECEIVE_WINDOW, pdFALSE,
-                                           NULL, on_receive_window_timer);
+    gb.receive_window_timer =
+        xTimerCreate("Transmit timer", pdMS_TO_TICKS(LORA_TASK_RECEIVE_WINDOW), pdFALSE, NULL,
+                     on_receive_window_timer);
     ESP_LOGI(TAG, "Starting timer");
     lora_change_state_to_receive();
     turn_on_receive_window_timer();
@@ -165,5 +165,13 @@ bool lora_task_init(lora_api_config_t *cfg) {
     if (gb.task == NULL) {
         return false;
     }
+    return true;
+}
+
+bool lora_change_receive_window_period(uint32_t period_ms) {
+    if (xTimerChangePeriod(gb.receive_window_timer, pdMS_TO_TICKS(period_ms), 500) == pdFAIL) {
+        return false;
+    }
+
     return true;
 }

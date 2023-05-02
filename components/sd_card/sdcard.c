@@ -16,6 +16,7 @@ bool SD_mount(sd_card_t *sd_card) {
 
     sdmmc_host_t host = SDSPI_HOST_DEFAULT();
     host.slot = sd_card->spi_host;
+    host.max_freq_khz = SDMMC_FREQ_PROBING;
     sdspi_device_config_t slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
     slot_config.gpio_cs = sd_card->cs_pin;
     slot_config.host_id = host.slot;

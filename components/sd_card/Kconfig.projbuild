@@ -43,4 +43,12 @@ menu "SD Task"
         range 0 1
         default 1
 
+    config SD_TASK_TRY_TO_MOUNT_DELAY
+        int "Try to mount delay in ticks"
+        default 1000
+
+    config SD_MAX_DATA_RECEIVE
+        int "Max data drop during one loop execution"
+        default 25
+
 endmenu
