@@ -45,13 +45,12 @@ void rocket_data_update_mcb(mcb_data_t *data) {
     memcpy(&gb.rocket_data.mcb, &data, sizeof(gb.rocket_data.mcb));
     xSemaphoreGive(gb.data_mutex);
 }
-
+static rocket_data_t tmp;
 rocket_data_t rocket_data_get(void) {
-    rocket_data_t tmp;
-    mcb_update_struct(&tmp.mcb);
-    xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
+    // xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
     tmp = gb.rocket_data;
-    xSemaphoreGive(gb.data_mutex);
+    // xSemaphoreGive(gb.data_mutex);
+    mcb_update_struct(&tmp.mcb);
     return tmp;
 }
 

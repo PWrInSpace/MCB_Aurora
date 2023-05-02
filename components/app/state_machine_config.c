@@ -3,8 +3,9 @@
 #include <stddef.h>
 #include "esp_log.h"
 #include "sdkconfig.h"
-#include "flash_task_config.h"
+// #include "flash_task_config.h"
 #include "flash_task.h"
+#include "system_timer_config.h"
 
 #define TAG "SMC"
 static void on_init(void *arg) {
@@ -17,7 +18,7 @@ static void on_idle(void *arg) {
 }
 
 static void on_recovery_arm(void *arg) {
-    flash_data_timer_start(1000);
+    sys_timer_start(TIMER_FLASH_DATA, 500, TIMER_TYPE_PERIODIC);
     ESP_LOGI(TAG, "ON ARM");
 }
 

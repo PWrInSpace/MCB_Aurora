@@ -15,6 +15,10 @@
 #define MAIN_VALVE_MAC {0x78, 0x21, 0x84, 0x8d, 0x7e, 0xd0}
 #define TANWA_MAC {0x78, 0x21, 0x84, 0x8d, 0x7e, 0xd0}
 
+#define ESP_NOW_TASK_STACK_DEPTH CONFIG_ESP_NOW_TASK_STACK_DEPTH
+#define ESP_NOW_TASK_PRIORITY CONFIG_ESP_NOW_TASK_PRIORITY
+#define ESP_NOW_TASK_CORE_ID CONFIG_ESP_NOW_TASK_CORE_ID
+
 extern const ENA_device_t esp_now_broadcast;  // :CCC
 extern const ENA_device_t esp_now_pitot;  // :CCC
 extern const ENA_device_t esp_now_vent_valve;  // :CCC
@@ -23,12 +27,5 @@ extern const ENA_device_t esp_now_tanwa;  // :CCC
 
 
 bool initialize_esp_now(void);
-
-bool esp_now_broadcast_timer_start(uint32_t period_ms);
-
-bool esp_now_broadcast_timer_change_period(uint32_t period_ms);
-
-bool esp_now_broadcast_timer_terminate(void);
-
 
 #endif

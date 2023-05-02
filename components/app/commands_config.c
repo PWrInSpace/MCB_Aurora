@@ -1,42 +1,74 @@
 // Copyright 2022 PWrInSpace, Kuba
 
 #include "commands_config.h"
+#include "esp_log.h"
+#include "state_machine_config.h"
+#include "lora_task.h"
+#include "esp_now_config.h"
 
+#define TAG "CMD"
 // COMMANDS
 // https://docs.google.com/spreadsheets/d/1kvS3BirYGmhAizmF42UDyF-SwWfSJDnYGSNufSPmQ5g/edit#gid=1424247026
 
 // MCB
-
 static void mcb_state_change(uint32_t command, int32_t payload, bool privilage) {
-
+    ESP_LOGI(TAG, "Changing state to -> %d", payload);
+    if (SM_change_state(payload) != SM_OK) {
+        ESP_LOGE(TAG, "Unable to change state");
+        return;
+    }
+    ESP_LOGI(TAG, "STATE CHANGE");
 }
 
 static void mcb_abort(uint32_t command, int32_t payload, bool privilage) {
-    // add abort to State machine xDD
+    SM_force_change_state(ABORT);
+    ESP_LOGI(TAG, "ABORT");
 }
 
 static void mcb_hold(uint32_t command, int32_t payload, bool privilage) {
-
+    if (SM_get_current_state() == HOLD) {
+        ESP_LOGI(TAG, "Leaving hold state");
+        if (SM_get_previous_state() == COUNTDOWN) {
+            SM_force_change_state(RDY_TO_LAUNCH);
+        } else {
+            SM_change_to_previous_state(false);
+        }
+    } else {
+        SM_force_change_state(HOLD);
+        ESP_LOGI(TAG, "HOLD");
+    }
 }
 
 static void mcb_change_lora_frequency_khz(uint32_t command, int32_t payload, bool privilage) {
-
+    ESP_LOGI(TAG, "Change frequency");
 }
 
 static void mcb_change_lora_transmiting_period(uint32_t command, int32_t payload, bool privilage) {
+    ESP_LOGI(TAG, "Transmiting time");
+    if (payload <= 0) {
+        ESP_LOGE(TAG, "Invalid period");
+        // error
+        return;
+    }
 
+    if (lora_change_receive_window_period(payload) == false) {
+        ESP_LOGE(TAG, "Unable to change period");
+        return;
+    }
+
+    ESP_LOGI(TAG, "Tranismiting period change to %d ms", payload);
 }
 
 static void mcb_change_countdown_time(uint32_t command, int32_t payload, bool privilage) {
-
+    ESP_LOGI(TAG, "Countdown time");
 }
 
 static void mcb_change_ignition_time(uint32_t command, int32_t payload, bool privilage) {
-
+    ESP_LOGI(TAG, "Change ignition time");
 }
 
 static void mcb_flash_enable(uint32_t command, int32_t payload, bool privilage) {
-
+    ESP_LOGI(TAG, "Flash enable");
 }
 
 static cmd_command_t mcb_commands[] = {
@@ -54,7 +86,6 @@ static cmd_command_t mcb_commands[] = {
 // RECOVERY
 
 static void recov_easymini_arm(uint32_t command, int32_t payload, bool privilage) {
-
 }
 
 static void recov_easymini_disarm(uint32_t command, int32_t payload, bool privilage) {
@@ -88,22 +119,29 @@ static cmd_command_t recovery_commands[] = {
 
 
 // MAIN VALVE
+static void send_command_esp_now(const ENA_device_t *dev, uint32_t command, int32_t payload) {
+    cmd_message_t mess = cmd_create_message(command, payload);
+    if (ENA_send(dev, mess.raw, sizeof(mess), 3) != ESP_OK) {
+        ESP_LOGI(TAG, "Unable to send command %d, %d", command, payload);
+        return;
+    }
+}
 
 static void mval_valve_close(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_esp_now(&esp_now_main_valve, command, payload);
 }
 
 static void mval_valve_open(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_esp_now(&esp_now_main_valve, command, payload);
 }
 
 
 static void mval_valve_open_angle(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_esp_now(&esp_now_main_valve, command, payload);
 }
 
 static void mval_valve_calibrate(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_esp_now(&esp_now_main_valve, command, payload);
 }
 
 static cmd_command_t main_valve_commands[] = {
@@ -117,25 +155,25 @@ static cmd_command_t main_valve_commands[] = {
 // VENT VALVE
 
 static void vval_valve_close(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_esp_now(&esp_now_vent_valve, command, payload);
 }
 
 static void vval_valve_open(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_esp_now(&esp_now_vent_valve, command, payload);
 }
 
 
 static void vval_valve_open_angle(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_esp_now(&esp_now_vent_valve, command, payload);
 }
 
 static void vval_autopress_time(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_esp_now(&esp_now_vent_valve, command, payload);
 }
 
 
 static void vval_autopress_limit(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_esp_now(&esp_now_vent_valve, command, payload);
 }
 
 static cmd_command_t vent_valve_commands[] = {
