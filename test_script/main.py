@@ -6,7 +6,7 @@ import os.path
 import numpy as np
 
 class LoRaTest():
-    TEST_PACKET_NB = 250
+    TEST_PACKET_NB = 150
     TEST_OUTPUT_DIR = "outputs/"
 
     def __init__(self, antenna_name, distance) -> None:
