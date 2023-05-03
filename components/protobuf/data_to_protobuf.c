@@ -67,4 +67,5 @@ void create_porotobuf_frame(LoRaFrame *frame) {
     frame->errors |= (errors[ERROR_TYPE_ESP_NOW] << 12);
     frame->errors |= (errors[ERROR_TYPE_MEMORY] << 16);
     frame->errors |= (errors[ERROR_TYPE_MCB] << 24);
+    frame->errors |= (errors[ERROR_TYPE_SENSORS] << 28);
 }

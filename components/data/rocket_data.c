@@ -4,6 +4,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
 #include "freertos/semphr.h"
+#include "errors_config.h"
 
 static struct {
     rocket_data_t rocket_data;
@@ -46,12 +47,30 @@ void rocket_data_update_mcb(mcb_data_t *data) {
     memcpy(&gb.rocket_data.mcb, &data, sizeof(gb.rocket_data.mcb));
     xSemaphoreGive(gb.data_mutex);
 }
-static rocket_data_t tmp;
+
+static void update_errors(rocket_data_t *data) {
+    error_data_t errors[MAX_NUMBER_OF_ERRORS];
+    errors_get_all(errors, sizeof(errors));
+
+    data->error_last_exception = errors[ERROR_TYPE_LAST_EXCEPTION];
+    data->error_recovery = errors[ERROR_TYPE_RECOVERY];
+    data->error_esp_now = errors[ERROR_TYPE_ESP_NOW];
+    data->error_memory = errors[ERROR_TYPE_MEMORY];
+    data->error_mcb = errors[ERROR_TYPE_MCB];
+    data->error_sensors = errors[ERROR_TYPE_SENSORS];
+}
+
 rocket_data_t rocket_data_get(void) {
-    // xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
+    rocket_data_t tmp;
+    
+    xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
     tmp = gb.rocket_data;
-    // xSemaphoreGive(gb.data_mutex);
+    xSemaphoreGive(gb.data_mutex);
+    update_errors(&tmp);
     mcb_update_struct(&tmp.mcb);
+
+    
+    
     return tmp;
 }
 
