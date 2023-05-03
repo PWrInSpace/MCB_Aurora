@@ -9,6 +9,7 @@
 #include "flash_task.h"
 #include "esp_log.h"
 #include "errors_config.h"
+#include "gen_pysd.h"
 
 void on_sd_timer(void *arg){
     rocket_data_t test = rocket_data_get();
@@ -43,15 +44,23 @@ static void on_liftoff_timer(void *arg) {
 static void on_disconnect_timer(void *arg) {
     SM_force_change_state(ABORT);
 }
+#define TAG "TIM"
+static void debug_data(void *arg) {
+    char buffer[512];
+    rocket_data_t rocket_data = rocket_data_get();
+    pysd_create_sd_frame(buffer, sizeof(buffer), rocket_data, false);
+    ESP_LOGI(TAG, "%s", buffer);
+}
 
 bool initialize_timers(void) {
     sys_timer_t timers[] = {
     {.timer_id = TIMER_SD_DATA,          .timer_callback_fnc = on_sd_timer,         .timer_arg = NULL},
     {.timer_id = TIMER_ESP_NOW_BROADCAST,.timer_callback_fnc = on_broadcast_timer,  .timer_arg = NULL},
     {.timer_id = TIMER_FLASH_DATA,       .timer_callback_fnc = on_flash_data_timer, .timer_arg = NULL},
-    {.timer_id = TIMER_IGNITION,            .timer_callback_fnc = on_ignition_timer,      .timer_arg = NULL},
-    {.timer_id = TIMER_LIFTOFF,             .timer_callback_fnc = on_liftoff_timer,       .timer_arg = NULL},
-    {.timer_id = TIMER_DISCONNECT,          .timer_callback_fnc = on_disconnect_timer,    .timer_arg = NULL},
+    {.timer_id = TIMER_IGNITION,          .timer_callback_fnc = on_ignition_timer,      .timer_arg = NULL},
+    {.timer_id = TIMER_LIFTOFF,           .timer_callback_fnc = on_liftoff_timer,       .timer_arg = NULL},
+    {.timer_id = TIMER_DISCONNECT,        .timer_callback_fnc = on_disconnect_timer,    .timer_arg = NULL},
+    {.timer_id = TIMER_DEBUG,        .timer_callback_fnc = debug_data,    .timer_arg = NULL},
 };
     return sys_timer_init(timers, sizeof(timers) / sizeof(timers[0]));
 }

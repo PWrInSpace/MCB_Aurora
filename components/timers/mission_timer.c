@@ -48,9 +48,9 @@ int mission_timer_get_time() {
     }
 
     if (gb.enable == true) {
-        ret = gb.disableValue;
-    } else {
         ret = get_uptime_ms() - gb.tzero_time;
+    } else {
+        ret = gb.disableValue;
     }
 
     xSemaphoreGive(gb.time_mutex);

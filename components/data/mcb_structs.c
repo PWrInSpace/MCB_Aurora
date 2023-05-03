@@ -3,12 +3,18 @@
 #include "state_machine.h"
 #include "utils.h"
 #include "esp_log.h"
+#include "mission_timer_config.h"
+#include "system_timer_config.h"
 
 #define TAG "MS"
 bool mcb_update_struct(mcb_data_t *mcb) {
     mcb->state = SM_get_current_state();
     mcb->uptime = get_uptime_ms();
+    mcb->flight_time = hybrid_mission_timer_get_time();
+    uint64_t dc_timer_expire;
+    sys_timer_get_expiry_time(TIMER_DISCONNECT, &dc_timer_expire);
+    mcb->disconnect_timer = (dc_timer_expire / 1000) - get_uptime_ms();
     mcb->battery_voltage = 7.8;
-    // get data from sensor task
+
     return true;
 }

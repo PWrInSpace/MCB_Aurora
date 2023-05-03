@@ -12,6 +12,7 @@ typedef enum {
     TIMER_IGNITION,
     TIMER_LIFTOFF,
     TIMER_DISCONNECT,
+    TIMER_DEBUG,
 } timers_id_def;
 
 #define DISCONNECT_TIMER_PERIOD_MS 15 * 1000 * 1000

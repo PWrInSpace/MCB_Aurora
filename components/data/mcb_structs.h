@@ -9,6 +9,7 @@ typedef struct {
     uint8_t state;
     uint32_t uptime;
     int32_t flight_time;
+    uint32_t disconnect_timer;
     float battery_voltage;
     int sensor_placeholder;
 } mcb_data_t;

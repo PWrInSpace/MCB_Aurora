@@ -131,7 +131,7 @@ bool sys_timer_get_expiry_time(sys_timer_id_t id, uint64_t *expiry) {
     }
 
     if (esp_timer_get_expiry_time(gb.timers[index].timer_handle, expiry) == ESP_OK) {
-        ESP_LOGW(TAG, "Timer restart error");
+        // ESP_LOGW(TAG, "Timer restart error");
     }
 
     return true;
