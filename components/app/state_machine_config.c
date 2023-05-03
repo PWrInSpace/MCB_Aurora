@@ -59,14 +59,13 @@ static void on_countdown(void *arg) {
         ESP_LOGE(TAG, "Unable to start liftoff timer");
     }
 
-    if (mission_timer_start(30000) == false) {
+    if (mission_timer_start(-30000) == false) {
         ESP_LOGE(TAG, "Unable to start mission timer");
     }
-
 }
 
 static void on_flight(void *arg) {
-    ESP_LOGI(TAG, "ON FLIGHT");
+    ESP_LOGI(TAG, "----> ON FLIGHT <----");
     cmd_message_t cmd = cmd_create_message(MAIN_VALVE_OPEN, 0x00);
     ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 }
@@ -98,7 +97,6 @@ static void on_ground(void *arg) {
 
 
 static void disable_timers_and_close_valves(void) {
-    ESP_LOGI(TAG, "ON HOLD");
     if (mission_timer_is_enable() == true) {
         mission_timer_stop();
     }
@@ -111,6 +109,10 @@ static void disable_timers_and_close_valves(void) {
         ESP_LOGE(TAG, "Unable to start liftoff timer");
     }
 
+    if (sys_timer_stop(TIMER_FLASH_DATA) == false) {
+        ESP_LOGE(TAG, "Unable to stop flash data timer");
+    }
+
     cmd_message_t cmd = cmd_create_message(VENT_VALVE_CLOSE, 0x00);
     ENA_send(&esp_now_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
 
@@ -121,6 +123,7 @@ static void disable_timers_and_close_valves(void) {
 }
 
 static void on_hold(void *arg) {
+    ESP_LOGI(TAG, "ON HOLD");
     disable_timers_and_close_valves();
 
     if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
@@ -129,6 +132,7 @@ static void on_hold(void *arg) {
 }
 
 static void on_abort(void *arg) {
+    ESP_LOGI(TAG, "ON ABORT");
     disable_timers_and_close_valves();
 
     if (sys_timer_delete(TIMER_DISCONNECT) == false) {

@@ -6,7 +6,7 @@
 #include "esp_system.h"
 #include "gen_pysd.h"
 #include "flash.h"
-#include "state_machine.h"
+#include "state_machine_config.h"
 #define TAG "CONSOLE_CONFIG"
 
 static int read_flash(int argc, char** argv) {
@@ -52,6 +52,7 @@ static int change_state(int argc, char **argv) {
     }
 
     int state = atoi(argv[1]);
+    
     if (SM_change_state(state) != SM_OK) {
         return -1;
     }
@@ -65,6 +66,20 @@ static int force_change_state(int argc, char **argv) {
     }
 
     int state = atoi(argv[1]);
+    if (state == 11) {
+        if (SM_get_current_state() == HOLD) {
+            ESP_LOGI(TAG, "Leaving hold state");
+            if (SM_get_previous_state() == COUNTDOWN) {
+                SM_force_change_state(RDY_TO_LAUNCH);
+            } else {
+                SM_change_to_previous_state(true);
+            }
+        } else {
+            SM_force_change_state(HOLD);
+            ESP_LOGI(TAG, "HOLD");
+        }
+        return 0;
+    }
     if (SM_force_change_state(state) != SM_OK) {
         return -1;
     }

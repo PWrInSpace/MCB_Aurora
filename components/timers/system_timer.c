@@ -21,7 +21,9 @@ bool sys_timer_init(sys_timer_t * timers, size_t number_of_timers) {
         return false;
     }
 
-    gb.timers = timers;
+    // work around, timer handle can not be null
+    gb.timers = (sys_timer_t*)malloc(sizeof(sys_timer_t) * number_of_timers);
+    memcpy(gb.timers, timers, sizeof(sys_timer_t) * number_of_timers);
     gb.number_of_timers = number_of_timers;
 
     esp_timer_init();
@@ -31,6 +33,7 @@ bool sys_timer_init(sys_timer_t * timers, size_t number_of_timers) {
     for (size_t i = 0; i < gb.number_of_timers; ++i) {
         args.callback = gb.timers[i].timer_callback_fnc;
         args.arg = gb.timers[i].timer_arg;
+        args.dispatch_method = 0;
         esp_err_t ret = esp_timer_create(&args, &gb.timers[i].timer_handle);
         if (ret == ESP_ERR_NO_MEM) {
             ESP_LOGE(TAG, "memory error");

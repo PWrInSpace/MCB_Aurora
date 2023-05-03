@@ -37,15 +37,14 @@ static void on_disconnect_timer(void *arg) {
     SM_force_change_state(ABORT);
 }
 
-static sys_timer_t timers[] = {
-    {TIMER_SD_DATA,             on_sd_timer,            NULL,   NULL},
-    {TIMER_ESP_NOW_BROADCAST,   on_broadcast_timer,     NULL,   NULL},
-    {TIMER_FLASH_DATA,          on_flash_data_timer,    NULL,   NULL},
-    // {TIMER_IGNITION,            on_ignition_timer,      NULL,   NULL},
-    // {TIMER_LIFTOFF,             on_liftoff_timer,       NULL,   NULL},
-    // {TIMER_DISCONNECT,          on_disconnect_timer,    NULL,   NULL},
-};
-
 bool initialize_timers(void) {
+    sys_timer_t timers[] = {
+    {.timer_id = TIMER_SD_DATA,          .timer_callback_fnc = on_sd_timer,         .timer_arg = NULL},
+    {.timer_id = TIMER_ESP_NOW_BROADCAST,.timer_callback_fnc = on_broadcast_timer,  .timer_arg = NULL},
+    {.timer_id = TIMER_FLASH_DATA,       .timer_callback_fnc = on_flash_data_timer, .timer_arg = NULL},
+    {.timer_id = TIMER_IGNITION,            .timer_callback_fnc = on_ignition_timer,      .timer_arg = NULL},
+    {.timer_id = TIMER_LIFTOFF,             .timer_callback_fnc = on_liftoff_timer,       .timer_arg = NULL},
+    {.timer_id = TIMER_DISCONNECT,          .timer_callback_fnc = on_disconnect_timer,    .timer_arg = NULL},
+};
     return sys_timer_init(timers, sizeof(timers) / sizeof(timers[0]));
 }

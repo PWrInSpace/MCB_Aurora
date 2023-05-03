@@ -9,7 +9,9 @@
 static struct {
     error_data_t errors_data[MAX_NUMBER_OF_ERRORS];
     SemaphoreHandle_t data_mutex;
-} gb;
+} gb = {
+    .data_mutex = NULL,
+};
 
 
 bool errors_init(error_type_t *errors_types, size_t number_of_errors) {
@@ -18,6 +20,11 @@ bool errors_init(error_type_t *errors_types, size_t number_of_errors) {
         return false;
     }
 
+    gb.data_mutex = xSemaphoreCreateMutex();
+    if (gb.data_mutex == NULL) {
+        return false;
+    }
+ 
     for (int i = 0; i < number_of_errors; ++i) {
         if (errors_types[i] >= MAX_NUMBER_OF_ERRORS) {
             ESP_LOGE(TAG,
@@ -44,6 +51,10 @@ bool errors_set(error_type_t type, error_code_t code, uint32_t timeout) {
 }
 
 bool errors_add(error_type_t type, error_code_t code, uint32_t timeout) {
+    if (gb.data_mutex == NULL) {
+        return false;
+    }
+    
     if (xSemaphoreTake(gb.data_mutex, pdMS_TO_TICKS(timeout)) == pdFALSE) {
         return false;
     }
