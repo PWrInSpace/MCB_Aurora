@@ -32,4 +32,6 @@ vent_valve_data_t rocket_data_get_vent_valve(void);
 
 recovery_data_t rocket_data_get_recovery(void);
 
+bool rocket_data_woken_up(void);
+
 #endif

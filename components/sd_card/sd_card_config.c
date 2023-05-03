@@ -16,7 +16,6 @@ extern SemaphoreHandle_t mutex_spi;
 
 static size_t convert_data_to_frame(char *buf, size_t buf_size, void* data, size_t size) {
     rocket_data_t* rocket_data = (rocket_data_t*)data;
-    // ESP_LOGI(TAG, "On timer %d, %d", rocket_data->mcb.uptime, rocket_data->mcb.state);
     return pysd_create_sd_frame(buf, buf_size, *rocket_data, true);
 }
 
@@ -28,7 +27,7 @@ void on_error(SD_TASK_ERR error) {
         err_code = ERROR_MEMORY_UNKNOWN;
     }
 
-    ESP_LOGE(TAG, "SD error %d", error);
+    ESP_LOGE(TAG, "!!! SD ERROR CODE: %d !!!", error);
     errors_add(ERROR_TYPE_MEMORY, err_code, 200);
 }
 

@@ -8,7 +8,9 @@
 #include "system_timer_config.h"
 #include "esp_now_config.h"
 #include "commands_config.h"
-#include "mission_timer.h"
+#include "mission_timer_config.h"
+#include "errors_config.h"
+#include "rocket_data.h"
 
 #define TAG "SMC"
 static void on_init(void *arg) {
@@ -47,21 +49,24 @@ static void on_ready_to_lauch(void *arg) {
 
 static void on_countdown(void *arg) {
     ESP_LOGI(TAG, "ON COUNTDOWN");
+    
     if (sys_timer_stop(TIMER_DISCONNECT) == false) {
         ESP_LOGE(TAG, "Unable to stop disconnect timer");
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_MISSION_TIMER, 100);
+        goto abort_countdown;
     }
 
-    if (sys_timer_start(TIMER_IGNITION, 13500, TIMER_TYPE_ONE_SHOT) == false) {
-        ESP_LOGE(TAG, "Unable to start ignition timer");
+    if (hybrid_mission_timer_start(-30000, -13500) == false) {
+        ESP_LOGE(TAG, "Mission timer error");
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_DISCONNECT_TIMER, 100);
+        goto abort_countdown;
     }
 
-    if (sys_timer_start(TIMER_LIFTOFF, 30000, TIMER_TYPE_ONE_SHOT) == false) {
-        ESP_LOGE(TAG, "Unable to start liftoff timer");
-    }
+    return;
 
-    if (mission_timer_start(-30000) == false) {
-        ESP_LOGE(TAG, "Unable to start mission timer");
-    }
+abort_countdown:
+    SM_change_to_previous_state(true);
+    // sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT);
 }
 
 static void on_flight(void *arg) {
@@ -97,16 +102,9 @@ static void on_ground(void *arg) {
 
 
 static void disable_timers_and_close_valves(void) {
-    if (mission_timer_is_enable() == true) {
-        mission_timer_stop();
-    }
-
-    if (sys_timer_stop(TIMER_IGNITION) == false) {
-        ESP_LOGE(TAG, "Unable to start ignition timer");
-    }
-
-    if (sys_timer_stop(TIMER_LIFTOFF) == false) {
-        ESP_LOGE(TAG, "Unable to start liftoff timer");
+    if (hybrid_mission_timer_interrupt() == false) {
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_MISSION_TIMER, 100);
+        ESP_LOGE(TAG, "Unable to stop mission timer");
     }
 
     if (sys_timer_stop(TIMER_FLASH_DATA) == false) {
@@ -136,7 +134,7 @@ static void on_abort(void *arg) {
     disable_timers_and_close_valves();
 
     if (sys_timer_delete(TIMER_DISCONNECT) == false) {
-        ESP_LOGE(TAG, "Unable to restart disconnect timer");
+        ESP_LOGE(TAG, "Unable to delete disconnect timer");
     }
 
     // disarm recovery module

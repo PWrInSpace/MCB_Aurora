@@ -195,21 +195,23 @@ state_id SM_get_current_state_ISR(void) {
 
 static void SM_loop(void *arg) {
     bool sm_completed = false;
-
+    uint8_t state = 0;
     while (1) {
         assert(sm.current_state < sm.states_quantity);
         if (ulTaskNotifyTake(pdTRUE, 0)) {
             xSemaphoreTake(sm.current_state_mutex, portMAX_DELAY);
+            state = sm.current_state;
+            xSemaphoreGive(sm.current_state_mutex);
+
             if (sm.states[sm.current_state].callback != NULL) {
                 sm.states[sm.current_state].callback(sm.states[sm.current_state].arg);
             }
-
-            if (sm.current_state + 1 >= sm.states_quantity) {
+            
+            if (state + 1 >= sm.states_quantity) {
                 ESP_LOGI(TAG, "End function enable");
                 sm_completed = true;
             }
 
-            xSemaphoreGive(sm.current_state_mutex);
         }
 
         if (sm_completed == true) {  // end function

@@ -74,7 +74,7 @@ static void temp_on_error(ENA_ERROR error) {
         err_code = ERROR_ESP_UNKNOWN;
     }
 
-    ESP_LOGE(TAG, "ESP NOW ERROR %d", error);
+    ESP_LOGE(TAG, "!!! ESP NOW ERROR, CODE: %d !!!", error);
     errors_add(ERROR_TYPE_ESP_NOW, err_code, 200);
 }
 

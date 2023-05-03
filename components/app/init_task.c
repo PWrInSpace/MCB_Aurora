@@ -21,7 +21,7 @@
 #include "state_machine_config.h"
 #include "system_timer_config.h"
 #include "utils.h"
-#include "mission_timer.h"
+#include "mission_timer_config.h"
 
 #define TAG "INIT"
 
@@ -54,7 +54,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_flash_memory(), "FLASH");
     CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
     CHECK_RESULT_BOOL(initialize_errors(), "Errors");
-    CHECK_RESULT_BOOL(mission_timer_init(13000), "Mission timer");
+    CHECK_RESULT_BOOL(hybrid_mission_timer_init(30000), "Mission timer");
     vTaskDelay(pdMS_TO_TICKS(200));
     CHECK_RESULT_BOOL(initialize_timers(), "TIMERS");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 30, TIMER_TYPE_PERIODIC), "SD TIMER");

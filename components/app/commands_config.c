@@ -5,19 +5,45 @@
 #include "state_machine_config.h"
 #include "lora_task.h"
 #include "esp_now_config.h"
+#include "errors_config.h"
+#include "rocket_data.h"
 
 #define TAG "CMD"
 // COMMANDS
 // https://docs.google.com/spreadsheets/d/1kvS3BirYGmhAizmF42UDyF-SwWfSJDnYGSNufSPmQ5g/edit#gid=1424247026
 
 // MCB
+static bool state_change_check_countdown(void) {
+    recovery_data_t data = rocket_data_get_recovery();
+    if (data.isArmed == false || data.isTeleActive == false) {
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_NOT_ARMED, 100);
+        return false;
+    }
+    
+    if (rocket_data_woken_up() == false) {
+        ESP_LOGE(TAG, "On or more devices are sleeping");
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_WAKE_UP, 100);
+        return false;
+    }
+
+    return true;
+}
+
 static void mcb_state_change(uint32_t command, int32_t payload, bool privilage) {
     ESP_LOGI(TAG, "Changing state to -> %d", payload);
+
+    if (payload == COUNTDOWN && privilage == false) {
+        if (state_change_check_countdown() == false) {
+            return;
+        }
+    }
+
     if (SM_change_state(payload) != SM_OK) {
         ESP_LOGE(TAG, "Unable to change state");
         return;
     }
-    ESP_LOGI(TAG, "STATE CHANGE");
+
+    ESP_LOGI(TAG, "STATE CHANGED");
 }
 
 static void mcb_abort(uint32_t command, int32_t payload, bool privilage) {
@@ -47,12 +73,13 @@ static void mcb_change_lora_transmiting_period(uint32_t command, int32_t payload
     ESP_LOGI(TAG, "Transmiting time");
     if (payload <= 0) {
         ESP_LOGE(TAG, "Invalid period");
-        // error
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
         return;
     }
 
     if (lora_change_receive_window_period(payload) == false) {
         ESP_LOGE(TAG, "Unable to change period");
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
         return;
     }
 

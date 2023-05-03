@@ -8,10 +8,13 @@
 #include "state_machine_config.h"
 #include "flash_task.h"
 #include "esp_log.h"
+#include "errors_config.h"
 
 void on_sd_timer(void *arg){
     rocket_data_t test = rocket_data_get();
-    SDT_send_data(&test, sizeof(test));
+    if (SDT_send_data(&test, sizeof(test)) == false) {
+        errors_add(ERROR_TYPE_MCB, ERROR_MCB_SD_QUEUE_ADD, 0);
+    }
 }
 
 static void on_broadcast_timer(void *arg) {
@@ -21,7 +24,9 @@ static void on_broadcast_timer(void *arg) {
 
 static void on_flash_data_timer(void *arg) {
     rocket_data_t data = rocket_data_get();
-    FT_send_data(&data);
+    if (FT_send_data(&data) == false) {
+        errors_add(ERROR_TYPE_MCB, ERROR_MCB_FLASH_QUEUE_ADD, 0);
+    }
 }
 
 static void on_ignition_timer(void *arg) {
@@ -30,7 +35,9 @@ static void on_ignition_timer(void *arg) {
 }
 
 static void on_liftoff_timer(void *arg) {
-    SM_change_state(FLIGHT);
+    if (SM_change_state(FLIGHT) != SM_OK) {
+        errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 100);
+    }
 }
 
 static void on_disconnect_timer(void *arg) {

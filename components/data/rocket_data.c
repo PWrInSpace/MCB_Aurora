@@ -84,3 +84,17 @@ recovery_data_t rocket_data_get_recovery(void) {
     xSemaphoreGive(gb.data_mutex);
     return tmp;
 }
+
+bool rocket_data_woken_up(void) {
+    bool result = false;
+    xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
+    if (gb.rocket_data.main_valve.waken_up == false ||
+        gb.rocket_data.vent_valve.waken_up == false) {
+            result = false;
+    } else {
+        result = true;
+    }
+    xSemaphoreGive(gb.data_mutex);
+
+    return result;
+}

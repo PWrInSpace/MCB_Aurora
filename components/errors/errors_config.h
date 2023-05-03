@@ -13,6 +13,7 @@ typedef enum {
     ERROR_TYPE_LAST_EXCEPTION,
 } errors_types_t;
 
+// DONE
 typedef enum {
     ERROR_ESP_NOW_OK = 0,
     ERROR_ESP_NOW_SEND = (1 << 0),
@@ -21,6 +22,7 @@ typedef enum {
     ERROR_ESP_UNKNOWN = (1 << 4)
 } errors_esp_now_t;
 
+// DONE
 typedef enum {
     ERROR_MEMORY_OK = 0,
     ERROR_SD_WRITE = (1 << 0),
@@ -31,6 +33,7 @@ typedef enum {
     ERROR_MEMORY_UNKNOWN = (1 << 6),
 } errors_memory_t;
 
+// DONE
 typedef enum {
     ERROR_MCB_OK = 0,
     ERROR_MCB_SD_QUEUE_ADD = (1 << 0),
@@ -47,6 +50,7 @@ typedef enum {
     ERROR_I2C_TRANSMIT = (1 << 1),
 } errors_recovery_t;
 
+// DONE +-
 typedef enum {
     ERROR_EXCP_OK = 0,
     ERROR_EXCP_WAKE_UP = (1 << 0),
@@ -56,6 +60,7 @@ typedef enum {
     ERROR_EXCP_NOT_ARMED = (1 << 4),
     ERROR_EXCP_STATE_CHANGE = (1 << 5),
     ERROR_EXCP_OPTION_VALUE = (1 << 6),
+    ERROR_EXCP_DISCONNECT_TIMER = (1 << 7),
 } errors_last_exception_t;
 
 /**

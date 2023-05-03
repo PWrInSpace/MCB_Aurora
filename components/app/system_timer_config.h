@@ -14,7 +14,7 @@ typedef enum {
     TIMER_DISCONNECT,
 } timers_id_def;
 
-#define DISCONNECT_TIMER_PERIOD_MS 15 * 1000
+#define DISCONNECT_TIMER_PERIOD_MS 15 * 1000 * 1000
 
 bool initialize_timers(void);
 
