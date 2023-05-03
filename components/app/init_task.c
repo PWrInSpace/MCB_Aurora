@@ -27,6 +27,7 @@
 
 inline static void CHECK_RESULT_ESP(esp_err_t res, char *message) {
     if (res == ESP_OK) {
+        ESP_LOGI(TAG, "Initialized %s", message);
         return;
     }
     ESP_LOGE(TAG, "Init error %s", message);
@@ -36,6 +37,7 @@ inline static void CHECK_RESULT_ESP(esp_err_t res, char *message) {
 
 inline static void CHECK_RESULT_BOOL(esp_err_t res, char *message) {
     if (res == true) {
+        ESP_LOGI(TAG, "Initialized %s", message);
         return;
     }
     ESP_LOGE(TAG, "Init error %s", message);

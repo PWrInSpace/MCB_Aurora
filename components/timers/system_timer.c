@@ -27,10 +27,16 @@ bool sys_timer_init(sys_timer_t * timers, size_t number_of_timers) {
     esp_timer_init();
 
     esp_timer_create_args_t args;
+    ESP_LOGI(TAG, "Timers number %d", number_of_timers);
     for (size_t i = 0; i < gb.number_of_timers; ++i) {
         args.callback = gb.timers[i].timer_callback_fnc;
         args.arg = gb.timers[i].timer_arg;
-        if (esp_timer_create(&args, &gb.timers[i].timer_handle) != ESP_OK) {
+        esp_err_t ret = esp_timer_create(&args, &gb.timers[i].timer_handle);
+        if (ret == ESP_ERR_NO_MEM) {
+            ESP_LOGE(TAG, "memory error");
+            return false;
+        } else if (ret == ESP_ERR_INVALID_ARG) {
+            ESP_LOGE(TAG, "Inavalid arrg %d", i);
             return false;
         }
     }

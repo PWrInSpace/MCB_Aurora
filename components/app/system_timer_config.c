@@ -26,7 +26,7 @@ static void on_flash_data_timer(void *arg) {
 
 static void on_ignition_timer(void *arg) {
     cmd_message_t mess = cmd_create_message(0x01, 0x01);
-    ENA_send(&esp_now_tanwa, &mess.cmd, sizeof(mess.cmd), 3);    
+    ENA_send(&esp_now_tanwa, mess.raw, sizeof(mess.raw), 3);    
 }
 
 static void on_liftoff_timer(void *arg) {
@@ -41,9 +41,9 @@ static sys_timer_t timers[] = {
     {TIMER_SD_DATA,             on_sd_timer,            NULL,   NULL},
     {TIMER_ESP_NOW_BROADCAST,   on_broadcast_timer,     NULL,   NULL},
     {TIMER_FLASH_DATA,          on_flash_data_timer,    NULL,   NULL},
-    {TIMER_IGNITION,            on_ignition_timer,      NULL,   NULL},
-    {TIMER_LIFTOFF,             on_liftoff_timer,       NULL,   NULL},
-    {TIMER_DISCONNECT,          on_disconnect_timer,    NULL,   NULL},
+    // {TIMER_IGNITION,            on_ignition_timer,      NULL,   NULL},
+    // {TIMER_LIFTOFF,             on_liftoff_timer,       NULL,   NULL},
+    // {TIMER_DISCONNECT,          on_disconnect_timer,    NULL,   NULL},
 };
 
 bool initialize_timers(void) {
