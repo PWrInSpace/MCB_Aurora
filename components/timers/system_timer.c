@@ -65,7 +65,7 @@ bool sys_timer_start(sys_timer_id_t id, uint32_t miliseconds, sys_timer_type_t t
     }
 
     if (esp_timer_stop(gb.timers[index].timer_handle) != ESP_OK) {
-        ESP_LOGW(TAG, "TIMER WAS RUNNING");
+        // ESP_LOGW(TAG, "TIMER WAS RUNNING");
     }
 
     if (type == TIMER_TYPE_ONE_SHOT) {
@@ -101,3 +101,33 @@ bool sys_timer_delete(sys_timer_id_t id) {
     esp_timer_delete(gb.timers[index].timer_handle);
     return true;
 }
+
+bool sys_timer_restart(sys_timer_id_t id, uint64_t timeout) {
+    size_t index = get_timer_index_by_id(id);
+    if (index == TIMER_INVALID_INDEX) {
+        return false;
+    }
+
+    if (esp_timer_restart(gb.timers[index].timer_handle, timeout) == ESP_OK) {
+        ESP_LOGW(TAG, "Timer restart error");
+    }
+
+    return true;
+}
+
+bool sys_timer_get_expiry_time(sys_timer_id_t id, uint64_t *expiry) {
+    size_t index = get_timer_index_by_id(id);
+    if (index == TIMER_INVALID_INDEX) {
+        return false;
+    }
+
+    if (esp_timer_get_expiry_time(gb.timers[index].timer_handle, expiry) == ESP_OK) {
+        ESP_LOGW(TAG, "Timer restart error");
+    }
+
+    return true;
+}
+
+
+
+

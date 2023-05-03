@@ -15,7 +15,7 @@ bool mission_timer_init(int64_t timer_disable_value);
  * @return true :D
  * @return false :C
  */
-bool mission_timer_start(int64_t countdown_begin_time);
+bool mission_timer_start(int64_t countdown_begin_time_ms);
 int mission_timer_get_time();
 bool mission_timer_is_enable();
 bool mission_timer_stop();

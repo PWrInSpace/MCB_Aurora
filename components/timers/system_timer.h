@@ -34,5 +34,7 @@ bool sys_timer_init(sys_timer_t * timers, size_t number_of_timers);
 bool sys_timer_start(sys_timer_id_t id, uint32_t miliseconds, sys_timer_type_t type);
 bool sys_timer_stop(sys_timer_id_t id);
 bool sys_timer_delete(sys_timer_id_t id);
+bool sys_timer_restart(sys_timer_id_t id, uint64_t timeout);
+bool sys_timer_get_expiry_time(sys_timer_id_t id, uint64_t *expiry);
 
 #endif

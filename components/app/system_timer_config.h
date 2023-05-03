@@ -9,8 +9,12 @@ typedef enum {
     TIMER_SD_DATA = 0,
     TIMER_ESP_NOW_BROADCAST,
     TIMER_FLASH_DATA,
-    TIMER_LORA,
+    TIMER_IGNITION,
+    TIMER_LIFTOFF,
+    TIMER_DISCONNECT,
 } timers_id_def;
+
+#define DISCONNECT_TIMER_PERIOD_MS 15 * 1000 * 1000
 
 bool initialize_timers(void);
 
