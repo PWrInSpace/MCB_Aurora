@@ -46,8 +46,8 @@ typedef enum {
 
 typedef enum {
     ERROR_RECOV_OK = 0,
-    ERROR_I2C_RECEIVE = (1 << 0),
-    ERROR_I2C_TRANSMIT = (1 << 1),
+    ERROR_RECOV_RECEIVE = (1 << 0),
+    ERROR_RECOV_TRANSMIT = (1 << 1),
 } errors_recovery_t;
 
 // DONE +-

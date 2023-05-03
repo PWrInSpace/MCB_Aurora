@@ -11,10 +11,11 @@ bool mcb_update_struct(mcb_data_t *mcb) {
     mcb->state = SM_get_current_state();
     mcb->uptime = get_uptime_ms();
     mcb->flight_time = hybrid_mission_timer_get_time();
+    mcb->battery_voltage = 7.8;
+    
     uint64_t dc_timer_expire;
     sys_timer_get_expiry_time(TIMER_DISCONNECT, &dc_timer_expire);
     mcb->disconnect_timer = (dc_timer_expire / 1000) - get_uptime_ms();
-    mcb->battery_voltage = 7.8;
-
+    
     return true;
 }

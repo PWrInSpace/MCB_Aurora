@@ -11,6 +11,7 @@
 #include "mission_timer_config.h"
 #include "errors_config.h"
 #include "rocket_data.h"
+#include "recovery.h"
 
 #define TAG "SMC"
 static void on_init(void *arg) {
@@ -22,7 +23,16 @@ static void on_idle(void *arg) {
 }
 
 static void on_recovery_arm(void *arg) {
-    // send command to recovery
+    if (recovery_send_cmd(RECOV_EASYMINI_ARM, 0x00) == false) {
+        errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
+        ESP_LOGE(TAG, "Recovery send error :C");
+    }
+
+    if (recovery_send_cmd(RECOV_TELEMETRUM_ARM, 0x00) == false) {
+        errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
+        ESP_LOGE(TAG, "Recovery send error :C");
+    }
+
     ESP_LOGI(TAG, "ON ARM");
 }
 
@@ -66,7 +76,7 @@ static void on_countdown(void *arg) {
 
 abort_countdown:
     SM_change_to_previous_state(true);
-    // sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT);
+    sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT);
 }
 
 static void on_flight(void *arg) {
@@ -138,6 +148,15 @@ static void on_abort(void *arg) {
     }
 
     // disarm recovery module
+    if (recovery_send_cmd(RECOV_EASYMINI_DISARM, 0x00) == false) {
+        errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
+        ESP_LOGE(TAG, "Recovery send error :C");
+    }
+
+    if (recovery_send_cmd(RECOV_TELEMETRUM_DISARM, 0x00) == false) {
+        errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
+        ESP_LOGE(TAG, "Recovery send error :C");
+    }
 }
 
 static state_config_t states_cfg[] = {

@@ -22,6 +22,7 @@
 #include "system_timer_config.h"
 #include "utils.h"
 #include "mission_timer_config.h"
+#include "i2c.h"
 
 #define TAG "INIT"
 
@@ -47,6 +48,8 @@ inline static void CHECK_RESULT_BOOL(esp_err_t res, char *message) {
 static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(rocket_data_init(), "data");
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
+    CHECK_RESULT_BOOL(i2c_sensors_init(), "i2c sensors");
+    CHECK_RESULT_BOOL(i2c_com_init(), "i2c com");
     CHECK_RESULT_BOOL(spi_init(VSPI_HOST, CONFIG_SPI_MOSI, CONFIG_SPI_MISO, CONFIG_SPI_SCK), "SPI");
     CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
     CHECK_RESULT_BOOL(initialize_lora(), "LORA");

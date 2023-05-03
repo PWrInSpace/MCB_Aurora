@@ -1,10 +1,18 @@
 #include "slave_structs.h"
 #include "lora.pb-c.h"
 #include "rocket_data.h"
+#include "errors_config.h"
+#include "esp_log.h"
+
+#define TAG "PBF"
 
 void create_porotobuf_frame(LoRaFrame *frame) {
     rocket_data_t data = rocket_data_get();
     lo_ra_frame__init(frame);   // fill struct with 0
+    error_data_t errors[MAX_NUMBER_OF_ERRORS];
+    if (errors_get_all(errors, sizeof(errors)) == false) {
+        ESP_LOGI(TAG, "Unable to get errrors");
+    }
 
     // mcb
     frame->obc_state = data.mcb.state;
@@ -50,7 +58,13 @@ void create_porotobuf_frame(LoRaFrame *frame) {
 
 
     // esp now
-
+    frame->esp_now_byte_data |= (data.main_valve.waken_up << 1);
+    frame->esp_now_byte_data |= (data.vent_valve.waken_up << 2);
 
     // errors
+    frame->errors |= errors[ERROR_TYPE_LAST_EXCEPTION];
+    frame->errors |= (errors[ERROR_TYPE_RECOVERY] << 8);
+    frame->errors |= (errors[ERROR_TYPE_ESP_NOW] << 12);
+    frame->errors |= (errors[ERROR_TYPE_MEMORY] << 16);
+    frame->errors |= (errors[ERROR_TYPE_MCB] << 24);
 }

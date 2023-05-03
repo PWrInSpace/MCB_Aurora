@@ -29,4 +29,21 @@ menu "PinOut"
     config SD_CS
         int "SD cs pin"
         default 5
+
+    config SCL_COM
+        int "I2C num 1 sck pin"
+        default 26
+
+    config SDA_COM
+        int "I2C num 1 sda pin"
+        default 27
+
+    config SCL_SEN
+        int "I2C num 2 sck pin"
+        default 21
+
+    config SDA_SEN
+        int "I2C num 2 sda pin"
+        default 22
+
 endmenu

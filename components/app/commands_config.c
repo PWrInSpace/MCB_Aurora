@@ -7,6 +7,7 @@
 #include "esp_now_config.h"
 #include "errors_config.h"
 #include "rocket_data.h"
+#include "recovery.h"
 
 #define TAG "CMD"
 // COMMANDS
@@ -115,28 +116,36 @@ static cmd_command_t mcb_commands[] = {
 };
 
 // RECOVERY
+static void send_command_recovery(uint32_t command, int32_t payload) {
+    if (recovery_send_cmd(command, payload) == false) {
+        errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
+        ESP_LOGE(TAG, "Recovery send error :C");
+    }
+}
+
 
 static void recov_easymini_arm(uint32_t command, int32_t payload, bool privilage) {
+    send_command_recovery(command, payload);
 }
 
 static void recov_easymini_disarm(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_recovery(command, payload);
 }
 
 static void recov_telemetrum_arm(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_recovery(command, payload);
 }
 
 static void recov_telemetrum_disarm(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_recovery(command, payload);
 }
 
 static void recov_force_first_separation(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_recovery(command, payload);
 }
 
 static void recov_force_second_separation(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_recovery(command, payload);
 }
 
 static cmd_command_t recovery_commands[] = {
