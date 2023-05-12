@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.stats import sem
 
 # data_paths = [
 #     "105262_650.txt",
@@ -13,11 +14,20 @@ import matplotlib.pyplot as plt
 #     "zwykla_650.txt",
 # ]
 
+# data_paths = [
+#     "pcb_650.txt",
+#     "swivel_650.txt",
+#     "pcb_1600.txt",
+#     "swivel_1600.txt",
+#     "pcb_2200.txt",  
+#     "swivel_2200.txt",  
+# ]
+
 data_paths = [
     "small_650.txt",
     "small_1000.txt",
     "small_1500.txt",
-    "small_2000.txt",
+    # "small_2000.txt",
     "small_2_2000.txt",
     # "big_650.txt",
     # "big_1000.txt",
@@ -29,9 +39,12 @@ bar_plot_snr_dict = {}
 bar_plot_transmited_dict = {}
 bar_plot_receive_dict = {}
 bar_plot_received_dict = {}
+error_plot_rssi = {}
+error_plot_received = {}
+error_plot_snr = {}
 
 
-plt.figure(0)
+plt.figure(0, figsize=(10, 6))
 for path in data_paths:
     test_data = np.loadtxt("outputs/" + path, delimiter=";", dtype=str)
     rssi = np.array([int(z) for z in test_data[:,5]])
@@ -40,43 +53,62 @@ for path in data_paths:
     received_packets = np.array([int(z) for z in test_data[:,3]])
     logging.info(f"Transmited packets: {transmited_packets[-1]}-> {transmited_packets[-1] / 500.0 * 100}%")
     logging.info(f"Transmited packets: {received_packets[-1]}-> {received_packets[-1] / 500.0 * 100}%")
-    logging.info(f"RSSI:\tAverage {np.average(rssi)}\tMAX {max(rssi)}\tMin {min(rssi)}")
-    logging.info(f"SNR:\tAverage {np.average(snr)}\tMAX {max(snr)}\tMin {min(snr)}")
+    logging.info(f"RSSI:\tAverage {np.mean(rssi)}\tMAX {max(rssi)}\tMin {min(rssi)}")
+    logging.info(f"SNR:\tAverage {np.mean(snr)}\tMAX {max(snr)}\tMin {min(snr)}")
 
     plt.plot(rssi, snr, "o", alpha = 0.3)
-    bar_plot_rssi_dict[path[:-4]] = np.average(rssi)
-    bar_plot_snr_dict[path[:-4]] = np.average(snr)
-    # bar_plot_transmited_dict[path[:-4]] = received_packets[-1] / 500.0 * 100
+    # _, _, bars = plt.errorbar(rssi, snr, xerr=sem(rssi), yerr=sem(snr), fmt='.k')
+    # [bar.set_alpha(0.1) for bar in bars]
+    bar_plot_rssi_dict[path[:-4]] = np.mean(rssi)
+    bar_plot_snr_dict[path[:-4]] = np.mean(snr)
+    error_plot_rssi[path[:-4]] = sem(rssi, ddof=1)
+    error_plot_snr[path[:-4]] = sem(snr)
+    error_plot_received[path[:-4]] = np.std(snr)
+
     if np.size(received_packets) > 250:
         bar_plot_received_dict[path[:-4]] = np.size(received_packets) / 500.0 * 100.0
     else:
         bar_plot_received_dict[path[:-4]] = np.size(received_packets) / 250.0 * 100.0
 
+
 # plt.title("850m")
-plt.ylabel("Signal to noise")
-plt.xlabel("RSSI")
+plt.ylabel("Signal to noise [dB]")
+plt.xlabel("RSSI [dBm]")
 plt.grid(True)
 plt.legend([x[:-4] for x in data_paths])
 # plt.show()
+plt.savefig("plots/signal_to_noise")
 
-plt.figure(1)
+plt.figure(1, figsize=(10, 6))
 plt.title("Average rssi")
-plt.bar(bar_plot_rssi_dict.keys(), bar_plot_rssi_dict.values())
+plt.bar(bar_plot_rssi_dict.keys(), bar_plot_rssi_dict.values(), color=["orange", "blue"], alpha=0.7,
+        yerr=error_plot_rssi.values(), ecolor='black', capsize=10)
+plt.xlabel("Antenna type and distance [m]")
+plt.ylabel("RSSI [dBm]")
 plt.grid(True)
+plt.savefig("plots/average_rssi")
 # plt.show()
 
-plt.figure(2)
+plt.figure(2, figsize=(10, 6))
 plt.title("Average snr")
-plt.bar(bar_plot_snr_dict.keys(), bar_plot_snr_dict.values())
+plt.bar(bar_plot_snr_dict.keys(), bar_plot_snr_dict.values(), color=["orange", "blue"], alpha=0.7,
+        yerr=error_plot_snr.values(), ecolor='black', capsize=10)
 plt.grid(True)
+plt.ylabel("Signal to noise [dB]")
+plt.xlabel("Antenna type and distance [m]")
+plt.savefig("plots/average_snr")
 
 # plt.figure(3)
 # plt.title("Transmited")
 # plt.bar(bar_plot_transmited_dict.keys(), bar_plot_transmited_dict.values())
 # plt.grid(True)
-
-plt.figure(4)
-plt.title("Received")
-plt.bar(bar_plot_received_dict.keys(), bar_plot_received_dict.values())
+fig = plt.figure(3, figsize=(10, 6))
+ax = fig.add_subplot(111)
+plt.title("Received frames")
+ax.set_yticks(range(0, 101, 10))
+plt.bar(bar_plot_receive_dict.keys(), bar_plot_received_dict.values(), color=["orange", "blue"], alpha=0.7)
 plt.grid(True)
+plt.ylabel("Received frames [%]")
+plt.xlabel("Antenna type and distance [m]")
+plt.savefig("plots/received")
 plt.show()
