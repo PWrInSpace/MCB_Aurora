@@ -10,6 +10,7 @@ typedef struct {
     vent_valve_data_t vent_valve;
     main_valve_data_t main_valve;
     recovery_data_t recovery;
+    payload_data_t payload;
     uint32_t error_esp_now;
     uint32_t error_memory;
     uint32_t error_mcb;
@@ -28,6 +29,8 @@ void rocket_data_update_recovery(recovery_data_t *data);
 
 void rocket_data_update_mcb(mcb_data_t *data);
 
+void rocket_data_update_payload(payload_data_t *data);
+
 rocket_data_t rocket_data_get(void);
 
 mcb_data_t rocket_data_get_mcb(void);
@@ -37,6 +40,8 @@ main_valve_data_t rocket_data_get_main_valve(void);
 vent_valve_data_t rocket_data_get_vent_valve(void);
 
 recovery_data_t rocket_data_get_recovery(void);
+
+payload_data_t rocket_data_get_payload(void);
 
 bool rocket_data_woken_up(void);
 

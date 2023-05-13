@@ -16,9 +16,9 @@ bool mcb_update_struct(mcb_data_t *mcb) {
     uint64_t dc_timer_expire;
     sys_timer_get_expiry_time(TIMER_DISCONNECT, &dc_timer_expire);
     if (dc_timer_expire == 0) {
-        mcb->disconnect_timer = DISCONNECT_TIMER_PERIOD_MS;
+        mcb->disconnect_timer = 0;
     } else {
-        mcb->disconnect_timer = (dc_timer_expire / 1000) - get_uptime_ms();
+        mcb->disconnect_timer = ((dc_timer_expire / 1000) - get_uptime_ms()) / 1000.0;
     }
     
     return true;

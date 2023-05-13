@@ -40,4 +40,10 @@ typedef struct {
     uint16_t pressure2;
 } recovery_data_t;
 
+typedef struct {
+    bool waken_up : 1;
+    uint16_t vbat;
+} payload_data_t;
+
+
 #endif

@@ -16,7 +16,7 @@ void create_porotobuf_frame(LoRaFrame *frame) {
 
     // mcb
     frame->obc_state = data.mcb.state;
-    frame->uptime = data.mcb.uptime;
+    frame->uptime = data.mcb.disconnect_timer;
     frame->flight_time = data.mcb.flight_time;
     frame->mcb_battery = data.mcb.battery_voltage;
 
@@ -60,7 +60,8 @@ void create_porotobuf_frame(LoRaFrame *frame) {
     // esp now
     frame->esp_now_byte_data |= (data.main_valve.waken_up << 1);
     frame->esp_now_byte_data |= (data.vent_valve.waken_up << 2);
-
+    frame->esp_now_byte_data |= (data.payload.waken_up << 3);
+    ESP_LOGI(TAG, "%d", data.payload.waken_up);
     // errors
     frame->errors |= errors[ERROR_TYPE_LAST_EXCEPTION];
     frame->errors |= (errors[ERROR_TYPE_RECOVERY] << 8);

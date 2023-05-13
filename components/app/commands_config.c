@@ -48,7 +48,7 @@ static void mcb_state_change(uint32_t command, int32_t payload, bool privilage) 
 }
 
 static void mcb_abort(uint32_t command, int32_t payload, bool privilage) {
-    SM_force_change_state(ABORT);
+    // SM_force_change_state(ABORT);
     ESP_LOGI(TAG, "ABORT");
 }
 
