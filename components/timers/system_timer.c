@@ -21,16 +21,25 @@ bool sys_timer_init(sys_timer_t * timers, size_t number_of_timers) {
         return false;
     }
 
-    gb.timers = timers;
+    // work around, timer handle can not be null
+    gb.timers = (sys_timer_t*)malloc(sizeof(sys_timer_t) * number_of_timers);
+    memcpy(gb.timers, timers, sizeof(sys_timer_t) * number_of_timers);
     gb.number_of_timers = number_of_timers;
 
     esp_timer_init();
 
     esp_timer_create_args_t args;
+    ESP_LOGI(TAG, "Timers number %d", number_of_timers);
     for (size_t i = 0; i < gb.number_of_timers; ++i) {
         args.callback = gb.timers[i].timer_callback_fnc;
         args.arg = gb.timers[i].timer_arg;
-        if (esp_timer_create(&args, &gb.timers[i].timer_handle) != ESP_OK) {
+        args.dispatch_method = 0;
+        esp_err_t ret = esp_timer_create(&args, &gb.timers[i].timer_handle);
+        if (ret == ESP_ERR_NO_MEM) {
+            ESP_LOGE(TAG, "memory error");
+            return false;
+        } else if (ret == ESP_ERR_INVALID_ARG) {
+            ESP_LOGE(TAG, "Inavalid arrg %d", i);
             return false;
         }
     }
@@ -65,7 +74,7 @@ bool sys_timer_start(sys_timer_id_t id, uint32_t miliseconds, sys_timer_type_t t
     }
 
     if (esp_timer_stop(gb.timers[index].timer_handle) != ESP_OK) {
-        ESP_LOGW(TAG, "TIMER WAS RUNNING");
+        // ESP_LOGW(TAG, "TIMER WAS RUNNING");
     }
 
     if (type == TIMER_TYPE_ONE_SHOT) {
@@ -101,3 +110,33 @@ bool sys_timer_delete(sys_timer_id_t id) {
     esp_timer_delete(gb.timers[index].timer_handle);
     return true;
 }
+
+bool sys_timer_restart(sys_timer_id_t id, uint64_t timeout) {
+    size_t index = get_timer_index_by_id(id);
+    if (index == TIMER_INVALID_INDEX) {
+        return false;
+    }
+
+    if (esp_timer_restart(gb.timers[index].timer_handle, timeout) == ESP_OK) {
+        ESP_LOGW(TAG, "Timer restart error");
+    }
+
+    return true;
+}
+
+bool sys_timer_get_expiry_time(sys_timer_id_t id, uint64_t *expiry) {
+    size_t index = get_timer_index_by_id(id);
+    if (index == TIMER_INVALID_INDEX) {
+        return false;
+    }
+
+    if (esp_timer_get_expiry_time(gb.timers[index].timer_handle, expiry) == ESP_OK) {
+        // ESP_LOGW(TAG, "Timer restart error");
+    }
+
+    return true;
+}
+
+
+
+

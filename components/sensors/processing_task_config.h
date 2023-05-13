@@ -3,6 +3,7 @@
 #define PROCESSING_TASK_CONFIG_H
 
 #include "processing_task.h"
+#include "slave_structs.h"
 
 typedef struct {
     int test1;
@@ -12,6 +13,7 @@ typedef struct {
     int test5;
     int test6;
     float test_float;
+    recovery_data_t recovery;
 } sensors_data_t;
 
 /**

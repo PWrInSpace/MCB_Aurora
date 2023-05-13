@@ -42,9 +42,12 @@ message LoRaFrame {
     required uint32 tanwa_state = 28;
     required float rocket_weight = 29;
     required float tank_weight = 30;
+    required float temperature1 = 31;
+    required float temperature2 = 32;
+    required float pressure = 33;
 
-    required fixed32 esp_now_byte_data = 31;
-    required fixed32 errors = 32;
+    required fixed32 esp_now_byte_data = 34;
+    required fixed32 errors = 35;
 }
 
 message LoRaCommand {

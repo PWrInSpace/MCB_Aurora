@@ -5,19 +5,46 @@
 #include "state_machine_config.h"
 #include "lora_task.h"
 #include "esp_now_config.h"
+#include "errors_config.h"
+#include "rocket_data.h"
+#include "recovery.h"
 
 #define TAG "CMD"
 // COMMANDS
 // https://docs.google.com/spreadsheets/d/1kvS3BirYGmhAizmF42UDyF-SwWfSJDnYGSNufSPmQ5g/edit#gid=1424247026
 
 // MCB
+static bool state_change_check_countdown(void) {
+    recovery_data_t data = rocket_data_get_recovery();
+    if (data.isArmed == false || data.isTeleActive == false) {
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_NOT_ARMED, 100);
+        return false;
+    }
+    
+    if (rocket_data_woken_up() == false) {
+        ESP_LOGE(TAG, "On or more devices are sleeping");
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_WAKE_UP, 100);
+        return false;
+    }
+
+    return true;
+}
+
 static void mcb_state_change(uint32_t command, int32_t payload, bool privilage) {
     ESP_LOGI(TAG, "Changing state to -> %d", payload);
+
+    if (payload == COUNTDOWN && privilage == false) {
+        if (state_change_check_countdown() == false) {
+            return;
+        }
+    }
+
     if (SM_change_state(payload) != SM_OK) {
         ESP_LOGE(TAG, "Unable to change state");
         return;
     }
-    ESP_LOGI(TAG, "STATE CHANGE");
+
+    ESP_LOGI(TAG, "STATE CHANGED");
 }
 
 static void mcb_abort(uint32_t command, int32_t payload, bool privilage) {
@@ -47,12 +74,13 @@ static void mcb_change_lora_transmiting_period(uint32_t command, int32_t payload
     ESP_LOGI(TAG, "Transmiting time");
     if (payload <= 0) {
         ESP_LOGE(TAG, "Invalid period");
-        // error
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
         return;
     }
 
     if (lora_change_receive_window_period(payload) == false) {
         ESP_LOGE(TAG, "Unable to change period");
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
         return;
     }
 
@@ -71,50 +99,62 @@ static void mcb_flash_enable(uint32_t command, int32_t payload, bool privilage) 
     ESP_LOGI(TAG, "Flash enable");
 }
 
+static void mcb_reset_disconnect_timer(uint32_t command, int32_t payload, bool privilage) {
+    ESP_LOGI(TAG, "Timer reset");
+}
+
 static cmd_command_t mcb_commands[] = {
-    {0x00, mcb_state_change},
-    {0x01, mcb_abort},
-    {0x02, mcb_hold},
-    {0x10, mcb_change_lora_frequency_khz},
-    {0x11, mcb_change_lora_transmiting_period},
-    {0x12, mcb_change_countdown_time},
-    {0x13, mcb_change_ignition_time},
-    {0x14, mcb_flash_enable},
-    {0xFF, NULL},
+    {MCB_STATE_CHANGE,              mcb_state_change},
+    {MCB_ABORT,                     mcb_abort},
+    {MCB_HOLD,                      mcb_hold},
+    {MCB_CHANGE_LORA_FREQ,          mcb_change_lora_frequency_khz},
+    {MCB_CHANGE_TX_PERIOD,          mcb_change_lora_transmiting_period},
+    {MCB_CHANGE_COUNTODWN_TIME,     mcb_change_countdown_time},
+    {MCB_CHANGE_IGNITION_TIME,      mcb_change_ignition_time},
+    {MCB_FLASH_ENABLE,              mcb_flash_enable},
+    {MCB_RESET_DISCONNECT_TIMER,    mcb_reset_disconnect_timer},
 };
 
 // RECOVERY
+static void send_command_recovery(uint32_t command, int32_t payload) {
+    if (recovery_send_cmd(command, payload) == false) {
+        errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
+        ESP_LOGE(TAG, "Recovery send error :C");
+    }
+}
+
 
 static void recov_easymini_arm(uint32_t command, int32_t payload, bool privilage) {
+    send_command_recovery(command, payload);
 }
 
 static void recov_easymini_disarm(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_recovery(command, payload);
 }
 
 static void recov_telemetrum_arm(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_recovery(command, payload);
 }
 
 static void recov_telemetrum_disarm(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_recovery(command, payload);
 }
 
 static void recov_force_first_separation(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_recovery(command, payload);
 }
 
 static void recov_force_second_separation(uint32_t command, int32_t payload, bool privilage) {
-
+    send_command_recovery(command, payload);
 }
 
 static cmd_command_t recovery_commands[] = {
-    {0x01, recov_easymini_arm},
-    {0x02, recov_easymini_disarm},
-    {0x03, recov_telemetrum_arm},
-    {0x04, recov_telemetrum_disarm},
-    {0xa5, recov_force_first_separation},
-    {0x5a, recov_force_second_separation},
+    {RECOV_EASYMINI_ARM,        recov_easymini_arm              },
+    {RECOV_EASYMINI_DISARM,     recov_easymini_disarm           },
+    {RECOV_TELEMETRUM_ARM,      recov_telemetrum_arm            },
+    {RECOV_TELEMETRUM_DISARM,   recov_telemetrum_disarm         },
+    {RECOV_FORCE_SECOND_STAGE,  recov_force_first_separation    },
+    {RECOV_FORCE_SECOND_STAGE,  recov_force_second_separation   },
 };
 
 
@@ -145,10 +185,10 @@ static void mval_valve_calibrate(uint32_t command, int32_t payload, bool privila
 }
 
 static cmd_command_t main_valve_commands[] = {
-    {0x00, mval_valve_close},
-    {0x01, mval_valve_open},
-    {0x03, mval_valve_open_angle},
-    {0x04, mval_valve_calibrate},
+    {MAIN_VALVE_CLOSE,          mval_valve_close        },
+    {MAIN_VALVE_OPEN,           mval_valve_open         },
+    {MAIN_VALVE_OPEN_ANGLE,     mval_valve_open_angle   },
+    {MAIN_VALVE_CALIBRATE,      mval_valve_calibrate    },
 };
 
 
@@ -177,11 +217,11 @@ static void vval_autopress_limit(uint32_t command, int32_t payload, bool privila
 }
 
 static cmd_command_t vent_valve_commands[] = {
-    {0x00, vval_valve_close},
-    {0x01, vval_valve_open},
-    {0x03, vval_valve_open_angle},
-    {0x13, vval_autopress_time},
-    {0x14, vval_autopress_limit},
+    {VENT_VALVE_CLOSE,              vval_valve_close        },
+    {VENT_VALVE_OPEN,               vval_valve_open         },
+    {VENT_VALVE_OPEN,               vval_valve_open_angle   },
+    {VENT_VALVE_AUTOPRESS_TIME,     vval_autopress_time     },
+    {VENT_VALVE_AUTOPRESS_LIMIT,    vval_autopress_limit    },
 };
 
 // DEVICES

@@ -78,4 +78,6 @@ bool errors_reset(error_type_t type, uint32_t timeout);
  */
 bool errors_reset_all(uint32_t timeout);
 
+bool errors_get_all(error_data_t *buffer, size_t buffer_size);
+
 #endif

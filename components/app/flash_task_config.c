@@ -23,6 +23,7 @@ static bool on_error(FT_ERROR_CODE error) {
         err_code = ERROR_MEMORY_UNKNOWN;
     }
 
+    ESP_LOGE(TAG, "!!! FLASH ERROR CODE: %d !!!", err_code);
     errors_add(ERROR_TYPE_MEMORY, err_code, 200);
     return true;
 }

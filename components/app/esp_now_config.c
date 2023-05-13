@@ -40,10 +40,6 @@ const ENA_device_t esp_now_tanwa = {
     .on_receive = callback_tanwa,
 };
 
-// static void on_err(ENA_ERROR err) {
-//     ESP_LOGE(TAG, "ERROR :C %d", err);
-// }
-
 static void callback_pitot(uint8_t *data, size_t size) {
     ESP_LOGI(TAG, "Pitot receive, size %d", size);
 }
@@ -78,7 +74,7 @@ static void temp_on_error(ENA_ERROR error) {
         err_code = ERROR_ESP_UNKNOWN;
     }
 
-    ESP_LOGE(TAG, "ESP NOW ERROR %d", error);
+    ESP_LOGE(TAG, "!!! ESP NOW ERROR, CODE: %d !!!", error);
     errors_add(ERROR_TYPE_ESP_NOW, err_code, 200);
 }
 

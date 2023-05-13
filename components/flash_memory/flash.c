@@ -23,8 +23,8 @@ FlashResult FLASH_init(uint8_t max_files) {
   fl.conf.format_if_mount_failed = false;
 
   err = esp_vfs_spiffs_register(&fl.conf);
-
-  assert(err == ESP_OK);
+  // FLASH_format();
+  // assert(err == ESP_OK);
   if (err != ESP_OK) {
     if (err == ESP_FAIL) {
       ESP_LOGE(
@@ -136,10 +136,10 @@ size_t FLASH_get_total_size(void) {
 FlashResult FLASH_format(void) {
   esp_err_t err;
 
-  if (fl.initialized == false) {
-    ESP_LOGW(TAG, "FLASH IS NOT INITIALIZED");
-    return FLASH_IS_NOT_INITIALIZED;
-  }
+  // if (fl.initialized == false) {
+  //   ESP_LOGW(TAG, "FLASH IS NOT INITIALIZED");
+  //   return FLASH_IS_NOT_INITIALIZED;
+  // }
 
   err = esp_spiffs_format(fl.conf.partition_label);
   if (err != ESP_OK) {

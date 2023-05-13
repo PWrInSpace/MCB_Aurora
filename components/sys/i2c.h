@@ -11,7 +11,13 @@ bool I2C_master_write(i2c_port_t port, uint8_t dev_addr, uint8_t reg_addr, uint8
                         size_t len);
 bool I2C_master_read(i2c_port_t port, uint8_t dev_addr, uint8_t reg_addr, uint8_t *data,
                         size_t len);
-bool i2c_num1_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t len);
-bool i2c_num1_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t len);
+
+bool i2c_sensors_init(void);
+bool i2c_com_init(void);
+bool i2c_sensors_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t len);
+bool i2c_sensors_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t len);
+bool i2c_com_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t len);
+bool i2c_com_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t len);
+
 
 #endif

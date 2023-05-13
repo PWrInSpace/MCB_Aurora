@@ -74,6 +74,7 @@ static void prepare_data_file_and_save(void) {
     xSemaphoreGive(mem.spi_mutex);
 
     int received_data_counter = 0;
+    ESP_LOGI(TAG, "Saving to sd");
     while (uxQueueMessagesWaiting(mem.data_queue) > 0) {
         get_data_from_queue_and_save(data_file);
 
