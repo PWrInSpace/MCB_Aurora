@@ -8,9 +8,9 @@
 typedef struct {
     bool waken_up :1;
     uint8_t valve_state : 2;
-    float thermocouple1;
-    float thermocouple2;
-    float battery_voltage;
+    uint32_t thermocouple1;
+    uint32_t thermocouple2;
+    uint32_t battery_voltage;
 } main_valve_data_t;
 
 typedef struct {
@@ -45,5 +45,40 @@ typedef struct {
     uint16_t vbat;
 } payload_data_t;
 
+typedef struct {
+    uint32_t tanWaState;
+    uint32_t pressureSensor;
+    uint32_t solenoid_fill;
+    uint32_t solenoid_depr;
+    bool abortButton;
+    bool igniterContinouity_1;
+    bool igniterContinouity_2;
+    uint32_t hxRequest_RCK; /* arduino string */
+    uint32_t hxRequest_TANK; /* arduino string */
+    float vbat;
+    uint32_t motorState_1;
+    uint32_t motorState_2;
+    uint32_t motorState_3;
+    uint32_t motorState_4;
+    float rocketWeight_val;
+    float tankWeight_val;
+    uint32_t rocketWeightRaw_val;
+    uint32_t tankWeightRaw_val;
+    bool interface_rck;
+    bool interface_tank;
+    bool interface_mcu;
+} tanwa_data_t;
+
+typedef struct {
+    bool wakenUp;
+    float dynamic_press;
+    float static_press;
+    float temperature;
+    float humid;
+    float vbat;
+    float speed;
+    float alt;
+    float pred_apogee;
+} pitot_data_t;
 
 #endif

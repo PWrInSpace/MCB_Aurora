@@ -39,8 +39,10 @@ void create_porotobuf_frame(LoRaFrame *frame) {
     frame->recov_byte_data |= (data.recovery.separationSwitch2 << 11);
 
     // pitot
-
-
+    frame->pitot_battery = data.pitot.vbat;
+    frame->pitot_altitude = data.pitot.alt;
+    frame->pitot_velocity = data.pitot.speed;
+    frame->pitot_temperature = data.pitot.temperature;
 
     // main valve
     frame->mval_battery = data.main_valve.battery_voltage;
@@ -53,15 +55,18 @@ void create_porotobuf_frame(LoRaFrame *frame) {
 
     frame->vent_byte_data |= data.vent_valve.valve_state;
 
-
     // tanwa
-
+    frame->tanwa_battery = data.tanwa.vbat;
+    frame->tanwa_state = data.tanwa.tanWaState;
+    frame->rocket_weight = data.tanwa.rocketWeight_val;
+    frame->tank_weight = data.tanwa.tankWeight_val;
+    frame->tanwa_byte_data |= 0x00;
 
     // esp now
     frame->esp_now_byte_data |= (data.main_valve.waken_up << 1);
     frame->esp_now_byte_data |= (data.vent_valve.waken_up << 2);
     frame->esp_now_byte_data |= (data.payload.waken_up << 3);
-    ESP_LOGI(TAG, "%d", data.payload.waken_up);
+
     // errors
     frame->errors |= errors[ERROR_TYPE_LAST_EXCEPTION];
     frame->errors |= (errors[ERROR_TYPE_RECOVERY] << 8);

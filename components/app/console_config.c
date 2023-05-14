@@ -136,6 +136,20 @@ static int esp_now_send_tanwa(int argc, char **argv) {
     return 0;
 }
 
+static int esp_now_send_main_valve(int argc, char **argv) {
+    if (argc != 3) {
+        return -1;
+    }
+
+    int command = atoi(argv[1]);
+    int payload = atoi(argv[2]);
+
+    cmd_message_t msg = cmd_create_message(command, payload);
+    ENA_send(&esp_now_main_valve, msg.raw, sizeof(msg.raw), 3);
+
+    return 0;
+}
+
 static esp_console_cmd_t cmd[] = {
     {"flash-read", "Read data from flash memory", NULL, read_flash, NULL},
     {"reset-dev", "Restart device", NULL, reset_device, NULL},
@@ -148,6 +162,7 @@ static esp_console_cmd_t cmd[] = {
     {"log-enable", "enable logs", NULL, enable_log, NULL},
     {"log-disable", "disable logs", NULL, disable_log, NULL},
     {"en_tanwa", "send command to tanwa", NULL, esp_now_send_tanwa, NULL},
+    {"en_mv", "send command to main valve", NULL, esp_now_send_main_valve, NULL},
 };
 
 esp_err_t init_console() {
