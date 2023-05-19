@@ -19,6 +19,9 @@
 #include "lora_hw_config.h"
 #include "lora_task.h"
 #include "gen_pysd.h"
+#include "uart.h"
+#include "gps.h"
+#include "PCA9574.h"
 
 // spi_t spi;
 // i2c_t i2c;
@@ -27,10 +30,49 @@
 #include "sdkconfig.h"
 #define TAG "AURORA"
 
+// void app_main(void) {
+//     ESP_LOGI(TAG, "INIT TASK");
+//     run_init_task();
+//     vTaskDelete(NULL);
+// }
+
 void app_main(void) {
-    ESP_LOGI(TAG, "INIT TASK");
-    run_init_task();
-    vTaskDelete(NULL);
+    ESP_LOGI(TAG, "UaRT init");
+    uart_init(CONFIG_UART_PORT_NUM, CONFIG_UART_TX, CONFIG_UART_RX, CONFIG_UART_BAUDRATE);
+    i2c_sensors_init();
+
+    ESP_LOGI(TAG, "GPS init");
+    ublox_m8_t ubx = {
+        .uart_read_fnc = uart_ublox_read,
+        .uart_write_fnc = uart_ublox_write,
+    };
+
+    ublox_m8_init(&ubx);
+    vTaskDelay(pdMS_TO_TICKS(1000));
+
+    ESP_LOGI(TAG, "Expander init");
+    PCA9574_config_t pca_cfg = {
+        .dev_address = 0x20,
+        .i2c_read_fnc = i2c_sensors_read,
+        .i2c_write_fnc = i2c_sensors_write,
+    };
+    PCA9574_init(&pca_cfg);
+    PCA9574_set_mode(PCA9574_OUTPUT);
+    PCA9574_set_level(PCA9574_LOW);
+    PCA9574_set_level_pin(PCA9574_HIGH, 1);
+    vTaskDelay(pdMS_TO_TICKS(1000));
+
+
+    ublox_m8_pvt_t pvt;
+    while (1) {
+        ublox_m8_get_PVT(&ubx, &pvt);
+        ESP_LOGI(TAG, "Fix type %d", pvt.fix_type);
+        ESP_LOGI(TAG, "Sats %d", pvt.numSV);
+        ESP_LOGI(TAG, "Lat %f", pvt.lat.data / 10e6);
+        ESP_LOGI(TAG, "Long %f", pvt.lon.data / 10e6);
+        ESP_LOGI(TAG, "Height %f", pvt.height.data / 10e3);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
 }
 
 // typedef struct {

@@ -46,4 +46,21 @@ menu "PinOut"
         int "I2C num 2 sda pin"
         default 22
 
+    config UART_TX
+        int "UART tx pin"
+        default 17
+
+    config UART_RX
+        int "UART rx pin"
+        default 16
+
+    config UART_BAUDRATE
+        int "Uart communication baudrate"
+        default 9600
+
+    config UART_PORT_NUM
+        int "Uart port number"
+        range 0 2
+        default 2
+
 endmenu
