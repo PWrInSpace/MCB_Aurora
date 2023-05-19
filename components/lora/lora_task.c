@@ -41,7 +41,7 @@ static void notify_end_of_rx_window(void) { xTaskNotifyGive(gb.task); }
 static void on_receive_window_timer(TimerHandle_t timer) { notify_end_of_rx_window(); }
 
 static void lora_change_state_to_receive() {
-    // ESP_LOGI(TAG, "Changing state to receive");
+    ESP_LOGI(TAG, "Changing state to receive");
     if (gb.lora_state == LORA_RECEIVE) {
         return;
     }
@@ -52,7 +52,7 @@ static void lora_change_state_to_receive() {
 }
 
 static void lora_change_state_to_transmit() {
-    // ESP_LOGI(TAG, "Changing state to transmit");
+    ESP_LOGI(TAG, "Changing state to transmit");
     if (gb.lora_state == LORA_TRANSMIT) {
         return;
     }
