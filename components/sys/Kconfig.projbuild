@@ -2,6 +2,7 @@ menu "PinOut"
     config SPI_HOST
         int "Spi host"
         default 3
+
     config SPI_MOSI
         int "Spi mosi pin"
         default 23
@@ -16,15 +17,15 @@ menu "PinOut"
 
     config LORA_D0
         int "LoRa DIO0 pin"
-        default 17
+        default 35
 
     config LORA_RS
         int "LoRa reset pin"
-        default 17
+        default 33
 
     config LORA_CS
         int "LoRa cs pin"
-        default 4
+        default 32
 
     config SD_CS
         int "SD cs pin"
