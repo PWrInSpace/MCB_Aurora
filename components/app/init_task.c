@@ -66,6 +66,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT), "SD TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_DEBUG, 1000, TIMER_TYPE_PERIODIC), "SD TIMER");
     CHECK_RESULT_ESP(init_console(), "CLI");
+    CHECK_RESULT_ESP(SM_change_state(IDLE), "Change state");
     vTaskDelete(NULL);
 }
 

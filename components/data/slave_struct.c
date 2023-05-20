@@ -9,6 +9,7 @@ static struct {
     main_valve_data_t main_valve;
     vent_valve_data_t vent_valve;
     recovery_data_t recovery;
+    payload_data_t payload;
     SemaphoreHandle_t data_mutex;
 } gb;
 
@@ -42,6 +43,7 @@ void rocket_data_update_recovery(recovery_data_t *data) {
     memcpy(&gb.recovery, &data, sizeof(gb.recovery));
     xSemaphoreGive(gb.data_mutex);
 }
+
 
 main_valve_data_t rocket_data_get_main_valve(void) {
     main_valve_data_t tmp;

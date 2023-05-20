@@ -1,0 +1,93 @@
+#include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/uart.h"
+#include "esp_log.h"
+
+
+
+#define ECHO_TEST_TXD 17
+#define ECHO_TEST_RXD 16
+#define ECHO_TEST_RTS UART_PIN_NO_CHANGE
+#define ECHO_TEST_CTS UART_PIN_NO_CHANGE
+
+#define ECHO_UART_PORT_NUM      UART_NUM_2
+#define ECHO_UART_BAUD_RATE     9600
+
+static const char *TAG = "UART TEST";
+
+#define BUF_SIZE (1024)
+
+static void init_uart(void)
+{
+    /* Configure parameters of an UART driver,
+     * communication pins and install the driver */
+    uart_config_t uart_config = {
+        .baud_rate = ECHO_UART_BAUD_RATE,
+        .data_bits = UART_DATA_8_BITS,
+        .parity    = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+        .source_clk = UART_SCLK_DEFAULT,
+    };
+    int intr_alloc_flags = 0;
+
+    ESP_ERROR_CHECK(uart_driver_install(ECHO_UART_PORT_NUM, BUF_SIZE * 2, 0, 0, NULL, intr_alloc_flags));
+    ESP_ERROR_CHECK(uart_param_config(ECHO_UART_PORT_NUM, &uart_config));
+    ESP_ERROR_CHECK(uart_set_pin(ECHO_UART_PORT_NUM, ECHO_TEST_TXD, ECHO_TEST_RXD, ECHO_TEST_RTS, ECHO_TEST_CTS));
+}
+
+uint8_t configUBX[]={0xB5,0x62,0x06,0x00,0x14,0x00,0x01,0x00,0x00,0x00,0xD0,0x08,0x00,0x00,0x80,0x25,0x00,0x00,0x01,0x00,0x01,0x00,0x00,0x00,0x00,0x00,0x9A,0x79};
+// uint8_t setNMEA410[]={0xB5,0x62,0x06,0x17,0x14,0x00,0x00,0x41,0x00,0x02,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x75,0x57};
+// uint8_t setGNSS[]={0xB5,0x62,0x06,0x3E,0x24,0x00,0x00,0x00,0x20,0x04,0x00,0x08,0x10,0x00,0x01,0x00,0x01,0x01,0x01,0x01,0x03,0x00,0x01,0x00,0x01,0x01,0x02,0x04,0x08,0x00,0x01,0x00,0x01,0x01,0x06,0x08,0x0E,0x00,0x01,0x00,0x01,0x01,0xDF,0xFB};
+uint8_t getDeviceID[]={0xB5,0x62,0x27,0x03,0x00,0x00,0x2A,0xA5};
+uint8_t getPVTData[]={0xB5,0x62,0x01,0x07,0x00,0x00,0x08,0x19};
+uint8_t dupa[] =     {0xB5,0x62,0x01,0x02,0x00,0x00,0x03,0x0A};
+
+void app_main(void)
+{
+    esp_err_t status;
+    ESP_LOGI(TAG, "Initialization");
+    init_uart();
+    int written = uart_write_bytes(ECHO_UART_PORT_NUM, configUBX, sizeof(configUBX));
+    ESP_LOGI(TAG, "write %d", written);
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    while (1) {
+        written = uart_write_bytes(ECHO_UART_PORT_NUM, getPVTData, sizeof(getPVTData));
+        ESP_LOGI(TAG, "write %d", written);
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        uint8_t data[255];
+        int len = uart_read_bytes(ECHO_UART_PORT_NUM, data, sizeof(data), pdMS_TO_TICKS(1000));
+        ESP_LOGI(TAG, "read %d", len);
+        printf("Fix type %d\n", data[26]);
+        printf("Sats %d\n", data[29]);
+        long test = 0;
+        test |= data[30];
+        test |= (data[31] << 8);
+        test |= (data[32] << 16);
+        test |= (data[33] << 24);
+        // for (int i = 0; i < 4; ++i) {
+        //     gps_lon.raw[i] = data[i + 29];
+        // }
+        long test_lat = 0;
+        test_lat |= data[34];
+        test_lat |= (data[35] << 8);
+        test_lat |= (data[36] << 16);
+        test_lat |= (data[37] << 24);
+
+        long height = 0;
+        height |= data[38];
+        height |= (data[39] << 8);
+        height |= (data[40] << 16);
+        height |= (data[41] << 24);
+        printf("Lat %f", test_lat / 10e6);
+        printf("\n");
+        printf("Long %f", test / 10e6);
+        printf("\n");
+        printf("Height %f", height / 10e3);
+        printf("\n");
+        vTaskDelay(pdMS_TO_TICKS(5000));
+    }
+
+    ESP_LOGI(TAG, "End");
+}
