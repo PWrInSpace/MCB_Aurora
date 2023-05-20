@@ -21,7 +21,7 @@
 #include "gen_pysd.h"
 #include "uart.h"
 #include "gps.h"
-#include "PCA9574.h"
+#include "gpio_expander.h"
 
 // spi_t spi;
 // i2c_t i2c;
@@ -51,16 +51,22 @@ void app_main(void) {
     vTaskDelay(pdMS_TO_TICKS(1000));
 
     ESP_LOGI(TAG, "Expander init");
-    PCA9574_config_t pca_cfg = {
-        .dev_address = 0x20,
-        .i2c_read_fnc = i2c_sensors_read,
-        .i2c_write_fnc = i2c_sensors_write,
-    };
-    PCA9574_init(&pca_cfg);
-    PCA9574_set_mode(PCA9574_OUTPUT);
-    PCA9574_set_level(PCA9574_LOW);
-    PCA9574_set_level_pin(PCA9574_HIGH, 1);
+    gpioexp_init();
+    gpioexp_led_set_color(CYAN);
     vTaskDelay(pdMS_TO_TICKS(1000));
+    gpioexp_led_set_color(YELLOW);
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    gpioexp_led_set_color(PURPLE);
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    gpioexp_led_set_color(GREEN);
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    gpioexp_led_set_color(RED);
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    gpioexp_led_set_color(BLUE);
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    gpioexp_led_set_color(WHITE);
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    gpioexp_led_set_color(NONE);
 
 
     ublox_m8_pvt_t pvt;

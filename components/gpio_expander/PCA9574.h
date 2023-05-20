@@ -1,9 +1,9 @@
 #ifndef PCA9574_H
 #define PCA9574_H
 
-#include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #define PCA9574_INPUT_PORT_REG 0x00
 #define PCA9574_POLARITY_INVERSION_REG 0x01
@@ -31,17 +31,16 @@ typedef struct {
     PCA9574_i2c_read i2c_read_fnc;
     PCA9574_i2c_write i2c_write_fnc;
     uint8_t dev_address;
-} PCA9574_config_t;
+} PCA9574_t;
 
+bool PCA9574_init(PCA9574_t *pca);
 
-bool PCA9574_init(PCA9574_config_t *cfg);
+bool PCA9574_set_mode(PCA9574_t *pca, PCA9574_pin_mode_t mode);
 
-bool PCA9574_set_mode(PCA9574_pin_mode_t mode);
+bool PCA9574_set_mode_pin(PCA9574_t *pca, PCA9574_pin_mode_t mode, uint8_t pin);
 
-bool PCA9574_set_mode_pin(PCA9574_pin_mode_t mode, uint8_t pin);
+bool PCA9574_set_level(PCA9574_t *pca, PCA9574_pin_level_t level);
 
-bool PCA9574_set_level(PCA9574_pin_level_t level);
-
-bool PCA9574_set_level_pin(PCA9574_pin_level_t level, uint8_t pin);
+bool PCA9574_set_level_pin(PCA9574_t *pca, PCA9574_pin_level_t level, uint8_t pin);
 
 #endif

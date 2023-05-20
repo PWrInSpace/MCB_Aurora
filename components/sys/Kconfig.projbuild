@@ -63,4 +63,24 @@ menu "PinOut"
         range 0 2
         default 2
 
+    config GPIO_EXPANDER_LED_RED
+        int "Gpio expander red led pin"
+        range 0 7
+        default 0
+
+    config GPIO_EXPANDER_LED_GREEN
+        int "Gpio expander red led pin"
+        range 0 7
+        default 1
+
+    config GPIO_EXPANDER_LED_BLUE
+        int "Gpio expander red led pin"
+        range 0 7
+        default 2
+
+    config GPIO_EXPANDER_LED_CAMERA
+        int "Gpio expander red led pin"
+        range 0 7
+        default 3
+
 endmenu
