@@ -7,6 +7,7 @@
 #include "gen_pysd.h"
 #include "flash.h"
 #include "state_machine_config.h"
+#include "system_timer_config.h"
 #define TAG "CONSOLE_CONFIG"
 
 static int read_flash(int argc, char** argv) {
@@ -120,6 +121,15 @@ static int enable_log(int argc, char **argv) {
     return 0;
 }
 
+static int reset_dc_timer(int argc, char **argv) {
+    if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
+        ESP_LOGE(TAG, "Unable to restart timer");
+        return -1;
+    }
+    ESP_LOGW(TAG, "Timer restarted");
+    return 0;
+}
+
 static esp_console_cmd_t cmd[] = {
     {"flash-read", "Read data from flash memory", NULL, read_flash, NULL},
     {"reset-dev", "Restart device", NULL, reset_device, NULL},
@@ -131,6 +141,7 @@ static esp_console_cmd_t cmd[] = {
     {"state-get", "get current state", NULL, get_state, NULL},
     {"log-enable", "enable logs", NULL, enable_log, NULL},
     {"log-disable", "disable logs", NULL, disable_log, NULL},
+    {"reset-dc", "reset disconnect timer", NULL, reset_dc_timer, NULL}
 };
 
 esp_err_t init_console() {

@@ -46,7 +46,7 @@ bool hybrid_mission_timer_interrupt() {
     if (sys_timer_stop(TIMER_IGNITION) == false) {
         return false;
     }
-    
+
     if (sys_timer_stop(TIMER_LIFTOFF) == false) {
         return false;
     }

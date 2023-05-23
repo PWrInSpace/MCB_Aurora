@@ -1,5 +1,6 @@
 // Copyright 2022 PWrInSpace, Kuba
 #include <stdio.h>
+#include <inttypes.h>
 
 #include "esp_log.h"
 #include "esp_now_api.h"
@@ -22,6 +23,8 @@
 #include "uart.h"
 #include "gps.h"
 #include "gpio_expander.h"
+#include "system_timer_config.h"
+#include "console_config.h"
 
 // spi_t spi;
 // i2c_t i2c;
@@ -36,6 +39,10 @@
 //     vTaskDelete(NULL);
 // }
 
+void test(uint32_t millis) {
+    vTaskDelay(pdMS_TO_TICKS(millis));
+}
+
 void app_main(void) {
     ESP_LOGI(TAG, "UaRT init");
     uart_init(CONFIG_UART_PORT_NUM, CONFIG_UART_TX, CONFIG_UART_RX, CONFIG_UART_BAUDRATE);
@@ -45,6 +52,7 @@ void app_main(void) {
     ublox_m8_t ubx = {
         .uart_read_fnc = uart_ublox_read,
         .uart_write_fnc = uart_ublox_write,
+        .delay_fnc = test,
     };
 
     ublox_m8_init(&ubx);
@@ -53,30 +61,41 @@ void app_main(void) {
     ESP_LOGI(TAG, "Expander init");
     gpioexp_init();
     gpioexp_led_set_color(CYAN);
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    vTaskDelay(pdMS_TO_TICKS(100));
     gpioexp_led_set_color(YELLOW);
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    vTaskDelay(pdMS_TO_TICKS(100));
     gpioexp_led_set_color(PURPLE);
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    vTaskDelay(pdMS_TO_TICKS(100));
     gpioexp_led_set_color(GREEN);
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    vTaskDelay(pdMS_TO_TICKS(100));
     gpioexp_led_set_color(RED);
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    vTaskDelay(pdMS_TO_TICKS(100));
     gpioexp_led_set_color(BLUE);
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    vTaskDelay(pdMS_TO_TICKS(100));
     gpioexp_led_set_color(WHITE);
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    vTaskDelay(pdMS_TO_TICKS(100));
     gpioexp_led_set_color(NONE);
+
+    initialize_timers();
+    sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT);
+    init_console();
 
 
     ublox_m8_pvt_t pvt;
+    vTaskDelay(pdMS_TO_TICKS(10000));
+    ublox_m8_set_dynamic_model(&ubx, AIRBORNE_4G);
     while (1) {
-        ublox_m8_get_PVT(&ubx, &pvt);
-        ESP_LOGI(TAG, "Fix type %d", pvt.fix_type);
-        ESP_LOGI(TAG, "Sats %d", pvt.numSV);
-        ESP_LOGI(TAG, "Lat %f", pvt.lat.data / 10e6);
-        ESP_LOGI(TAG, "Long %f", pvt.lon.data / 10e6);
-        ESP_LOGI(TAG, "Height %f", pvt.height.data / 10e3);
+        // ublox_m8_get_ESFALG(&ubx, &esfalg);
+        if (ublox_m8_get_PVT(&ubx, &pvt) == true) {
+            ESP_LOGI(TAG, "Fix type %d", pvt.fix_type);
+            ESP_LOGI(TAG, "Sats %d", pvt.numSV);
+            ESP_LOGI(TAG, "Lat %f", pvt.lat.data / 10e6);
+            ESP_LOGI(TAG, "Long %f", pvt.lon.data / 10e6);
+            ESP_LOGI(TAG, "Height %f", pvt.height.data / 10e3);
+        }
+        uint64_t exp;
+        sys_timer_get_expiry_time(TIMER_DISCONNECT, &exp);
+        // ESP_LOGI(TAG, "Timer -> %" PRIu64, (exp - esp_timer_get_time()) / 1000 / 1000);
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
