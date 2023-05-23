@@ -8,6 +8,7 @@
 #include "errors_config.h"
 #include "rocket_data.h"
 #include "recovery.h"
+#include "system_timer_config.h"
 
 #define TAG "CMD"
 // COMMANDS
@@ -20,7 +21,7 @@ static bool state_change_check_countdown(void) {
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_NOT_ARMED, 100);
         return false;
     }
-    
+
     if (rocket_data_woken_up() == false) {
         ESP_LOGE(TAG, "On or more devices are sleeping");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_WAKE_UP, 100);
@@ -100,7 +101,10 @@ static void mcb_flash_enable(uint32_t command, int32_t payload, bool privilage) 
 }
 
 static void mcb_reset_disconnect_timer(uint32_t command, int32_t payload, bool privilage) {
-    ESP_LOGI(TAG, "Timer reset");
+    if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
+        ESP_LOGE(TAG, "Unable to restart timer");
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_DISCONNECT_TIMER, 100);
+    }
 }
 
 static cmd_command_t mcb_commands[] = {
