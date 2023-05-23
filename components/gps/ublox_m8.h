@@ -88,7 +88,7 @@ typedef enum {
 
 /**
  * @brief Ublox m8 handler, must be initialized as global variable
- * 
+ *
  */
 typedef struct {
     ublox_m8_uart_read uart_read_fnc;
@@ -101,9 +101,10 @@ typedef struct {
 
 bool ublox_m8_init(ublox_m8_t *ubx);
 
+bool ublox_m8_get_PVT(ublox_m8_t *ubx, ublox_m8_pvt_t *pvt);
+
 // bool ublox_m8_set_dynamic_model(ublox_m8_t *ubx, ublox_m8_dynamic_model_t dyn_model);
 
-bool ublox_m8_get_PVT(ublox_m8_t *ubx, ublox_m8_pvt_t *pvt);
 
 // bool ublox_m8_get_ESFALG(ublox_m8_t *ubx, ublox_m8_esfalg_t *esfalg);
 

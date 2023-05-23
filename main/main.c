@@ -21,7 +21,7 @@
 #include "lora_task.h"
 #include "gen_pysd.h"
 #include "uart.h"
-#include "gps.h"
+#include "ublox_m8.h"
 #include "gpio_expander.h"
 #include "system_timer_config.h"
 #include "console_config.h"
@@ -82,8 +82,6 @@ void app_main(void) {
 
 
     ublox_m8_pvt_t pvt;
-    vTaskDelay(pdMS_TO_TICKS(10000));
-    ublox_m8_set_dynamic_model(&ubx, AIRBORNE_4G);
     while (1) {
         // ublox_m8_get_ESFALG(&ubx, &esfalg);
         if (ublox_m8_get_PVT(&ubx, &pvt) == true) {

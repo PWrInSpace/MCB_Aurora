@@ -1,5 +1,5 @@
 // Copyright 2022 PWrInSpace, Kuba
-#include "gps.h"
+#include "ublox_m8.h"
 #include "esp_log.h"
 #include "assert.h"
 #include <stdio.h>
@@ -9,7 +9,6 @@
 
 
 static uint8_t configUBX[]={0xB5,0x62,0x06,0x00,0x14,0x00,0x01,0x00,0x00,0x00,0xD0,0x08,0x00,0x00,0x80,0x25,0x00,0x00,0x01,0x00,0x01,0x00,0x00,0x00,0x00,0x00,0x9A,0x79};
-static uint8_t getPVTData[]={0xB5,0x62,0x01,0x07,0x00,0x00,0x08,0x19};
 
 /**
  * @brief Calculate ublox checksum
@@ -94,6 +93,28 @@ bool ublox_m8_init(ublox_m8_t *ubx) {
     return true;
 }
 
+bool ublox_m8_get_PVT(ublox_m8_t *ubx, ublox_m8_pvt_t *pvt) {
+    uint8_t message_size = create_request_message(
+        ubx->send_buffer, UBX_CLASS_NAV, UBX_NAV_ID_PVT);
+
+    if (ubx->uart_write_fnc(ubx->send_buffer, message_size) != message_size) {
+        return false;
+    }
+
+    ubx->read_data_size = ubx->uart_read_fnc(ubx->read_buffer, sizeof(ubx->read_buffer));
+
+    if (check_received_message(ubx->read_buffer, ubx->read_data_size) == false) {
+        return false;
+    }
+
+    pvt->fix_type = ubx->read_buffer[26];
+    pvt->numSV = ubx->read_buffer[29];
+    memcpy(pvt->lon.raw, &ubx->read_buffer[30], sizeof(pvt->lon));
+    memcpy(pvt->lat.raw, &ubx->read_buffer[34], sizeof(pvt->lat));
+    memcpy(pvt->height.raw, &ubx->read_buffer[38], sizeof(pvt->height));
+
+    return true;
+}
 
 // bool ublox_m8_set_dynamic_model(ublox_m8_t *ubx, ublox_m8_dynamic_model_t dyn_model) {
 //     uint8_t message_size = create_request_message(
@@ -118,29 +139,6 @@ bool ublox_m8_init(ublox_m8_t *ubx) {
 
 //     return true;
 // }
-
-bool ublox_m8_get_PVT(ublox_m8_t *ubx, ublox_m8_pvt_t *pvt) {
-    uint8_t message_size = create_request_message(
-        ubx->send_buffer, UBX_CLASS_NAV, UBX_NAV_ID_PVT);
-
-    if (ubx->uart_write_fnc(ubx->send_buffer, message_size) != message_size) {
-        return false;
-    }
-
-    ubx->read_data_size = ubx->uart_read_fnc(ubx->read_buffer, sizeof(ubx->read_buffer));
-
-    if (check_received_message(ubx->read_buffer, ubx->read_data_size) == false) {
-        return false;
-    }
-
-    pvt->fix_type = ubx->read_buffer[26];
-    pvt->numSV = ubx->read_buffer[29];
-    memcpy(pvt->lon.raw, &ubx->read_buffer[30], sizeof(pvt->lon));
-    memcpy(pvt->lat.raw, &ubx->read_buffer[34], sizeof(pvt->lat));
-    memcpy(pvt->height.raw, &ubx->read_buffer[38], sizeof(pvt->height));
-
-    return true;
-}
 
 // bool ublox_m8_get_ESFALG(ublox_m8_t *ubx, ublox_m8_esfalg_t *esfalg) {
 //     uint8_t message_size = create_request_message(
