@@ -55,7 +55,7 @@ static int change_state(int argc, char **argv) {
     }
 
     int state = atoi(argv[1]);
-    
+
     if (SM_change_state(state) != SM_OK) {
         return -1;
     }
@@ -130,7 +130,7 @@ static int reset_dc_timer(int argc, char **argv) {
         return -1;
     }
     ESP_LOGW(TAG, "Timer restarted");
-    return 0; 
+    return 0;
 }
 
 static int esp_now_send_tanwa(int argc, char **argv) {
@@ -171,7 +171,7 @@ static esp_console_cmd_t cmd[] = {
     {"state-get", "get current state", NULL, get_state, NULL},
     {"log-enable", "enable logs", NULL, enable_log, NULL},
     {"log-disable", "disable logs", NULL, disable_log, NULL},
-    {"reset-dc", "reset disconnect timer", NULL, reset_dc_timer, NULL}
+    {"reset-dc", "reset disconnect timer", NULL, reset_dc_timer, NULL},
     {"en_tanwa", "send command to tanwa", NULL, esp_now_send_tanwa, NULL},
     {"en_mv", "send command to main valve", NULL, esp_now_send_main_valve, NULL},
 };
