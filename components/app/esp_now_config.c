@@ -14,6 +14,7 @@ static void callback_pitot(uint8_t *data, size_t size);
 static void callback_vent_valve(uint8_t *data, size_t size);
 static void callback_main_valve(uint8_t *data, size_t size);
 static void callback_tanwa(uint8_t *data, size_t size);
+static void callback_payload(uint8_t *data, size_t size);
 
 const ENA_device_t esp_now_broadcast = {
     .peer = {.peer_addr = BROADCAST_MAC, .channel = ESP_NOW_CHANNEL},
@@ -26,22 +27,30 @@ const ENA_device_t esp_now_pitot = {
 };
 
 const ENA_device_t esp_now_vent_valve = {
-    .peer = {.peer_addr = PITOT_MAC, .channel = ESP_NOW_CHANNEL},
+    .peer = {.peer_addr = VENT_VALVE_MAC, .channel = ESP_NOW_CHANNEL},
     .on_receive = callback_vent_valve,
 };
 
 const ENA_device_t esp_now_main_valve = {
-    .peer = {.peer_addr = PITOT_MAC, .channel = ESP_NOW_CHANNEL},
+    .peer = {.peer_addr = MAIN_VALVE_MAC, .channel = ESP_NOW_CHANNEL},
     .on_receive = callback_main_valve,
 };
 
 const ENA_device_t esp_now_tanwa = {
-    .peer = {.peer_addr = PITOT_MAC, .channel = ESP_NOW_CHANNEL},
+    .peer = {.peer_addr = TANWA_MAC, .channel = ESP_NOW_CHANNEL},
     .on_receive = callback_tanwa,
+};
+
+const ENA_device_t esp_now_payload = {
+    .peer = {.peer_addr = PAYLOAD_MAC, .channel = ESP_NOW_CHANNEL},
+    .on_receive = callback_payload,
 };
 
 static void callback_pitot(uint8_t *data, size_t size) {
     ESP_LOGI(TAG, "Pitot receive, size %d", size);
+    if (size == sizeof(pitot_data_t)) {
+        rocket_data_update_pitot((pitot_data_t *) data);
+    }
 }
 
 static void callback_vent_valve(uint8_t *data, size_t size) {
@@ -60,6 +69,18 @@ static void callback_main_valve(uint8_t *data, size_t size) {
 
 static void callback_tanwa(uint8_t *data, size_t size) {
     ESP_LOGI(TAG, "Tanwa receive, size %d", size);
+
+    if (size == sizeof(tanwa_data_t)) {
+        rocket_data_update_tanwa((tanwa_data_t *) data);
+    }
+}
+
+static void callback_payload(uint8_t *data, size_t size) {
+    ESP_LOGI(TAG, "Received from payload 0x%2X, size %d", data[0], size);
+
+    if (size == sizeof(payload_data_t)) {
+        rocket_data_update_payload((payload_data_t *) data);
+    }
 }
 
 static void temp_on_error(ENA_ERROR error) {
@@ -89,9 +110,10 @@ bool initialize_esp_now(void) {
     status |= ENA_init(mac_address);
     status |= ENA_register_device(&esp_now_broadcast);
     status |= ENA_register_device(&esp_now_pitot);
+    status |= ENA_register_device(&esp_now_payload);
     // status |= ENA_register_device(&esp_now_vent_valve);
-    // status |= ENA_register_device(&esp_now_main_valve);
-    // status |= ENA_register_device(&esp_now_tanwa);
+    status |= ENA_register_device(&esp_now_main_valve);
+    status |= ENA_register_device(&esp_now_tanwa);
     status |= ENA_register_error_handler(temp_on_error);
     status |= ENA_run(&cfg);
 

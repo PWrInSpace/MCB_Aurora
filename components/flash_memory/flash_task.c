@@ -70,14 +70,20 @@ static void terminate_task(void) {
     vTaskDelete(NULL);
 }
 
-static void init() {
+static bool init(void) {
     if (FLASH_init(1) != FLASH_OK) {
         report_error(FT_INIT_ERROR);
-        terminate_task();
+        ESP_LOGW(TAG, "Formating flash");
+        FLASH_format();
+        if (FLASH_init(1) != FLASH_OK) {
+            return false;
+        }
     }
+
     // sometimes above 2/3 used memory, writing to flash take more than 150ms
     gb.flash.max_size = FLASH_get_total_size() * 3 / 5;
     gb.flash.wrote_size = 0;
+    return true;
 }
 
 static void format() {
@@ -129,8 +135,6 @@ static void check_termiate_condition(void) {
 
 static void flash_task(void *arg) {
     ESP_LOGI(TAG, "RUNNING FLASH TASK");
-    init();
-
     wait_until_erase_condition();  // Blocking till required condition
     ESP_LOGI(TAG, "Formatting flash");
     format();
@@ -172,6 +176,10 @@ bool FT_init(flash_task_cfg_t *cfg) {
     gb.events = xEventGroupCreate();
     if (gb.events == NULL) {
         free(gb.data_from_queue);
+        return false;
+    }
+
+    if (init() == false) {
         return false;
     }
 

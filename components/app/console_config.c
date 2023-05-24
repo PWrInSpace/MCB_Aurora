@@ -8,6 +8,8 @@
 #include "flash.h"
 #include "state_machine_config.h"
 #include "system_timer_config.h"
+#include "esp_now_config.h"
+#include "commands.h"
 #define TAG "CONSOLE_CONFIG"
 
 static int read_flash(int argc, char** argv) {
@@ -121,12 +123,40 @@ static int enable_log(int argc, char **argv) {
     return 0;
 }
 
+
 static int reset_dc_timer(int argc, char **argv) {
     if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
         ESP_LOGE(TAG, "Unable to restart timer");
         return -1;
     }
     ESP_LOGW(TAG, "Timer restarted");
+    return 0; 
+}
+
+static int esp_now_send_tanwa(int argc, char **argv) {
+    if (argc != 3) {
+        return -1;
+    }
+
+    int command = atoi(argv[1]);
+    int payload = atoi(argv[2]);
+
+    cmd_message_t msg = cmd_create_message(command, payload);
+    ENA_send(&esp_now_tanwa, msg.raw, sizeof(msg.raw), 3);
+
+    return 0;
+}
+
+static int esp_now_send_main_valve(int argc, char **argv) {
+    if (argc != 3) {
+        return -1;
+    }
+
+    int command = atoi(argv[1]);
+    int payload = atoi(argv[2]);
+
+    cmd_message_t msg = cmd_create_message(command, payload);
+    ENA_send(&esp_now_main_valve, msg.raw, sizeof(msg.raw), 3);
     return 0;
 }
 
@@ -142,6 +172,8 @@ static esp_console_cmd_t cmd[] = {
     {"log-enable", "enable logs", NULL, enable_log, NULL},
     {"log-disable", "disable logs", NULL, disable_log, NULL},
     {"reset-dc", "reset disconnect timer", NULL, reset_dc_timer, NULL}
+    {"en_tanwa", "send command to tanwa", NULL, esp_now_send_tanwa, NULL},
+    {"en_mv", "send command to main valve", NULL, esp_now_send_main_valve, NULL},
 };
 
 esp_err_t init_console() {

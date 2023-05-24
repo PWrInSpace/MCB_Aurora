@@ -34,16 +34,16 @@ static struct {
         .send_cb_queue = NULL,
         .receive_cb_queue = NULL};
 
-static void now_receive_cb(const uint8_t *mac, const uint8_t *data, int data_len) {
-    ESP_LOGI(TAG, "Packet received, MAC: " MACSTR, MAC2STR(mac));
-    if (mac == NULL || data == NULL || data_len == 0) {
+static void now_receive_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int data_len) {
+    ESP_LOGI(TAG, "Packet received, MAC: " MACSTR, MAC2STR(recv_info->src_addr));
+    if (recv_info->src_addr == NULL || data == NULL || data_len == 0) {
         ESP_LOGE(TAG, "Argument error :C");
         gb.error_fnc(ENA_REC);
         return;
     }
 
     ENA_receive_cb_t rec_cb_data;
-    memcpy(&rec_cb_data.src_mac, mac, MAC_ADDRESS_SIZE);
+    memcpy(&rec_cb_data.src_mac, recv_info->src_addr, MAC_ADDRESS_SIZE);
     memcpy(&rec_cb_data.buffer, data, data_len);
     rec_cb_data.len = data_len;
 
@@ -87,7 +87,10 @@ inline static bool is_packet_transmiting(void) {
 }
 
 static bool send_packet(ENA_transmit_param_t *packet) {
-    ESP_LOGI(TAG, "SENDING MESSAGE TO: " MACSTR, MAC2STR(packet->mac));
+    if (packet->mac[0] != 0xff) {
+        ESP_LOGI(TAG, "SENDING MESSAGE TO: " MACSTR, MAC2STR(packet->mac));
+    }
+
     if (packet->count != 0) {
         packet->count -= 1;
     }

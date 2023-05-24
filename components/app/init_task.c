@@ -50,6 +50,10 @@ inline static void CHECK_RESULT_BOOL(esp_err_t res, char *message) {
 }
 
 static void TASK_init(void *arg) {
+    CHECK_RESULT_BOOL(rocket_data_init(), "data");
+    CHECK_RESULT_BOOL(initialize_errors(), "Errors");
+    CHECK_RESULT_BOOL(hybrid_mission_timer_init(30000), "Mission timer");
+
     CHECK_RESULT_BOOL(i2c_sensors_init(), "i2c sensors");
     CHECK_RESULT_BOOL(i2c_com_init(), "i2c com");
     CHECK_RESULT_BOOL(spi_init(VSPI_HOST, CONFIG_SPI_MOSI, CONFIG_SPI_MISO, CONFIG_SPI_SCK), "SPI");
@@ -58,9 +62,6 @@ static void TASK_init(void *arg) {
 
     CHECK_RESULT_BOOL(gpioexp_init(), "GPIO Expander");
     CHECK_RESULT_BOOL(gpioexp_led_set_color(WHITE), "GPIO Expander change color");
-    CHECK_RESULT_BOOL(rocket_data_init(), "data");
-    CHECK_RESULT_BOOL(initialize_errors(), "Errors");
-    CHECK_RESULT_BOOL(hybrid_mission_timer_init(30000), "Mission timer");
 
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
     CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
@@ -70,6 +71,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
     CHECK_RESULT_BOOL(initialize_gps(), "Gps task");
     CHECK_RESULT_BOOL(initialize_recovery(), "Recovery task");
+
 
     CHECK_RESULT_BOOL(initialize_timers(), "TIMERS");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 30, TIMER_TYPE_PERIODIC), "SD TIMER");

@@ -31,7 +31,7 @@ static void on_flash_data_timer(void *arg) {
 }
 
 static void on_ignition_timer(void *arg) {
-    cmd_message_t mess = cmd_create_message(0x01, 0x01);
+    cmd_message_t mess = cmd_create_message(0x88, 0x00);
     ENA_send(&esp_now_tanwa, mess.raw, sizeof(mess.raw), 3);    
 }
 

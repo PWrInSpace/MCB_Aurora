@@ -6,6 +6,9 @@
 #include "freertos/semphr.h"
 #include "errors_config.h"
 
+#include "esp_log.h"
+#define TAG "DATA"
+
 static struct {
     rocket_data_t rocket_data;
     SemaphoreHandle_t data_mutex;
@@ -25,6 +28,11 @@ bool rocket_data_init(void) {
 void rocket_data_update_main_valve(main_valve_data_t *data) {
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
     memcpy(&gb.rocket_data.main_valve, data, sizeof(gb.rocket_data.main_valve));
+    ESP_LOGI(TAG, "Main valve:");
+    ESP_LOGI(TAG, "waken_up %d", gb.rocket_data.main_valve.waken_up);
+    ESP_LOGI(TAG, "vbat %d", gb.rocket_data.main_valve.battery_voltage);
+    ESP_LOGI(TAG, "valve state %d", gb.rocket_data.main_valve.valve_state);
+    ESP_LOGI(TAG, "thermocouple %d", gb.rocket_data.main_valve.thermocouple1);
     xSemaphoreGive(gb.data_mutex);
 }
 
@@ -45,6 +53,35 @@ void rocket_data_update_recovery(recovery_data_t *data) {
 void rocket_data_update_mcb(mcb_data_t *data) {
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
     memcpy(&gb.rocket_data.mcb, data, sizeof(gb.rocket_data.mcb));
+    xSemaphoreGive(gb.data_mutex);
+}
+
+void rocket_data_update_payload(payload_data_t *data) {
+    xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
+    memcpy(&gb.rocket_data.payload, data, sizeof(gb.rocket_data.payload));
+    xSemaphoreGive(gb.data_mutex);
+}
+
+void rocket_data_update_pitot(pitot_data_t *data) {
+    xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
+    memcpy(&gb.rocket_data.pitot, data, sizeof(gb.rocket_data.pitot));
+    ESP_LOGI(TAG, "Pitot:");
+    ESP_LOGI(TAG, "waken_up %d", gb.rocket_data.pitot.wakenUp);
+    ESP_LOGI(TAG, "vbat %f", gb.rocket_data.pitot.vbat);
+    ESP_LOGI(TAG, "static press %f", gb.rocket_data.pitot.static_press);
+    ESP_LOGI(TAG, "dynamic press %f", gb.rocket_data.pitot.dynamic_press);
+    ESP_LOGI(TAG, "temperature %f", gb.rocket_data.pitot.temperature);
+    xSemaphoreGive(gb.data_mutex);
+}
+
+void rocket_data_update_tanwa(tanwa_data_t *data) {
+    xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
+    memcpy(&gb.rocket_data.tanwa, data, sizeof(gb.rocket_data.tanwa));
+    ESP_LOGI(TAG, "Tanwa:");
+    ESP_LOGI(TAG, "state %d", gb.rocket_data.tanwa.tanWaState);
+    ESP_LOGI(TAG, "vbat %f", gb.rocket_data.tanwa.vbat);
+    ESP_LOGI(TAG, "solenoid fill %d", gb.rocket_data.tanwa.solenoid_fill);
+    ESP_LOGI(TAG, "solenoid depr %d", gb.rocket_data.tanwa.solenoid_depr);
     xSemaphoreGive(gb.data_mutex);
 }
 
@@ -98,6 +135,30 @@ recovery_data_t rocket_data_get_recovery(void) {
     recovery_data_t tmp;
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
     tmp = gb.rocket_data.recovery;
+    xSemaphoreGive(gb.data_mutex);
+    return tmp;
+}
+
+payload_data_t rocket_data_get_payload(void) {
+    payload_data_t tmp;
+    xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
+    tmp = gb.rocket_data.payload;
+    xSemaphoreGive(gb.data_mutex);
+    return tmp;
+}
+
+tanwa_data_t rocket_data_get_tanwa(void) {
+    tanwa_data_t tmp;
+    xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
+    tmp = gb.rocket_data.tanwa;
+    xSemaphoreGive(gb.data_mutex);
+    return tmp;
+}
+
+pitot_data_t rocket_data_get_pitot(void) {
+    pitot_data_t tmp;
+    xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
+    tmp = gb.rocket_data.pitot;
     xSemaphoreGive(gb.data_mutex);
     return tmp;
 }

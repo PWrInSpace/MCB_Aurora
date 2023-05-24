@@ -28,9 +28,9 @@ static void lora_process(uint8_t *packet, size_t packet_size) {
             return;
         }
 
-        if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
-            ESP_LOGE(TAG, "Unable to restart timer");
-        }
+        // if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
+        //     ESP_LOGE(TAG, "Unable to restart timer");
+        // }
     } else {
         errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 200);
         ESP_LOGE(TAG, "Unable to decode received package");
