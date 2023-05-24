@@ -33,14 +33,55 @@ typedef struct {
     uint8_t dev_address;
 } PCA9574_t;
 
+/**
+ * @brief Initalize PCA9574
+ * 
+ * @param pca pointer to pca struct
+ * @return true :D
+ * @return false :C
+ */
 bool PCA9574_init(PCA9574_t *pca);
 
+/**
+ * @brief Set all pin mode
+ * 
+ * @param pca pointer to pca struct
+ * @param mode gpio pins mode
+ * @return true :D
+ * @return false :C
+ */
 bool PCA9574_set_mode(PCA9574_t *pca, PCA9574_pin_mode_t mode);
 
+/**
+ * @brief Set pin mode
+ * 
+ * @param pca pointer to pca struct
+ * @param mode pin mode
+ * @param pin pin
+ * @return true :D
+ * @return false :C
+ */
 bool PCA9574_set_mode_pin(PCA9574_t *pca, PCA9574_pin_mode_t mode, uint8_t pin);
 
+/**
+ * @brief Set all pin levels
+ * 
+ * @param pca pointer to pca struct
+ * @param level pins level
+ * @return true :D
+ * @return false :C
+ */
 bool PCA9574_set_level(PCA9574_t *pca, PCA9574_pin_level_t level);
 
+/**
+ * @brief Set pin level
+ * 
+ * @param pca pointer to pca struct
+ * @param level level
+ * @param pin pin
+ * @return true :D
+ * @return false :C
+ */
 bool PCA9574_set_level_pin(PCA9574_t *pca, PCA9574_pin_level_t level, uint8_t pin);
 
 #endif

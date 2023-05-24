@@ -38,11 +38,11 @@ bool hybrid_mission_timer_start(int32_t countdown_time, int32_t ignition_time) {
 
     return true;
 abort_start:
-    hybrid_mission_timer_interrupt();
+    hybrid_mission_timer_stop();
     return false;
 }
 
-bool hybrid_mission_timer_interrupt() {
+bool hybrid_mission_timer_stop() {
     if (sys_timer_stop(TIMER_IGNITION) == false) {
         return false;
     }

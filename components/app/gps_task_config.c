@@ -3,12 +3,13 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "uart.h"
-#include "gps_task.h"
+#include "basic_task.h"
 
 static struct {
     ublox_m8_t ubx;
     gps_positioning_t position;
     SemaphoreHandle_t data_mutex;
+    basic_task_t task;
 } gb = {
     .data_mutex = NULL,
 };
@@ -24,12 +25,13 @@ static void process_gps_data(void) {
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
     gb.position.latitude = pvt.lat.data / 10e6;
     gb.position.longitude = pvt.lon.data / 10e6;
-    gb.position.altitude = pvt.height.data / 10e2;
+    gb.position.altitude = pvt.height.data / 10e3;
     gb.position.sats_in_view = pvt.numSV;
+    gb.position.fix_type = pvt.fix_type;
     xSemaphoreGive(gb.data_mutex);
 }
 
-bool gps_initialize(void) {
+bool initialize_gps(void) {
     gb.ubx.delay_fnc = ubx_delay;
     gb.ubx.uart_read_fnc = uart_ublox_read;
     gb.ubx.uart_write_fnc = uart_ublox_write;
@@ -43,11 +45,15 @@ bool gps_initialize(void) {
         return false;
     }
 
-    gps_task_cfg_t task_cfg = {
+    basic_task_cfg_t task_cfg = {
         .process_fnc = process_gps_data,
+        .priority = CONFIG_GPS_TASK_PRIORITY,
+        .core_id = CONFIG_GPS_TASK_CPU,
+        .stack_depth = CONFIG_GPS_TASK_DEPTH,
+        .task_delay = CONFIG_GPS_TASK_PERIOD_MS,
     };
 
-    if (gps_create_task(&task_cfg) == false) {
+    if (basic_task_create(&task_cfg, &gb.task) == false) {
         return false;
     }
 

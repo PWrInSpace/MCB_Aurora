@@ -62,7 +62,7 @@ bool cmd_init_standard_mode(cmd_t *cmd);
 
 /**
  * @brief Initialize cmd api in lora mode
- * 
+ *
  * @param cfg pointer to config
  * @return true :D
  * @return false :C

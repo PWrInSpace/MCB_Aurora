@@ -20,12 +20,37 @@ typedef enum {
     NONE = 0x07
 } gpioexp_led_colors_t;
 
+/**
+ * @brief Initalize GPIO expander
+ * 
+ * @return true :D
+ * @return false :C
+ */
 bool gpioexp_init(void);
 
+/**
+ * @brief Set LED color
+ *
+ * @param color color
+ * @return true :D
+ * @return false :C
+ */
 bool gpioexp_led_set_color(gpioexp_led_colors_t color);
 
+/**
+ * @brief Turn on camera
+ * 
+ * @return true :D
+ * @return false :C
+ */
 bool gpioexp_camera_turn_on(void);
 
+/**
+ * @brief Turn off camera
+ * 
+ * @return true :D
+ * @return false :C
+ */
 bool gpioexp_camera_turn_off(void);
 
 #endif

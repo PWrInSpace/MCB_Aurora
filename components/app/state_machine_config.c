@@ -11,7 +11,8 @@
 #include "mission_timer_config.h"
 #include "errors_config.h"
 #include "rocket_data.h"
-#include "recovery.h"
+#include "gpio_expander.h"
+#include "recovery_task_config.h"
 
 #define TAG "SMC"
 static void on_init(void *arg) {
@@ -19,10 +20,12 @@ static void on_init(void *arg) {
 }
 
 static void on_idle(void *arg) {
+    gpioexp_led_set_color(GREEN);
     ESP_LOGI(TAG, "ON IDLE");
 }
 
 static void on_recovery_arm(void *arg) {
+    gpioexp_led_set_color(YELLOW);
     if (recovery_send_cmd(RECOV_EASYMINI_ARM, 0x00) == false) {
         errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
         ESP_LOGE(TAG, "Recovery send error :C");
@@ -37,6 +40,7 @@ static void on_recovery_arm(void *arg) {
 }
 
 static void on_fueling(void *arg) {
+    gpioexp_led_set_color(YELLOW);
     cmd_message_t cmd = cmd_create_message(MAIN_VALVE_CLOSE, 0x00);
     ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 
@@ -47,11 +51,13 @@ static void on_fueling(void *arg) {
 }
 
 static void on_armed_to_launch(void *arg) {
+    gpioexp_led_set_color(YELLOW);
     ESP_LOGI(TAG, "ON ARMED TO LAUNCH");
     FT_erase_and_run_loop();
 }
 
 static void on_ready_to_lauch(void *arg) {
+    gpioexp_led_set_color(PURPLE);
     ESP_LOGI(TAG, "ON READY_TO_LAUNCH");
     sys_timer_start(TIMER_FLASH_DATA, 500, TIMER_TYPE_PERIODIC);
     // turn on camera
@@ -59,7 +65,7 @@ static void on_ready_to_lauch(void *arg) {
 
 static void on_countdown(void *arg) {
     ESP_LOGI(TAG, "ON COUNTDOWN");
-    
+
     if (sys_timer_stop(TIMER_DISCONNECT) == false) {
         ESP_LOGE(TAG, "Unable to stop disconnect timer");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_MISSION_TIMER, 100);
@@ -72,6 +78,7 @@ static void on_countdown(void *arg) {
         goto abort_countdown;
     }
 
+    gpioexp_led_set_color(RED);
     return;
 
 abort_countdown:
@@ -108,11 +115,12 @@ static void on_ground(void *arg) {
 
 
     ESP_LOGI(TAG, "ON GROUND");
+    gpioexp_led_set_color(CYAN);
 }
 
 
 static void disable_timers_and_close_valves(void) {
-    if (hybrid_mission_timer_interrupt() == false) {
+    if (hybrid_mission_timer_stop() == false) {
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_MISSION_TIMER, 100);
         ESP_LOGE(TAG, "Unable to stop mission timer");
     }
@@ -137,6 +145,8 @@ static void on_hold(void *arg) {
     if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
         ESP_LOGE(TAG, "Unable to restart disconnect timer");
     }
+
+    gpioexp_led_set_color(BLUE);
 }
 
 static void on_abort(void *arg) {
@@ -157,6 +167,9 @@ static void on_abort(void *arg) {
         errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
         ESP_LOGE(TAG, "Recovery send error :C");
     }
+
+
+    gpioexp_led_set_color(WHITE);
 }
 
 static state_config_t states_cfg[] = {

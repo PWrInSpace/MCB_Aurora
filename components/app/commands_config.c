@@ -7,7 +7,7 @@
 #include "esp_now_config.h"
 #include "errors_config.h"
 #include "rocket_data.h"
-#include "recovery.h"
+#include "recovery_task_config.h"
 #include "system_timer_config.h"
 
 #define TAG "CMD"
@@ -31,6 +31,7 @@ static bool state_change_check_countdown(void) {
     return true;
 }
 
+
 static void mcb_state_change(uint32_t command, int32_t payload, bool privilage) {
     ESP_LOGI(TAG, "Changing state to -> %d", payload);
 
@@ -49,12 +50,27 @@ static void mcb_state_change(uint32_t command, int32_t payload, bool privilage) 
 }
 
 static void mcb_abort(uint32_t command, int32_t payload, bool privilage) {
+    states_t state = SM_get_current_state();
+    if (state != HOLD || state > COUNTDOWN) {
+        return;
+    }
+
+    if (state == FLIGHT && privilage == false) {
+        return;
+    }
+
     SM_force_change_state(ABORT);
+
     ESP_LOGI(TAG, "ABORT");
 }
 
 static void mcb_hold(uint32_t command, int32_t payload, bool privilage) {
-    if (SM_get_current_state() == HOLD) {
+    states_t state = SM_get_current_state();
+    if(state == ABORT) {
+        return;
+    }
+
+    if (state == HOLD) {
         ESP_LOGI(TAG, "Leaving hold state");
         if (SM_get_previous_state() == COUNTDOWN) {
             SM_force_change_state(RDY_TO_LAUNCH);

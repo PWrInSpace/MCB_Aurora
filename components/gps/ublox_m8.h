@@ -9,6 +9,9 @@
 #define UBX_MESSAGE_CLASS_POSITION 2
 #define UBX_MESSAGE_ID_POSITION 3
 
+#define UBX_INVALID_CLASS 0x00
+#define UBX_INVALID ID 0x00
+
 #define UBX_READ_BUFFER_SIZE 255
 #define UBX_SEND_BUFFER_SIZE 100
 
@@ -99,8 +102,23 @@ typedef struct {
     uint8_t read_data_size;
 } ublox_m8_t;
 
+/**
+ * @brief Initalize ublox
+ * 
+ * @param ubx pointer to ubx
+ * @return true :D
+ * @return false :C
+ */
 bool ublox_m8_init(ublox_m8_t *ubx);
 
+/**
+ * @brief Get PVT data - positioning data
+ * 
+ * @param ubx pointer to ubx struct
+ * @param pvt pointer to save data
+ * @return true :D
+ * @return false :C
+ */
 bool ublox_m8_get_PVT(ublox_m8_t *ubx, ublox_m8_pvt_t *pvt);
 
 // bool ublox_m8_set_dynamic_model(ublox_m8_t *ubx, ublox_m8_dynamic_model_t dyn_model);

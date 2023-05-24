@@ -9,10 +9,22 @@ typedef struct {
     float latitude;
     float altitude;
     uint8_t sats_in_view;
+    uint8_t fix_type;
 } gps_positioning_t;
 
-bool gps_initialize(void);
+/**
+ * @brief Initialze gps task
+ * 
+ * @return true :D
+ * @return false :C
+ */
+bool initialize_gps(void);
 
+/**
+ * @brief Get vehicle position
+ *
+ * @return gps_positioning_t position
+ */
 gps_positioning_t gps_get_positioning(void);
 
 #endif
