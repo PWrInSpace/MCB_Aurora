@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "gps_task_config.h"
 
 typedef struct {
     uint8_t state;
@@ -12,6 +13,10 @@ typedef struct {
     uint32_t disconnect_timer;
     float battery_voltage;
     int sensor_placeholder;
+    float latitude;
+    float longitude;
+    float altitude;
+    uint8_t satelites_in_view;
 } mcb_data_t;
 
 bool mcb_update_struct(mcb_data_t *mcb);

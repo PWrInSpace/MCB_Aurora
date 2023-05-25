@@ -1,5 +1,6 @@
 // Copyright 2022 PWrInSpace, Kuba
 #include <stdio.h>
+#include <inttypes.h>
 
 #include "esp_log.h"
 #include "esp_now_api.h"
@@ -19,7 +20,14 @@
 #include "lora_hw_config.h"
 #include "lora_task.h"
 #include "gen_pysd.h"
+#include "uart.h"
+#include "ublox_m8.h"
+#include "gpio_expander.h"
+#include "system_timer_config.h"
+#include "console_config.h"
+#include "gps_task_config.h"
 #include "bmp5_wrapper.h"
+
 
 // spi_t spi;
 // i2c_t i2c;
@@ -52,6 +60,71 @@ void app_main(void) {
     }
     vTaskDelete(NULL);
 }
+
+
+// void app_main(void) {
+//     ESP_LOGI(TAG, "UaRT init");
+//     uart_init(CONFIG_UART_PORT_NUM, CONFIG_UART_TX, CONFIG_UART_RX, CONFIG_UART_BAUDRATE);
+//     i2c_sensors_init();
+
+//     ESP_LOGI(TAG, "GPS init");
+//     // ublox_m8_t ubx = {
+//     //     .uart_read_fnc = uart_ublox_read,
+//     //     .uart_write_fnc = uart_ublox_write,
+//     //     .delay_fnc = test,
+//     // };
+
+//     // ublox_m8_init(&ubx);
+//     // vTaskDelay(pdMS_TO_TICKS(1000));
+//     if (initialize_gps() == false) {
+//         ESP_LOGE(TAG, "GPS init error");
+//     }
+//     ESP_LOGI(TAG, "Expander init");
+//     gpioexp_init();
+//     gpioexp_led_set_color(CYAN);
+//     vTaskDelay(pdMS_TO_TICKS(100));
+//     gpioexp_led_set_color(YELLOW);
+//     vTaskDelay(pdMS_TO_TICKS(100));
+//     gpioexp_led_set_color(PURPLE);
+//     vTaskDelay(pdMS_TO_TICKS(100));
+//     gpioexp_led_set_color(GREEN);
+//     vTaskDelay(pdMS_TO_TICKS(100));
+//     gpioexp_led_set_color(RED);
+//     vTaskDelay(pdMS_TO_TICKS(100));
+//     gpioexp_led_set_color(BLUE);
+//     vTaskDelay(pdMS_TO_TICKS(100));
+//     gpioexp_led_set_color(WHITE);
+//     vTaskDelay(pdMS_TO_TICKS(100));
+//     gpioexp_led_set_color(NONE);
+
+//     initialize_timers();
+//     sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT);
+//     init_console();
+
+
+//     ublox_m8_pvt_t pvt;
+//     gps_positioning_t position;
+//     while (1) {
+//         // ublox_m8_get_ESFALG(&ubx, &esfalg);
+//         // if (ublox_m8_get_PVT(&ubx, &pvt) == true) {
+//         //     ESP_LOGI(TAG, "Fix type %d", pvt.fix_type);
+//         //     ESP_LOGI(TAG, "Sats %d", pvt.numSV);
+//         //     ESP_LOGI(TAG, "Lat %f", pvt.lat.data / 10e6);
+//         //     ESP_LOGI(TAG, "Long %f", pvt.lon.data / 10e6);
+//         //     ESP_LOGI(TAG, "Height %f", pvt.height.data / 10e3);
+//         // }
+//         position = gps_get_positioning();
+//         ESP_LOGI(TAG, "Fix type %d", position.fix_type);
+//         ESP_LOGI(TAG, "Sats %d", position.sats_in_view);
+//         ESP_LOGI(TAG, "Lat %f", position.latitude);
+//         ESP_LOGI(TAG, "Long %f", position.longitude);
+//         ESP_LOGI(TAG, "Height %f", position.altitude);
+//         uint64_t exp;
+//         sys_timer_get_expiry_time(TIMER_DISCONNECT, &exp);
+//         ESP_LOGI(TAG, "Timer -> %" PRIu64, (exp - esp_timer_get_time()) / 1000 / 1000);
+//         vTaskDelay(pdMS_TO_TICKS(1000));
+//     }
+// }
 
 // typedef struct {
 //     float x;

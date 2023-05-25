@@ -17,6 +17,12 @@ typedef enum {
 
 #define DISCONNECT_TIMER_PERIOD_MS 15 * 60 * 1000
 
+/**
+ * @brief Initialize timers
+ * 
+ * @return true :D
+ * @return false :C
+ */
 bool initialize_timers(void);
 
 #endif

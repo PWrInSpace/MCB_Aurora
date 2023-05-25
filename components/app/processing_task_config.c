@@ -1,18 +1,14 @@
 // Copyright 2022 PWrInSpace
 #include "processing_task_config.h"
 #include "esp_log.h"
-#include "recovery.h"
 #include "errors_config.h"
+#include "rocket_data.h"
 
 #define TAG "SENSORS_CFG"
 
 static void sensors_read_data(void *data_buffer) {
     sensors_data_t *data = (sensors_data_t*)data_buffer;
     data->test_float += 1.12123123;
-    
-    if (recovery_read_data((uint8_t*)&data->recovery, sizeof(data->recovery)) == false) {
-        errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_RECEIVE, 100);
-    }
 }
 
 bool initialize_processing_task(void) {

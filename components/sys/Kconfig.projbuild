@@ -47,4 +47,41 @@ menu "PinOut"
         int "I2C num 2 sda pin"
         default 22
 
+    config UART_TX
+        int "UART tx pin"
+        default 17
+
+    config UART_RX
+        int "UART rx pin"
+        default 16
+
+    config UART_BAUDRATE
+        int "Uart communication baudrate"
+        default 9600
+
+    config UART_PORT_NUM
+        int "Uart port number"
+        range 0 2
+        default 2
+
+    config GPIO_EXPANDER_LED_RED
+        int "Gpio expander red led pin"
+        range 0 7
+        default 0
+
+    config GPIO_EXPANDER_LED_GREEN
+        int "Gpio expander red led pin"
+        range 0 7
+        default 1
+
+    config GPIO_EXPANDER_LED_BLUE
+        int "Gpio expander red led pin"
+        range 0 7
+        default 2
+
+    config GPIO_EXPANDER_LED_CAMERA
+        int "Gpio expander red led pin"
+        range 0 7
+        default 3
+
 endmenu
