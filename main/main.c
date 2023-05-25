@@ -20,7 +20,8 @@
 #include "lora_task.h"
 #include "gen_pysd.h"
 #include "bmp5_wrapper.h"
-
+#include "bmi08_wrapper.h"
+#include "mahony.h"
 // spi_t spi;
 // i2c_t i2c;
 // sd_card_t sd;
@@ -35,22 +36,56 @@
 //     vTaskDelete(NULL);
 // }
 
+
+// void app_main(void) {
+//     ESP_LOGI(TAG, "INIT TASK");
+//     // run_init_task();
+
+//     i2c_sensors_init();
+//     bool res = bmp5_wrapper_init();
+//     ESP_LOGE(TAG, "Result %d", res);
+
+//     struct bmp5_sensor_data data;
+//     while(1) {
+//         if (bmp5_wrapper_get_data(&data) == true) {
+//             ESP_LOGI(TAG, "Pressure %.2f \t Temperature %.2f", data.pressure / 100, data.temperature);
+//         }
+//         vTaskDelay(pdMS_TO_TICKS(1000));
+//     }
+//     vTaskDelete(NULL);
+// }
+
 void app_main(void) {
-    ESP_LOGI(TAG, "INIT TASK");
-    // run_init_task();
-
+    ESP_LOGI(TAG, "BMI08 start :D");
     i2c_sensors_init();
-    bool res = bmp5_wrapper_init();
-    ESP_LOGE(TAG, "Result %d", res);
-
-    struct bmp5_sensor_data data;
-    while(1) {
-        if (bmp5_wrapper_get_data(&data) == true) {
-            ESP_LOGI(TAG, "Pressure %.2f \t Temperature %.2f", data.pressure / 100, data.temperature);
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
+    if (bmi08_wrapper_init() == false) {
+        ESP_LOGI(TAG, "DUPA");
     }
-    vTaskDelete(NULL);
+    ESP_LOGI(TAG, "BMI08 initialzied :D");
+
+    struct bmi08_sensor_data_f acc;
+    struct bmi08_sensor_data_f gyro;
+    mahony_t mahony;
+    mahony_init(0.2, 0.02, &mahony);
+    double temp[3] = {0};
+    double test[3] = {0};
+
+    while (true) {
+        if (bmi08_get_acc_data(&acc) == true && bmi08_get_gyro_data(&gyro) == true) {
+            mahony_updateIMU(gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, &mahony);
+            quaternion_to_euler_ZYX(&mahony.q, test);
+            ESP_LOGI(TAG, "ACC x: %f\ty: %f\tz: %f\t GYRO x: %f\ty: %f\tz: %f", acc.x, acc.y, acc.z, gyro.x, gyro.y, gyro.z);
+            // ESP_LOGI(TAG, "MAHONY q0: %f\tq1: %f\tq2: %f\tq3: %f\t", mahony.q.q0, mahony.q.q1, mahony.q.q2, mahony.q.q3);
+            // ESP_LOGI(TAG, "Euelr roll: %f\tpitch: %f\tyaw: %f", test[0], test[1], test[2]);
+            // temp[0] += test[0];
+            // temp[1] += test[1];
+            // temp[2] += test[2];
+            // printf("y%fyp%fpr%fr\n", test[0], test[1], test[2]);
+            printf("w%fwa%fab%fbc%fc\n", mahony.q.q0, mahony.q.q1, mahony.q.q2, mahony.q.q3);
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
 }
 
 // typedef struct {
