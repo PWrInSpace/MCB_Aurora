@@ -19,6 +19,7 @@
 #include "lora_hw_config.h"
 #include "lora_task.h"
 #include "gen_pysd.h"
+#include "bmp5_wrapper.h"
 
 // spi_t spi;
 // i2c_t i2c;
@@ -27,9 +28,28 @@
 #include "sdkconfig.h"
 #define TAG "AURORA"
 
+
+// void app_main(void) {
+//     ESP_LOGI(TAG, "INIT TASK");
+//     run_init_task();
+//     vTaskDelete(NULL);
+// }
+
 void app_main(void) {
     ESP_LOGI(TAG, "INIT TASK");
-    run_init_task();
+    // run_init_task();
+
+    i2c_sensors_init();
+    bool res = bmp5_wrapper_init();
+    ESP_LOGE(TAG, "Result %d", res);
+
+    struct bmp5_sensor_data data;
+    while(1) {
+        if (bmp5_wrapper_get_data(&data) == true) {
+            ESP_LOGI(TAG, "Pressure %.2f \t Temperature %.2f", data.pressure / 100, data.temperature);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
     vTaskDelete(NULL);
 }
 

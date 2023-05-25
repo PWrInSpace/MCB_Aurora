@@ -14,7 +14,7 @@ bool I2C_master_init(i2c_t *i2c, i2c_port_t port, uint8_t sda, uint8_t scl) {
     i2c->scl_io_num = scl;
     i2c->sda_pullup_en = GPIO_PULLUP_ENABLE;
     i2c->scl_pullup_en = GPIO_PULLUP_ENABLE;
-    i2c->master.clk_speed = 400000;
+    i2c->master.clk_speed = 100000;
     i2c->clk_flags = 0;
 
     res = i2c_param_config(port, i2c);
@@ -53,7 +53,7 @@ bool I2C_master_init(i2c_t *i2c, i2c_port_t port, uint8_t sda, uint8_t scl) {
 // }
 
 
-bool I2C_master_write(i2c_port_t port, uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, 
+bool I2C_master_write(i2c_port_t port, uint8_t dev_addr, uint8_t reg_addr, const uint8_t *data, 
                                 size_t len) {
     esp_err_t res;
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
@@ -117,7 +117,7 @@ bool i2c_sensors_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data,
 }
 
 
-bool i2c_sensors_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data,
+bool i2c_sensors_write(uint8_t dev_addr, uint8_t reg_addr, const uint8_t *data,
                           size_t len) {
     if (I2C_master_write(I2C_NUM_0, dev_addr, reg_addr, data, len)) {
         return true;
