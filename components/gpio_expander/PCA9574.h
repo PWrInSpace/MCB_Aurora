@@ -25,7 +25,7 @@ typedef enum {
 } PCA9574_pin_level_t;
 
 typedef bool (*PCA9574_i2c_read)(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t len);
-typedef bool (*PCA9574_i2c_write)(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data, size_t len);
+typedef bool (*PCA9574_i2c_write)(uint8_t dev_addr, uint8_t reg_addr, const uint8_t *data, size_t len);
 
 typedef struct {
     PCA9574_i2c_read i2c_read_fnc;

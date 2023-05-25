@@ -9,14 +9,14 @@ static struct {
     i2c_t i2c_num_2;
 } gb;
 
-bool I2C_master_init(i2c_t *i2c, i2c_port_t port, uint8_t sda, uint8_t scl, uint32_t freq_mhz) {
+bool I2C_master_init(i2c_t *i2c, i2c_port_t port, uint8_t sda, uint8_t scl, uint32_t freq_hz) {
     esp_err_t res;
     i2c->mode = I2C_MODE_MASTER;
     i2c->sda_io_num = sda;
     i2c->scl_io_num = scl;
     i2c->sda_pullup_en = GPIO_PULLUP_ENABLE;
     i2c->scl_pullup_en = GPIO_PULLUP_ENABLE;
-    i2c->master.clk_speed = freq_mhz;
+    i2c->master.clk_speed = freq_hz;
     i2c->clk_flags = 0;
 
     res = i2c_param_config(port, i2c);
