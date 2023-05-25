@@ -12,7 +12,7 @@ bool mcb_update_struct(mcb_data_t *mcb) {
     mcb->uptime = get_uptime_ms();
     mcb->flight_time = hybrid_mission_timer_get_time();
     mcb->battery_voltage = 7.8;
-
+    
     uint64_t dc_timer_expire;
     sys_timer_get_expiry_time(TIMER_DISCONNECT, &dc_timer_expire);
     if (dc_timer_expire == 0) {
@@ -20,12 +20,6 @@ bool mcb_update_struct(mcb_data_t *mcb) {
     } else {
         mcb->disconnect_timer = ((dc_timer_expire / 1000) - get_uptime_ms()) / 1000.0;
     }
-
-    gps_positioning_t gps_posiotion = gps_get_positioning();
-    mcb->altitude = gps_posiotion.altitude;
-    mcb->latitude = gps_posiotion.latitude;
-    mcb->longitude = gps_posiotion.longitude;
-    mcb->satelites_in_view = gps_posiotion.sats_in_view;
-
+    
     return true;
 }

@@ -105,7 +105,7 @@ static bool initialize_rtos(void) {
 
     xTaskCreatePinnedToCore(
         processing_task,
-        "Processing",
+        "SM",
         SENSORS_TASK_DEPTH,
         NULL,
         SENSORS_TASK_PRIORITY,

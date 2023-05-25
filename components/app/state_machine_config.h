@@ -21,12 +21,6 @@ typedef enum {
     ABORT,
 } states_t;
 
-/**
- * @brief Initialize state machine task
- * 
- * @return true :D
- * @return false :C
- */
 bool initialize_state_machine(void);
 
 #endif

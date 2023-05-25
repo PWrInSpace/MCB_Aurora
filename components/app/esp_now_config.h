@@ -27,12 +27,7 @@ extern const ENA_device_t esp_now_main_valve;  // :CCC
 extern const ENA_device_t esp_now_tanwa;  // :CCC
 extern const ENA_device_t esp_now_payload; // :CCC
 
-/**
- * @brief Initialize esp now task
- *
- * @return true :D
- * @return false :C
- */
+
 bool initialize_esp_now(void);
 
 #endif

@@ -6,8 +6,6 @@
 
 #define TAG "TIMER"
 
-#define MS_TO_MICRO(x) x * 1000
-
 static struct {
     sys_timer_t* timers;
     size_t number_of_timers;
@@ -80,9 +78,9 @@ bool sys_timer_start(sys_timer_id_t id, uint32_t miliseconds, sys_timer_type_t t
     }
 
     if (type == TIMER_TYPE_ONE_SHOT) {
-        esp_timer_start_once(gb.timers[index].timer_handle, MS_TO_MICRO(miliseconds));
+        esp_timer_start_once(gb.timers[index].timer_handle, miliseconds * 1000);
     } else {
-        esp_timer_start_periodic(gb.timers[index].timer_handle, MS_TO_MICRO(miliseconds));
+        esp_timer_start_periodic(gb.timers[index].timer_handle, miliseconds * 1000);
     }
 
     return true;
@@ -119,10 +117,8 @@ bool sys_timer_restart(sys_timer_id_t id, uint64_t timeout) {
         return false;
     }
 
-
-    if (esp_timer_restart(gb.timers[index].timer_handle, MS_TO_MICRO(timeout)) != ESP_OK) {
+    if (esp_timer_restart(gb.timers[index].timer_handle, timeout) == ESP_OK) {
         ESP_LOGW(TAG, "Timer restart error");
-        return false;
     }
 
     return true;
@@ -131,12 +127,11 @@ bool sys_timer_restart(sys_timer_id_t id, uint64_t timeout) {
 bool sys_timer_get_expiry_time(sys_timer_id_t id, uint64_t *expiry) {
     size_t index = get_timer_index_by_id(id);
     if (index == TIMER_INVALID_INDEX) {
-        ESP_LOGE(TAG, "Invalid timer id");
         return false;
     }
 
-    if (esp_timer_get_expiry_time(gb.timers[index].timer_handle, expiry) != ESP_OK) {
-        ESP_LOGW(TAG, "Get expiry time error");
+    if (esp_timer_get_expiry_time(gb.timers[index].timer_handle, expiry) == ESP_OK) {
+        // ESP_LOGW(TAG, "Timer restart error");
     }
 
     return true;
