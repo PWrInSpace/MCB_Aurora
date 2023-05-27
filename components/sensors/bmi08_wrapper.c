@@ -91,7 +91,7 @@ bool bmi08_wrapper_init(void) {
     gb.dev.accel_cfg.range = BMI088_MM_ACCEL_RANGE_24G;
     gb.dev.accel_cfg.odr = BMI08_ACCEL_ODR_100_HZ;
     gb.dev.accel_cfg.bw = BMI08_ACCEL_BW_NORMAL;
-    gb.dev.gyro_cfg.range = BMI08_GYRO_RANGE_2000_DPS;
+    gb.dev.gyro_cfg.range = BMI08_GYRO_RANGE_125_DPS;
     gb.dev.gyro_cfg.odr = BMI08_GYRO_BW_32_ODR_100_HZ;
     gb.dev.gyro_cfg.bw = BMI08_GYRO_BW_32_ODR_100_HZ;
     gb.dev.gyro_cfg.power = BMI08_GYRO_PM_NORMAL;
@@ -148,9 +148,9 @@ bool bmi08_get_gyro_data(struct bmi08_sensor_data_f *gyro) {
         return false;
     }
 
-    gyro->x = lsb_to_dps(data.x, (float)2000, 16);
-    gyro->y = lsb_to_dps(data.y, (float)2000, 16);
-    gyro->z = lsb_to_dps(data.z, (float)2000, 16);
+    gyro->x = lsb_to_dps(data.x, (float)125, 16) * 0.01745329252;
+    gyro->y = lsb_to_dps(data.y, (float)125, 16)* 0.01745329252;
+    gyro->z = lsb_to_dps(data.z, (float)125, 16) * 0.01745329252;
 
     return true;
 }

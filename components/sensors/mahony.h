@@ -22,7 +22,7 @@
 #ifndef MAHONY_FILTER_H
 #define MAHONY_FILTER_H
 
-#define SENSORFS 10
+#define SENSORFS 100
 
 typedef struct {
     float q0;
@@ -40,6 +40,7 @@ typedef struct {
 typedef struct {
     float two_kp;
     float two_ki;
+    uint8_t reset_next_update;
     quaternion_t q;
     vector_3d_f_t integral_fb;
 } mahony_t;
@@ -47,4 +48,5 @@ typedef struct {
 void mahony_init(float kp, float ki, mahony_t *mahony);
 void mahony_updateIMU(float gx, float gy, float gz, float ax, float ay, float az, mahony_t *mahony);
 void quaternion_to_euler_ZYX(quaternion_t *q, double output[3]);
+void mahony_update(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz, mahony_t *mahony);
 #endif

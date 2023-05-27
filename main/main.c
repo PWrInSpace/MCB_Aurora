@@ -22,6 +22,7 @@
 #include "bmp5_wrapper.h"
 #include "bmi08_wrapper.h"
 #include "mahony.h"
+#include "mag_wrapper.h"
 // spi_t spi;
 // i2c_t i2c;
 // sd_card_t sd;
@@ -56,25 +57,63 @@
 // }
 
 void app_main(void) {
-    ESP_LOGI(TAG, "BMI08 start :D");
+    ESP_LOGI(TAG, "MAG start :D");
     i2c_sensors_init();
     if (bmi08_wrapper_init() == false) {
         ESP_LOGI(TAG, "DUPA");
     }
-    ESP_LOGI(TAG, "BMI08 initialzied :D");
 
+    bool res = bmp5_wrapper_init();
+    ESP_LOGI(TAG, "Result %d", res);
+
+    ESP_LOGI(TAG, "BMI08 initialzied :D");
+    if (mag_init() == false) {
+        ESP_LOGE(TAG, "INIT ERROR :C");
+    }
+
+    if (mag_set_continous_mode(FREQ_100HZ, PRD_500) == false) {
+        ESP_LOGE(TAG, "CM ERROR :C");
+    }
+
+    ESP_LOGI(TAG, ":D");
     struct bmi08_sensor_data_f acc;
     struct bmi08_sensor_data_f gyro;
+    struct bmi08_sensor_data_f acc_prev = {0};
+    struct bmi08_sensor_data_f gyro_prev = {0};
+    mmc5983_mag_t mag;
+    mmc5983_mag_t mag_prev = {0};
     mahony_t mahony;
-    mahony_init(0.2, 0.02, &mahony);
+    mahony_init(10, 0.0, &mahony);
     double temp[3] = {0};
     double test[3] = {0};
 
     while (true) {
-        if (bmi08_get_acc_data(&acc) == true && bmi08_get_gyro_data(&gyro) == true) {
-            mahony_updateIMU(gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, &mahony);
-            quaternion_to_euler_ZYX(&mahony.q, test);
-            ESP_LOGI(TAG, "ACC x: %f\ty: %f\tz: %f\t GYRO x: %f\ty: %f\tz: %f", acc.x, acc.y, acc.z, gyro.x, gyro.y, gyro.z);
+        if (bmi08_get_acc_data(&acc) == true && bmi08_get_gyro_data(&gyro) == true && mag_data_ready() == true) {
+            // mahony_updateIMU(, );
+            mag_get_data(&mag);
+
+            // acc.x = acc.x * 0.8 + acc_prev.x * 0.2;
+            // acc.y = acc.y * 0.8 + acc_prev.y * 0.2;
+            // acc.z = acc.z * 0.8 + acc_prev.z * 0.2;
+
+            // gyro.x = gyro.x * 0.8 + gyro_prev.x * 0.2;
+            // gyro.y = gyro.y * 0.8 + gyro_prev.y * 0.2;
+            // gyro.z = gyro.z * 0.8 + gyro_prev.z * 0.2;
+
+            // mag.x = mag.x * 0.8 + mag_prev.x * 0.2;
+            // mag.y = mag.y * 0.8 + mag_prev.y * 0.2;
+            // mag.z = mag.z * 0.8 + mag_prev.z * 0.2;
+
+            acc_prev = acc;
+            gyro_prev = gyro;
+            mag_prev = mag;
+
+            mahony_update(gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y, mag.z, &mahony);
+            // quaternion_to_euler_ZYX(&mahony.q, test);
+            // float heading = 360.0 + (atan2(data.y, data.x) * 180 / M_PI);
+            // ESP_LOGI(TAG, "MAG x: %f\ty: %f\tz: %f\t heading %f", data.x, data.y, data.z, heading);
+            // ESP_LOGI(TAG, "ACC x: %f\ty: %f\tz: %f\t GYRO x: %f\ty: %f\tz: %f", acc.x, acc.y, acc.z, gyro.x, gyro.y, gyro.z);
+
             // ESP_LOGI(TAG, "MAHONY q0: %f\tq1: %f\tq2: %f\tq3: %f\t", mahony.q.q0, mahony.q.q1, mahony.q.q2, mahony.q.q3);
             // ESP_LOGI(TAG, "Euelr roll: %f\tpitch: %f\tyaw: %f", test[0], test[1], test[2]);
             // temp[0] += test[0];
@@ -84,7 +123,7 @@ void app_main(void) {
             printf("w%fwa%fab%fbc%fc\n", mahony.q.q0, mahony.q.q1, mahony.q.q2, mahony.q.q3);
         }
 
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
