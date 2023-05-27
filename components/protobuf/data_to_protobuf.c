@@ -19,6 +19,10 @@ void create_porotobuf_frame(LoRaFrame *frame) {
     frame->uptime = data.mcb.disconnect_timer;
     frame->flight_time = data.mcb.flight_time;
     frame->mcb_battery = data.mcb.battery_voltage;
+    frame->mcb_altitude = data.mcb.altitude;
+    frame->gps_lat = data.mcb.latitude;
+    frame->gps_long = data.mcb.longitude;
+    frame->gps_sat = data.mcb.satelites_in_view;
 
     // recovery
     frame->recov_pressure_1 = data.recovery.pressure1;
