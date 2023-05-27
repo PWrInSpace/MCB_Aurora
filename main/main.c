@@ -23,6 +23,7 @@
 #include "bmi08_wrapper.h"
 #include "mahony.h"
 #include "mag_wrapper.h"
+#include "magdwick.h"
 // spi_t spi;
 // i2c_t i2c;
 // sd_card_t sd;
@@ -82,15 +83,21 @@ void app_main(void) {
     struct bmi08_sensor_data_f gyro_prev = {0};
     mmc5983_mag_t mag;
     mmc5983_mag_t mag_prev = {0};
-    mahony_t mahony;
-    mahony_init(10, 0.0, &mahony);
+    // mahony_t mahony;
+    // mahony_init(10, 0.0, &mahony);
+    Mahony_Init(100);
     double temp[3] = {0};
-    double test[3] = {0};
+
+    struct mgos_imu_madgwick * test = mgos_imu_madgwick_create();
+    mgos_imu_madgwick_set_params(test, 100, 0.01);
+    mgos_imu_madgwick_reset(test);
 
     while (true) {
         if (bmi08_get_acc_data(&acc) == true && bmi08_get_gyro_data(&gyro) == true && mag_data_ready() == true) {
             // mahony_updateIMU(, );
             mag_get_data(&mag);
+            // Mahony_update();
+            mgos_imu_madgwick_update(test, gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y, mag.z);
 
             // acc.x = acc.x * 0.8 + acc_prev.x * 0.2;
             // acc.y = acc.y * 0.8 + acc_prev.y * 0.2;
@@ -104,11 +111,12 @@ void app_main(void) {
             // mag.y = mag.y * 0.8 + mag_prev.y * 0.2;
             // mag.z = mag.z * 0.8 + mag_prev.z * 0.2;
 
-            acc_prev = acc;
-            gyro_prev = gyro;
-            mag_prev = mag;
+            // acc_prev = acc;
+            // gyro_prev = gyro;
+            // mag_prev = mag;
 
-            mahony_update(gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y, mag.z, &mahony);
+            // mahony_update(gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y, mag.z, &mahony);
+            // fusion_update(gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y, mag.z);
             // quaternion_to_euler_ZYX(&mahony.q, test);
             // float heading = 360.0 + (atan2(data.y, data.x) * 180 / M_PI);
             // ESP_LOGI(TAG, "MAG x: %f\ty: %f\tz: %f\t heading %f", data.x, data.y, data.z, heading);
@@ -119,8 +127,15 @@ void app_main(void) {
             // temp[0] += test[0];
             // temp[1] += test[1];
             // temp[2] += test[2];
-            // printf("y%fyp%fpr%fr\n", test[0], test[1], test[2]);
-            printf("w%fwa%fab%fbc%fc\n", mahony.q.q0, mahony.q.q1, mahony.q.q2, mahony.q.q3);
+            // Mahony_computeAngles();
+            // float roll = getRoll();
+            // float pitch = getPitch();
+            // float yaw = getYaw();
+
+            // printf("y%fyp%fpr%fr\n", roll, pitch, yaw);
+            quaternion_t q;
+            mgos_imu_madgwick_get_quaternion(test, &q.q0, &q.q1, &q.q2, &q.q3);
+            printf("w%fwa%fab%fbc%fc\n", q.q0, q.q1, q.q2, q.q3);
         }
 
         vTaskDelay(pdMS_TO_TICKS(10));
