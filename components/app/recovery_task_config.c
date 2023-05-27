@@ -30,6 +30,7 @@ static void recovery_process_data(void) {
     if (recovery_read_data((uint8_t*)&gb.recovery_data, sizeof(gb.recovery_data)) == false) {
         ESP_LOGE(TAG, "RECOVERY RECEIVE ERROR");
         errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_RECEIVE, 100);
+        return;
     }
 
     ESP_LOGI(TAG, "Pressure1 %d", gb.recovery_data.pressure1);

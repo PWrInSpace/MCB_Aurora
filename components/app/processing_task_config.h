@@ -5,15 +5,24 @@
 #include "processing_task.h"
 #include "slave_structs.h"
 
+
+
 typedef struct {
-    int test1;
-    int test2;
-    int test3;
-    int test4;
-    int test5;
-    int test6;
-    float test_float;
-    recovery_data_t recovery;
+    float acc_x;
+    float acc_y;
+    float acc_z;
+    float gyr_x;
+    float gyr_y;
+    float gyr_z;
+    float mag_x;
+    float mag_y;
+    float mag_z;
+    float temperature;
+    float pressure;
+    float altitude;
+    float yaw;
+    float pitch;
+    float roll;
 } sensors_data_t;
 
 /**

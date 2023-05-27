@@ -37,31 +37,14 @@ static float invSqrt(float x) {
   return conv.f;
 }
 
-struct mgos_imu_madgwick *mgos_imu_madgwick_create(void) {
-  struct mgos_imu_madgwick *filter;
-
-  filter = calloc(1, sizeof(struct mgos_imu_madgwick));
-  if (!filter) {
-    return NULL;
-  }
+bool mgos_imu_madgwick_create(struct mgos_imu_madgwick *filter) {
   mgos_imu_madgwick_set_params(filter, 100.0f, 0.1f);
   mgos_imu_madgwick_reset(filter);
-  return filter;
-}
-
-bool mgos_imu_madgwick_destroy(struct mgos_imu_madgwick **filter) {
-  if (!*filter) {
-    return false;
-  }
-  free(*filter);
-  *filter = NULL;
   return true;
 }
 
+
 bool mgos_imu_madgwick_set_params(struct mgos_imu_madgwick *filter, float freq, float beta) {
-  if (!filter) {
-    return false;
-  }
   filter->beta     = beta;
   filter->freq     = freq;
   filter->inv_freq = 1.0f / freq;
@@ -69,9 +52,6 @@ bool mgos_imu_madgwick_set_params(struct mgos_imu_madgwick *filter, float freq, 
 }
 
 bool mgos_imu_madgwick_reset(struct mgos_imu_madgwick *filter) {
-  if (!filter) {
-    return false;
-  }
   filter->q0      = 1.0f;
   filter->q1      = 0.0f;
   filter->q2      = 0.0f;
