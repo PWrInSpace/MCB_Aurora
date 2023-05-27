@@ -148,9 +148,9 @@ bool bmi08_get_gyro_data(struct bmi08_sensor_data_f *gyro) {
         return false;
     }
 
-    gyro->x = lsb_to_dps(data.x, (float)125, 16) / 2;
-    gyro->y = lsb_to_dps(data.y, (float)125, 16) / 2;
-    gyro->z = lsb_to_dps(data.z, (float)125, 16) / 2;
+    gyro->x = lsb_to_dps(data.x, (float)125, 16);
+    gyro->y = lsb_to_dps(data.y, (float)125, 16);
+    gyro->z = lsb_to_dps(data.z, (float)125, 16);
 
     return true;
 }

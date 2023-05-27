@@ -27,6 +27,7 @@
 #include "gpio_expander.h"
 #include "gps_task_config.h"
 #include "recovery_task_config.h"
+#include "buzzer_pwm.h"
 
 #define TAG "INIT"
 
@@ -59,6 +60,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(spi_init(VSPI_HOST, CONFIG_SPI_MOSI, CONFIG_SPI_MISO, CONFIG_SPI_SCK), "SPI");
     CHECK_RESULT_BOOL(uart_init(CONFIG_UART_PORT_NUM, CONFIG_UART_TX, CONFIG_UART_RX, CONFIG_UART_BAUDRATE), 
                     "UART init");
+    CHECK_RESULT_BOOL(buzzer_init(), "Buzzer");
 
     CHECK_RESULT_BOOL(gpioexp_init(), "GPIO Expander");
     CHECK_RESULT_BOOL(gpioexp_led_set_color(WHITE), "GPIO Expander change color");
@@ -77,6 +79,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_ESP_NOW_BROADCAST, 500, TIMER_TYPE_PERIODIC),
                       "ESP_NOW_TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT), "SD TIMER");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_BUZZER, 2000, TIMER_TYPE_PERIODIC), "SD TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_DEBUG, 1000, TIMER_TYPE_PERIODIC), "SD TIMER");
 
     CHECK_RESULT_BOOL(initialize_lora(), "LORA");
