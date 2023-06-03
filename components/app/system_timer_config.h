@@ -17,6 +17,7 @@ typedef enum {
 } timers_id_def;
 
 #define DISCONNECT_TIMER_PERIOD_MS 15 * 60 * 1000
+#define DISCONNECT_TIMER_PERIOD_S DISCONNECT_TIMER_PERIOD_MS / 1000
 
 /**
  * @brief Initialize timers

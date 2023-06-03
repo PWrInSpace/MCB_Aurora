@@ -33,7 +33,10 @@ static void recovery_process_data(void) {
         return;
     }
 
-    ESP_LOGI(TAG, "Pressure1 %d", gb.recovery_data.pressure1);
+    ESP_LOGI(TAG, "Telemetru %d", gb.recovery_data.isTeleActive);
+    ESP_LOGI(TAG, "EasyMini %d", gb.recovery_data.isArmed);
+    ESP_LOGI(TAG, "First %d", gb.recovery_data.telemetrumFirstStage);
+    ESP_LOGI(TAG, "Second %d", gb.recovery_data.telemetrumSecondStage);
     rocket_data_update_recovery(&gb.recovery_data);
 }
 

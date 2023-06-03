@@ -132,7 +132,7 @@ static bool I2C_master_only_read(i2c_port_t port, uint8_t dev_addr, uint8_t *dat
 }
 
 bool i2c_sensors_init(void) {
-    return I2C_master_init(&gb.i2c_num_1, I2C_NUM_0, CONFIG_SDA_SEN, CONFIG_SCL_SEN, 400000);
+    return I2C_master_init(&gb.i2c_num_1, I2C_NUM_0, CONFIG_SDA_SEN, CONFIG_SCL_SEN, 40000);
 }
 
 bool i2c_com_init(void) {

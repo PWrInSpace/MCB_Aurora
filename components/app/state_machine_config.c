@@ -31,6 +31,8 @@ static void on_recovery_arm(void *arg) {
         ESP_LOGE(TAG, "Recovery send error :C");
     }
 
+    vTaskDelay(pdMS_TO_TICKS(50));
+
     if (recovery_send_cmd(RECOV_TELEMETRUM_ARM, 0x00) == false) {
         errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
         ESP_LOGE(TAG, "Recovery send error :C");
@@ -163,13 +165,15 @@ static void on_abort(void *arg) {
         ESP_LOGE(TAG, "Recovery send error :C");
     }
 
+    vTaskDelay(pdMS_TO_TICKS(50));
+
     if (recovery_send_cmd(RECOV_TELEMETRUM_DISARM, 0x00) == false) {
         errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
         ESP_LOGE(TAG, "Recovery send error :C");
     }
 
 
-    gpioexp_led_set_color(WHITE);
+    gpioexp_led_set_color(NONE);
 }
 
 static state_config_t states_cfg[] = {

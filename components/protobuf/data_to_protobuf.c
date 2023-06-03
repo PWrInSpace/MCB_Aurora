@@ -23,6 +23,10 @@ void create_porotobuf_frame(LoRaFrame *frame) {
     frame->gps_lat = data.mcb.latitude;
     frame->gps_long = data.mcb.longitude;
     frame->gps_sat = data.mcb.satelites_in_view;
+    frame->mcb_temperature = data.mcb.temperature;
+    frame->euler_psi = data.mcb.yaw;
+    frame->euler_theta = data.mcb.roll;
+    frame->euler_fi = data.mcb.pitch;
 
     // recovery
     frame->recov_pressure_1 = data.recovery.pressure1;

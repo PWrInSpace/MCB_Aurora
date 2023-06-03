@@ -20,11 +20,11 @@ static struct mgos_imu_madgwick madgwick;
 static void sensors_read_data(void *data_buffer) {
     sensors_data_t *data = (sensors_data_t *)data_buffer;
 
-    if (mag_data_ready() == true) {
-        if (mag_get_data(&mag) == false) {
-            // error
-        }
-    }
+    // if (mag_data_ready() == true) {
+    //     if (mag_get_data(&mag) == false) {
+    //         // error
+    //     }
+    // }
 
     if (bmi08_get_acc_data(&acc) == false) {
         // error
@@ -40,7 +40,6 @@ static void sensors_read_data(void *data_buffer) {
 
     mgos_imu_madgwick_update(&madgwick, gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y,
                              mag.z);
-
 
     data->acc_x = acc.x;
     data->acc_y = acc.y;
@@ -62,32 +61,32 @@ static void sensors_read_data(void *data_buffer) {
 
 bool initialize_processing_task(void) {
     if (bmi08_wrapper_init() == false) {
-        ESP_LOGI(TAG, "BMI08");
+        ESP_LOGE(TAG, "BMI08");
         return false;
     }
 
     if (bmp5_wrapper_init() == false) {
-        ESP_LOGI(TAG, "BMP5");
+        ESP_LOGE(TAG, "BMP5");
         return false;
     }
 
-    if (mag_init() == false) {
-        ESP_LOGI(TAG, "MAG");
-        return false;
-    }
+    // if (mag_init() == false) {
+    //     ESP_LOGE(TAG, "MAG");
+    //     return false;
+    // }
 
-    if (mag_set_continous_mode(FREQ_100HZ, PRD_500) == false) {
-        ESP_LOGI(TAG, "BMAGMODE");
-        return false;
-    }
+    // if (mag_set_continous_mode(FREQ_100HZ, PRD_500) == false) {
+    //     ESP_LOGE(TAG, "BMAGMODE");
+    //     return false;
+    // }
 
     if (mgos_imu_madgwick_create(&madgwick) == false) {
-        ESP_LOGI(TAG, "MADGWICK");
+        ESP_LOGE(TAG, "MADGWICK");
         return false;
     }
 
     if (mgos_imu_madgwick_set_params(&madgwick, 100, 0.01) == false) {
-        ESP_LOGI(TAG, "MADGWICK 2");
+        ESP_LOGE(TAG, "MADGWICK 2");
         return false;
     }
 
