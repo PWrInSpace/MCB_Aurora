@@ -59,6 +59,7 @@ static void sensors_read_data(void *data_buffer) {
     mgos_imu_madgwick_get_angles(&madgwick, &data->roll, &data->pitch, &data->yaw);
 }
 
+
 bool initialize_processing_task(void) {
     if (bmi08_wrapper_init() == false) {
         ESP_LOGE(TAG, "BMI08");

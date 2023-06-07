@@ -3,7 +3,6 @@
 #include <stddef.h>
 #include "esp_log.h"
 #include "sdkconfig.h"
-// #include "flash_task_config.h"
 #include "flash_task.h"
 #include "system_timer_config.h"
 #include "esp_now_config.h"
@@ -88,20 +87,56 @@ abort_countdown:
     sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT);
 }
 
+static void recovery_first_stage_process(recovery_data_t *data) {
+    if (data == NULL) {
+        return;
+    }
+
+    if (data->easyMiniFirstStage == true || data->telemetrumFirstStage == true) {
+        if (SM_change_state(FIRST_STAGE_RECOVERY) != SM_OK) {
+            errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
+        }
+    }
+}
+
 static void on_flight(void *arg) {
     ESP_LOGI(TAG, "----> ON FLIGHT <----");
+    if (recovery_change_process_fnc(recovery_first_stage_process) == false) {
+        ESP_LOGE(TAG, "Unable do add process fnc");
+    }
+
     cmd_message_t cmd = cmd_create_message(MAIN_VALVE_OPEN, 0x00);
     ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 }
 
+static void recovery_second_stage_process(recovery_data_t *data) {
+    if (data == NULL) {
+        return;
+    }
+
+    if (data->easyMiniSecondStage == true || data->telemetrumSecondStage == true) {
+        if (SM_change_state(SECOND_STAGE_RECOVERY) != SM_OK) {
+            errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
+        }
+    }
+}
+
 static void on_first_stage_recovery(void *arg) {
     ESP_LOGI(TAG, "ON FIRST_STAGE_RECOV");
+    if (recovery_change_process_fnc(recovery_second_stage_process) == false) {
+        ESP_LOGE(TAG, "Unable do add process fnc");
+    }
+
     cmd_message_t cmd = cmd_create_message(MAIN_VALVE_CLOSE, 0x00);
     ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 }
 
 static void on_second_stage_recovery(void *arg) {
     ESP_LOGI(TAG, "ON SECOND_STAGE_RECOV");
+    if (recovery_remove_process_fnc() == false) {
+        ESP_LOGE(TAG, "Unable do remove process fnc");
+    }
+
     cmd_message_t cmd = cmd_create_message(VENT_VALVE_OPEN, 0x00);
     ENA_send(&esp_now_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
 }

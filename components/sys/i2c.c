@@ -111,9 +111,6 @@ static bool I2C_master_only_read(i2c_port_t port, uint8_t dev_addr, uint8_t *dat
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
 
     i2c_master_start(cmd);
-    // i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_WRITE, true);
-    // i2c_master_write_byte(cmd, reg_addr, true);
-    // i2c_master_start(cmd);
 
     i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_READ, true);
 

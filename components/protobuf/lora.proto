@@ -46,8 +46,11 @@ message LoRaFrame {
     required float temperature2 = 32;
     required float pressure = 33;
 
-    required fixed32 esp_now_byte_data = 34;
-    required fixed32 errors = 35;
+    // payload frame
+    // required float payload_battery = 34;
+
+    required fixed32 esp_now_byte_data = 35;
+    required fixed32 errors = 36;
 }
 
 message LoRaCommand {

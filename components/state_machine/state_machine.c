@@ -107,7 +107,10 @@ static bool SM_check_new_state(state_id new_state) {
 }
 
 SM_Response SM_change_state(state_id new_state) {
-    xSemaphoreTake(sm.current_state_mutex, portMAX_DELAY);
+    if (xSemaphoreTake(sm.current_state_mutex, pdMS_TO_TICKS(1000)) != pdTRUE) {
+        return SM_STATE_CHANGE_ERROR;
+    }
+
     if (SM_check_new_state(new_state)) {
         sm.previous_state = sm.current_state;
         sm.current_state += 1;
