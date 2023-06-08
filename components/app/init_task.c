@@ -28,6 +28,7 @@
 #include "gps_task_config.h"
 #include "recovery_task_config.h"
 #include "buzzer_pwm.h"
+#include "vbat_wrapper.h"
 
 #define TAG "INIT"
 
@@ -54,6 +55,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(rocket_data_init(), "data");
     CHECK_RESULT_BOOL(initialize_errors(), "Errors");
     CHECK_RESULT_BOOL(hybrid_mission_timer_init(30000), "Mission timer");
+    CHECK_RESULT_BOOL(vbat_init(), "VBAT MEASUREMENT");
 
     CHECK_RESULT_BOOL(i2c_sensors_init(), "i2c sensors");
     CHECK_RESULT_BOOL(i2c_com_init(), "i2c com");
@@ -75,15 +77,17 @@ static void TASK_init(void *arg) {
 
 
     CHECK_RESULT_BOOL(initialize_timers(), "TIMERS");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 30, TIMER_TYPE_PERIODIC), "SD TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_ESP_NOW_BROADCAST, 500, TIMER_TYPE_PERIODIC),
                       "ESP_NOW_TIMER");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT), "SD TIMER");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_BUZZER, 2000, TIMER_TYPE_PERIODIC), "SD TIMER");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_DEBUG, 1000, TIMER_TYPE_PERIODIC), "SD TIMER");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT), "DC TIMER");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_BUZZER, 2000, TIMER_TYPE_PERIODIC), "BUZZER TIMER");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_CONNECTED_DEV, 40000, TIMER_TYPE_PERIODIC), "CONNECTED TIMER");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 30, TIMER_TYPE_PERIODIC), "SD TIMER");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_DEBUG, 1000, TIMER_TYPE_PERIODIC), "DEBUG TIMER");
 
     CHECK_RESULT_BOOL(initialize_lora(), "LORA");
     CHECK_RESULT_ESP(init_console(), "CLI");
+    esp_log_level_set("*", ESP_LOG_INFO);
 
     CHECK_RESULT_ESP(SM_change_state(IDLE), "Change state to idle");
     vTaskDelete(NULL);

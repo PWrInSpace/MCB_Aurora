@@ -24,23 +24,25 @@ bool rocket_data_init(void) {
     return true;
 }
 
+
+
 void rocket_data_update_main_valve(main_valve_data_t *data) {
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
-    memcpy(&gb.main_valve, &data, sizeof(gb.main_valve));
+    memcpy(&gb.main_valve, data, sizeof(gb.main_valve));
     xSemaphoreGive(gb.data_mutex);
 }
 
 
 void rocket_data_update_vent_valve(vent_valve_data_t *data) {
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
-    memcpy(&gb.vent_valve, &data, sizeof(gb.vent_valve));
+    memcpy(&gb.vent_valve, data, sizeof(gb.vent_valve));
     xSemaphoreGive(gb.data_mutex);
 }
 
 
 void rocket_data_update_recovery(recovery_data_t *data) {
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
-    memcpy(&gb.recovery, &data, sizeof(gb.recovery));
+    memcpy(&gb.recovery, data, sizeof(gb.recovery));
     xSemaphoreGive(gb.data_mutex);
 }
 

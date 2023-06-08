@@ -20,6 +20,7 @@ typedef struct {
     float temperature;
     float pressure;
     float altitude;
+    float velocity;
     float yaw;
     float pitch;
     float roll;

@@ -6,6 +6,14 @@
 #include <stdbool.h>
 
 typedef struct {
+    bool main_valve : 1;
+    bool vent_valve : 1;
+    bool pitot : 1;
+    bool payload : 1;
+    bool tanwa : 1;
+} esp_now_connected_devices_t;
+
+typedef struct {
     bool waken_up :1;
     uint8_t valve_state : 2;
     uint32_t thermocouple1;
@@ -70,7 +78,7 @@ typedef struct {
 } tanwa_data_t;
 
 typedef struct {
-    bool wakenUp;
+    bool waken_up;
     float dynamic_press;
     float static_press;
     float temperature;

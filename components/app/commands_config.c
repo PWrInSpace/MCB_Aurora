@@ -51,11 +51,12 @@ static void mcb_state_change(uint32_t command, int32_t payload, bool privilage) 
 
 static void mcb_abort(uint32_t command, int32_t payload, bool privilage) {
     states_t state = SM_get_current_state();
-    if (state != HOLD || state > COUNTDOWN) {
+    if (state == FLIGHT && privilage == false) {
+        ESP_LOGW(TAG, "Abort skipped state == FLIGHT");
         return;
     }
 
-    if (state == FLIGHT && privilage == false) {
+    if (state > FLIGHT) {
         return;
     }
 
@@ -66,18 +67,19 @@ static void mcb_abort(uint32_t command, int32_t payload, bool privilage) {
 
 static void mcb_hold(uint32_t command, int32_t payload, bool privilage) {
     states_t state = SM_get_current_state();
-    if(state == ABORT) {
+    if (state == ABORT) {
         return;
     }
+
 
     if (state == HOLD) {
         ESP_LOGI(TAG, "Leaving hold state");
         if (SM_get_previous_state() == COUNTDOWN) {
             SM_force_change_state(RDY_TO_LAUNCH);
         } else {
-            SM_change_to_previous_state(false);
+            SM_change_to_previous_state(true);
         }
-    } else {
+    } else if (state < FLIGHT) {
         SM_force_change_state(HOLD);
         ESP_LOGI(TAG, "HOLD");
     }

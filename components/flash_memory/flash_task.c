@@ -134,7 +134,6 @@ static void check_termiate_condition(void) {
 }
 
 static void flash_task(void *arg) {
-    ESP_LOGI(TAG, "RUNNING FLASH TASK");
     wait_until_erase_condition();  // Blocking till required condition
     ESP_LOGI(TAG, "Formatting flash");
     format();

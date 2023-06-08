@@ -119,7 +119,12 @@ static int disable_log(int argc, char **argv) {
 }
 
 static int enable_log(int argc, char **argv) {
-    esp_log_level_set("*", ESP_LOG_INFO);
+    if (argc == 2) {
+        esp_log_level_set(argv[1], ESP_LOG_DEBUG);
+    } else {
+        esp_log_level_set("*", ESP_LOG_DEBUG);
+    }
+    esp_log_level_set("spi_master", ESP_LOG_ERROR);
     return 0;
 }
 

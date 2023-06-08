@@ -118,7 +118,7 @@ static void on_receive(ENA_receive_cb_t *rec_cb_data) {
 }
 
 static void on_send(ENA_send_cb_t *send_cb_data, ENA_transmit_param_t *packet) {
-    ESP_LOGI(TAG, "SEND CB, STATUS %d", send_cb_data->status);
+    ESP_LOGD(TAG, "SEND CB, STATUS %d", send_cb_data->status);
 
     if (is_packet_transmiting() == false) {
         ESP_LOGE(TAG, "FATAL ERROR, PACKET NOT TRANSMITING");
