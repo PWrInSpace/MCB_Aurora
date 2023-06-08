@@ -28,6 +28,7 @@
 #include "gps_task_config.h"
 #include "recovery_task_config.h"
 #include "buzzer_pwm.h"
+#include "vbat_wrapper.h"
 
 #define TAG "INIT"
 
@@ -54,6 +55,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(rocket_data_init(), "data");
     CHECK_RESULT_BOOL(initialize_errors(), "Errors");
     CHECK_RESULT_BOOL(hybrid_mission_timer_init(30000), "Mission timer");
+    CHECK_RESULT_BOOL(vbat_init(), "VBAT MEASUREMENT");
 
     CHECK_RESULT_BOOL(i2c_sensors_init(), "i2c sensors");
     CHECK_RESULT_BOOL(i2c_com_init(), "i2c com");
