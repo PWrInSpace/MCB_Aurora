@@ -41,6 +41,8 @@ bool mcb_update_struct(mcb_data_t *mcb) {
     mcb->mag_z = sensors_data.mag_z;
     mcb->pressure = sensors_data.pressure;
     mcb->temperature = sensors_data.temperature;
+    mcb->altitude = sensors_data.altitude;
+    mcb->velocity = sensors_data.velocity;
     mcb->yaw = sensors_data.yaw;
     mcb->pitch = sensors_data.pitch;
     mcb->roll = sensors_data.roll;

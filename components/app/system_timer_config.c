@@ -33,7 +33,7 @@ static void on_flash_data_timer(void *arg) {
 
 static void on_ignition_timer(void *arg) {
     cmd_message_t mess = cmd_create_message(0x88, 0x00);
-    ENA_send(&esp_now_tanwa, mess.raw, sizeof(mess.raw), 3);    
+    ENA_send(&esp_now_tanwa, mess.raw, sizeof(mess.raw), 3);
 }
 
 static void on_liftoff_timer(void *arg) {
@@ -57,6 +57,13 @@ static void buzzer_timer(void *arg) {
     }
 }
 
+static void connected_dev(void *arg) {
+    esp_now_connected_devices_t dev;
+    esp_now_get_connected_dev(&dev);
+    rocket_data_update_connected_dev(&dev);
+    esp_now_clear_connected_dev();
+}
+
 #define TAG "TIM"
 static void debug_data(void *arg) {
     char buffer[512];
@@ -75,6 +82,7 @@ bool initialize_timers(void) {
     {.timer_id = TIMER_DISCONNECT,          .timer_callback_fnc = on_disconnect_timer,      .timer_arg = NULL},
     {.timer_id = TIMER_DEBUG,               .timer_callback_fnc = debug_data,               .timer_arg = NULL},
     {.timer_id = TIMER_BUZZER,              .timer_callback_fnc = buzzer_timer,             .timer_arg = NULL},
+    {.timer_id = TIMER_CONNECTED_DEV,       .timer_callback_fnc = connected_dev,            .timer_arg = NULL},
 };
     return sys_timer_init(timers, sizeof(timers) / sizeof(timers[0]));
 }

@@ -11,6 +11,8 @@
 
 #define TAG "SENSORS_CFG"
 
+#define FILTER_CONST 0.95
+
 static struct bmi08_sensor_data_f acc;
 static struct bmi08_sensor_data_f gyro;
 static mmc5983_mag_t mag;
@@ -22,20 +24,20 @@ static void sensors_read_data(void *data_buffer) {
 
     // if (mag_data_ready() == true) {
     //     if (mag_get_data(&mag) == false) {
-    //         // error
+    //         errors_add(ERROR_TYPE_SENSORS, ERROR_SENSOR_MAG, 100);
     //     }
     // }
 
     if (bmi08_get_acc_data(&acc) == false) {
-        // error
+        errors_add(ERROR_TYPE_SENSORS, ERROR_SENSOR_IMU, 100);
     }
 
     if (bmi08_get_gyro_data(&gyro) == false) {
-        // error
+        errors_add(ERROR_TYPE_SENSORS, ERROR_SENSOR_IMU, 100);
     }
 
     if (bmp5_wrapper_get_data(&bar) == false) {
-        // error
+        errors_add(ERROR_TYPE_SENSORS, ERROR_SENSOR_BAR, 100);
     }
 
     mgos_imu_madgwick_update(&madgwick, gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y,
@@ -46,8 +48,8 @@ static void sensors_read_data(void *data_buffer) {
     data->acc_z = acc.z;
 
     data->gyr_x = gyro.x;
-    data->gyr_x = gyro.x;
-    data->gyr_x = gyro.x;
+    data->gyr_y = gyro.y;
+    data->gyr_z = gyro.z;
 
     data->mag_x = mag.x;
     data->mag_y = mag.y;
@@ -55,6 +57,9 @@ static void sensors_read_data(void *data_buffer) {
 
     data->pressure = bar.pressure / 100.0;
     data->temperature = bar.temperature;
+    float prev_altitude = data->altitude;
+    data->altitude = bmp5_wrapper_altitude(data->pressure, 0) * FILTER_CONST + (1 - FILTER_CONST) * data->altitude;
+    data->velocity = (data->altitude - prev_altitude) / CONFIG_SENSORS_TASK_PERIOD_MS;
 
     mgos_imu_madgwick_get_angles(&madgwick, &data->roll, &data->pitch, &data->yaw);
 }
@@ -93,11 +98,11 @@ bool initialize_processing_task(void) {
 
     mgos_imu_madgwick_reset(&madgwick);
 
-        sensors_task_cfg_t cfg = {
-            .sensors_read_fnc = sensors_read_data,
-            .sensors_process_fnc = NULL,
-            .data_size = sizeof(sensors_data_t),
-        };
+    sensors_task_cfg_t cfg = {
+        .sensors_read_fnc = sensors_read_data,
+        .sensors_process_fnc = NULL,
+        .data_size = sizeof(sensors_data_t),
+    };
 
     return sensors_create_task(&cfg);
 }

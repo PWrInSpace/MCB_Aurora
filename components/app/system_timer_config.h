@@ -13,6 +13,7 @@ typedef enum {
     TIMER_LIFTOFF,
     TIMER_DISCONNECT,
     TIMER_BUZZER,
+    TIMER_CONNECTED_DEV,
     TIMER_DEBUG,
 } timers_id_def;
 

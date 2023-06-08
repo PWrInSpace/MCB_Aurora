@@ -97,3 +97,9 @@ bool bmp5_wrapper_get_data(struct bmp5_sensor_data *data) {
 
     return res == BMP5_OK ? true : false;
 }
+
+float bmp5_wrapper_altitude(float pressure, float altitude_offset) {
+    float altitude = 44330 * (1 - pow((pressure / 1001.67f), 1.f / 5.255f));
+    altitude -= altitude_offset;
+    return altitude;
+}

@@ -24,6 +24,8 @@ bool rocket_data_init(void) {
     return true;
 }
 
+
+
 void rocket_data_update_main_valve(main_valve_data_t *data) {
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
     memcpy(&gb.main_valve, data, sizeof(gb.main_valve));

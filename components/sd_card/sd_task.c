@@ -46,7 +46,7 @@ static bool write_to_sd(FILE *file, char *data, size_t size) {
     }
 
     xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
-    fprintf(file, data, mem.sd_card.card->cid.name);
+    fputs(data, file);
     xSemaphoreGive(mem.spi_mutex);
 
     return true;
@@ -59,6 +59,7 @@ static void get_data_from_queue_and_save(FILE * data_file) {
     } else {
         frame_size = mem.create_sd_frame_fnc(mem.data_buffer, sizeof(mem.data_buffer),
                                              mem.data_from_queue, mem.data_from_queue_size);
+
         if (write_to_sd(data_file, mem.data_buffer, frame_size) == false) {
             xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
             SD_remount(&mem.sd_card);

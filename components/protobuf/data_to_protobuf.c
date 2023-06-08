@@ -71,9 +71,17 @@ void create_porotobuf_frame(LoRaFrame *frame) {
     frame->tanwa_byte_data |= 0x00;
 
     // esp now
+    frame->esp_now_byte_data |= (data.pitot.waken_up << 0);
     frame->esp_now_byte_data |= (data.main_valve.waken_up << 1);
     frame->esp_now_byte_data |= (data.vent_valve.waken_up << 2);
     frame->esp_now_byte_data |= (data.payload.waken_up << 3);
+
+    frame->esp_now_byte_data |= (data.connected_dev.pitot << 16);
+    frame->esp_now_byte_data |= (data.connected_dev.main_valve << 17);
+    frame->esp_now_byte_data |= (data.connected_dev.vent_valve << 18);
+    frame->esp_now_byte_data |= (data.connected_dev.tanwa << 19);
+    frame->esp_now_byte_data |= (data.connected_dev.payload << 20);
+
 
     // errors
     frame->errors |= errors[ERROR_TYPE_LAST_EXCEPTION];

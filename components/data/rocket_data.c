@@ -25,6 +25,12 @@ bool rocket_data_init(void) {
     return true;
 }
 
+void rocket_data_update_connected_dev(esp_now_connected_devices_t *data) {
+    xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
+    memcpy(&gb.rocket_data.connected_dev, data, sizeof(gb.rocket_data.connected_dev));
+    xSemaphoreGive(gb.data_mutex);
+}
+
 void rocket_data_update_main_valve(main_valve_data_t *data) {
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
     memcpy(&gb.rocket_data.main_valve, data, sizeof(gb.rocket_data.main_valve));
@@ -66,7 +72,7 @@ void rocket_data_update_pitot(pitot_data_t *data) {
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
     memcpy(&gb.rocket_data.pitot, data, sizeof(gb.rocket_data.pitot));
     ESP_LOGI(TAG, "Pitot:");
-    ESP_LOGI(TAG, "waken_up %d", gb.rocket_data.pitot.wakenUp);
+    ESP_LOGI(TAG, "waken_up %d", gb.rocket_data.pitot.waken_up);
     ESP_LOGI(TAG, "vbat %f", gb.rocket_data.pitot.vbat);
     ESP_LOGI(TAG, "static press %f", gb.rocket_data.pitot.static_press);
     ESP_LOGI(TAG, "dynamic press %f", gb.rocket_data.pitot.dynamic_press);

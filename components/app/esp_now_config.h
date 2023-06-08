@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 #include "esp_now_api.h"
+#include "slave_structs.h"
 
 #define ESP_NOW_CHANNEL 0
 
@@ -34,5 +35,9 @@ extern const ENA_device_t esp_now_payload; // :CCC
  * @return false :C
  */
 bool initialize_esp_now(void);
+
+void esp_now_get_connected_dev(esp_now_connected_devices_t *dev);
+
+void esp_now_clear_connected_dev(void);
 
 #endif
