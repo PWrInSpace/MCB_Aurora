@@ -24,6 +24,7 @@
 #include "system_timer_config.h"
 #include "utils.h"
 #include "mission_timer_config.h"
+#include "settings_mem.h"
 #include "gpio_expander.h"
 #include "gps_task_config.h"
 #include "recovery_task_config.h"
@@ -52,6 +53,7 @@ inline static void CHECK_RESULT_BOOL(esp_err_t res, char *message) {
 }
 
 static void TASK_init(void *arg) {
+    CHECK_RESULT_ESP(settings_init(), "Change state");
     CHECK_RESULT_BOOL(rocket_data_init(), "data");
     CHECK_RESULT_BOOL(initialize_errors(), "Errors");
     CHECK_RESULT_BOOL(hybrid_mission_timer_init(30000), "Mission timer");
