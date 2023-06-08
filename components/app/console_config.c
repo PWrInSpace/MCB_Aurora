@@ -9,6 +9,7 @@
 #include "state_machine_config.h"
 #include "esp_now_config.h"
 #include "commands.h"
+#include "settings_mem.h"
 #define TAG "CONSOLE_CONFIG"
 
 static int read_flash(int argc, char** argv) {
@@ -54,7 +55,7 @@ static int change_state(int argc, char **argv) {
     }
 
     int state = atoi(argv[1]);
-    
+
     if (SM_change_state(state) != SM_OK) {
         return -1;
     }
@@ -150,6 +151,26 @@ static int esp_now_send_main_valve(int argc, char **argv) {
     return 0;
 }
 
+static int cli_settings_read_all(int argc, char **argv) {
+    Settings settings = settings_get_all();
+    ESP_LOGI(TAG, "Lora freq MHZ %d", settings.loraFreq_MHz);
+    ESP_LOGI(TAG, "Lora transmit freq %d", settings.loraFreq_ms);
+    ESP_LOGI(TAG, "CDWN TIME %d", settings.countdownTime);
+    ESP_LOGI(TAG, "Igni time %d", settings.ignitTime);
+
+    return 0;
+}
+
+static int cli_settings_init_default(int argc, char **argv) {
+    settings_save(SETTINGS_LORA_FREQ_MHZ, 868);
+    settings_save(SETTINGS_LORA_FREQ_MS, 2000);
+    settings_save(SETTINGS_COUNTDOWN_TIME, -30000);
+    settings_save(SETTINGS_IGNIT_TIME, -13500);
+    settings_read_all();
+
+    return 0;
+}
+
 static esp_console_cmd_t cmd[] = {
     {"flash-read", "Read data from flash memory", NULL, read_flash, NULL},
     {"reset-dev", "Restart device", NULL, reset_device, NULL},
@@ -163,6 +184,8 @@ static esp_console_cmd_t cmd[] = {
     {"log-disable", "disable logs", NULL, disable_log, NULL},
     {"en_tanwa", "send command to tanwa", NULL, esp_now_send_tanwa, NULL},
     {"en_mv", "send command to main valve", NULL, esp_now_send_main_valve, NULL},
+    {"settings_all", "get all settings", NULL, cli_settings_read_all, NULL},
+    {"settings_init", "init settings default", NULL, cli_settings_init_default, NULL},
 };
 
 esp_err_t init_console() {

@@ -2,3 +2,6 @@
 	path = pySD
 	url = git@github.com:PWrInSpace/pySD.git
 	branch = refactor
+[submodule "components/sensors/BMI08x-Sensor-API"]
+	path = components/sensors/BMI08x-Sensor-API
+	url = https://github.com/boschsensortec/BMI08x-Sensor-API.git
