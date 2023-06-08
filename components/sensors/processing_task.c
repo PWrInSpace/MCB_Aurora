@@ -105,7 +105,7 @@ static bool initialize_rtos(void) {
 
     xTaskCreatePinnedToCore(
         processing_task,
-        "SM",
+        "Processing",
         SENSORS_TASK_DEPTH,
         NULL,
         SENSORS_TASK_PRIORITY,
@@ -124,10 +124,12 @@ static bool initialize_rtos(void) {
 
 bool sensors_create_task(sensors_task_cfg_t *cfg) {
     if (cfg->sensors_read_fnc == NULL) {
+        ESP_LOGE(TAG, "Function");
         return false;
     }
 
     if (cfg->data_size == 0) {
+        ESP_LOGE(TAG, "Size");
         return false;
     }
 

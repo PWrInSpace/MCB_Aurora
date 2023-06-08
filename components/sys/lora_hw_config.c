@@ -60,4 +60,4 @@ bool lora_hw_gpio_set_level(uint8_t _gpio_num, uint32_t _level) {
     return gpio_set_level(_gpio_num, _level) == ESP_OK ? true : false;
 }
 
-void lora_hw_log(const char* info) { ESP_LOGI(TAG, "%s", info); }
+void lora_hw_log(const char* info) { ESP_LOGD(TAG, "%s", info); }

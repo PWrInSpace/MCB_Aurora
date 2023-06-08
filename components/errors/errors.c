@@ -58,7 +58,7 @@ bool errors_add(error_type_t type, error_code_t code, uint32_t timeout) {
     if (gb.data_mutex == NULL) {
         return false;
     }
-    
+
     if (xSemaphoreTake(gb.data_mutex, pdMS_TO_TICKS(timeout)) == pdFALSE) {
         return false;
     }
@@ -85,7 +85,7 @@ bool errors_get_all(error_data_t *buffer, size_t buffer_size) {
     if (buffer_size < sizeof(gb.errors_data)) {
         return false;
     }
-    
+
     if (xSemaphoreTake(gb.data_mutex, 1000) == pdFAIL) {
         return false;
     }

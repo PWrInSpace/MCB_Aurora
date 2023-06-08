@@ -18,5 +18,5 @@ menu "Lora"
 
     config LORA_RECEIVE_WINDOW
         int "receive window time ms"
-        default 500
+        default 1500
 endmenu

@@ -13,6 +13,7 @@ typedef struct {
     payload_data_t payload;
     tanwa_data_t tanwa;
     pitot_data_t pitot;
+    esp_now_connected_devices_t connected_dev;
     uint32_t error_esp_now;
     uint32_t error_memory;
     uint32_t error_mcb;
@@ -22,6 +23,8 @@ typedef struct {
 } rocket_data_t;
 
 bool rocket_data_init(void);
+
+void rocket_data_update_connected_dev(esp_now_connected_devices_t *data);
 
 void rocket_data_update_main_valve(main_valve_data_t *data);
 

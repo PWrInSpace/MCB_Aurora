@@ -3,7 +3,6 @@
 #include <stddef.h>
 #include "esp_log.h"
 #include "sdkconfig.h"
-// #include "flash_task_config.h"
 #include "flash_task.h"
 #include "system_timer_config.h"
 #include "esp_now_config.h"
@@ -11,7 +10,8 @@
 #include "mission_timer_config.h"
 #include "errors_config.h"
 #include "rocket_data.h"
-#include "recovery.h"
+#include "gpio_expander.h"
+#include "recovery_task_config.h"
 
 #define TAG "SMC"
 static void on_init(void *arg) {
@@ -19,14 +19,18 @@ static void on_init(void *arg) {
 }
 
 static void on_idle(void *arg) {
+    gpioexp_led_set_color(GREEN);
     ESP_LOGI(TAG, "ON IDLE");
 }
 
 static void on_recovery_arm(void *arg) {
+    gpioexp_led_set_color(YELLOW);
     if (recovery_send_cmd(RECOV_EASYMINI_ARM, 0x00) == false) {
         errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
         ESP_LOGE(TAG, "Recovery send error :C");
     }
+
+    vTaskDelay(pdMS_TO_TICKS(50));
 
     if (recovery_send_cmd(RECOV_TELEMETRUM_ARM, 0x00) == false) {
         errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
@@ -37,6 +41,7 @@ static void on_recovery_arm(void *arg) {
 }
 
 static void on_fueling(void *arg) {
+    gpioexp_led_set_color(YELLOW);
     cmd_message_t cmd = cmd_create_message(MAIN_VALVE_CLOSE, 0x00);
     ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 
@@ -47,11 +52,13 @@ static void on_fueling(void *arg) {
 }
 
 static void on_armed_to_launch(void *arg) {
+    gpioexp_led_set_color(YELLOW);
     ESP_LOGI(TAG, "ON ARMED TO LAUNCH");
     FT_erase_and_run_loop();
 }
 
 static void on_ready_to_lauch(void *arg) {
+    gpioexp_led_set_color(PURPLE);
     ESP_LOGI(TAG, "ON READY_TO_LAUNCH");
     sys_timer_start(TIMER_FLASH_DATA, 500, TIMER_TYPE_PERIODIC);
     // turn on camera
@@ -59,7 +66,7 @@ static void on_ready_to_lauch(void *arg) {
 
 static void on_countdown(void *arg) {
     ESP_LOGI(TAG, "ON COUNTDOWN");
-    
+
     if (sys_timer_stop(TIMER_DISCONNECT) == false) {
         ESP_LOGE(TAG, "Unable to stop disconnect timer");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_MISSION_TIMER, 100);
@@ -72,6 +79,7 @@ static void on_countdown(void *arg) {
         goto abort_countdown;
     }
 
+    gpioexp_led_set_color(RED);
     return;
 
 abort_countdown:
@@ -79,25 +87,84 @@ abort_countdown:
     sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT);
 }
 
+static void recovery_first_stage_process(recovery_data_t *data) {
+    if (data == NULL) {
+        return;
+    }
+
+    if (data->easyMiniFirstStage == true || data->telemetrumFirstStage == true) {
+        if (SM_change_state(FIRST_STAGE_RECOVERY) != SM_OK) {
+            errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
+        }
+    }
+}
+
 static void on_flight(void *arg) {
     ESP_LOGI(TAG, "----> ON FLIGHT <----");
+    if (recovery_change_process_fnc(recovery_first_stage_process) == false) {
+        ESP_LOGE(TAG, "Unable do add process fnc");
+    }
+
     cmd_message_t cmd = cmd_create_message(MAIN_VALVE_OPEN, 0x00);
     ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 }
 
+static void recovery_second_stage_process(recovery_data_t *data) {
+    if (data == NULL) {
+        return;
+    }
+
+    if (data->easyMiniSecondStage == true || data->telemetrumSecondStage == true) {
+        if (SM_change_state(SECOND_STAGE_RECOVERY) != SM_OK) {
+            errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
+        }
+    }
+}
+
 static void on_first_stage_recovery(void *arg) {
     ESP_LOGI(TAG, "ON FIRST_STAGE_RECOV");
+    if (recovery_change_process_fnc(recovery_second_stage_process) == false) {
+        ESP_LOGE(TAG, "Unable do add process fnc");
+    }
+
     cmd_message_t cmd = cmd_create_message(MAIN_VALVE_CLOSE, 0x00);
     ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 }
 
+static void on_ground_gps_process(gps_positioning_t *data) {
+    static uint8_t ground_counter = 0;
+    if (data->altitude < 50) {
+        ground_counter += 1;
+    } else {
+        ground_counter = 0;
+    }
+
+    if (ground_counter >= 5) {
+        if (SM_change_state(ON_GROUND) != SM_OK) {
+            errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
+        }
+    }
+}
+
 static void on_second_stage_recovery(void *arg) {
     ESP_LOGI(TAG, "ON SECOND_STAGE_RECOV");
+    if (recovery_remove_process_fnc() == false) {
+        ESP_LOGE(TAG, "Unable do remove process fnc");
+    }
+
+    if (gps_change_process_fnc(on_ground_gps_process) == false) {
+        ESP_LOGE(TAG, "Unable to add gps process function");
+    }
+
     cmd_message_t cmd = cmd_create_message(VENT_VALVE_OPEN, 0x00);
     ENA_send(&esp_now_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
 }
 
 static void on_ground(void *arg) {
+    if (gps_remove_process_fnc() == false) {
+        ESP_LOGE(TAG, "Unable to remove gps process fnc");
+    }
+
     if (sys_timer_delete(TIMER_SD_DATA) == false) {
         ESP_LOGE(TAG, "Unable to delete sd data timer");
     }
@@ -108,11 +175,12 @@ static void on_ground(void *arg) {
 
 
     ESP_LOGI(TAG, "ON GROUND");
+    gpioexp_led_set_color(CYAN);
 }
 
 
 static void disable_timers_and_close_valves(void) {
-    if (hybrid_mission_timer_interrupt() == false) {
+    if (hybrid_mission_timer_stop() == false) {
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_MISSION_TIMER, 100);
         ESP_LOGE(TAG, "Unable to stop mission timer");
     }
@@ -137,6 +205,8 @@ static void on_hold(void *arg) {
     if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
         ESP_LOGE(TAG, "Unable to restart disconnect timer");
     }
+
+    gpioexp_led_set_color(BLUE);
 }
 
 static void on_abort(void *arg) {
@@ -153,10 +223,15 @@ static void on_abort(void *arg) {
         ESP_LOGE(TAG, "Recovery send error :C");
     }
 
+    vTaskDelay(pdMS_TO_TICKS(50));
+
     if (recovery_send_cmd(RECOV_TELEMETRUM_DISARM, 0x00) == false) {
         errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
         ESP_LOGE(TAG, "Recovery send error :C");
     }
+
+
+    gpioexp_led_set_color(NONE);
 }
 
 static state_config_t states_cfg[] = {

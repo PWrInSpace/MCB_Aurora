@@ -1,5 +1,6 @@
 // Copyright 2022 PWrInSpace, Kuba
 #include <stdio.h>
+#include <inttypes.h>
 
 #include "esp_log.h"
 #include "esp_now_api.h"
@@ -19,19 +20,197 @@
 #include "lora_hw_config.h"
 #include "lora_task.h"
 #include "gen_pysd.h"
+#include "uart.h"
+#include "ublox_m8.h"
+#include "gpio_expander.h"
+#include "system_timer_config.h"
+#include "console_config.h"
+#include "gps_task_config.h"
+#include "bmp5_wrapper.h"
+#include "bmi08_wrapper.h"
+#include "mahony.h"
+#include "mag_wrapper.h"
+#include "magdwick.h"
 
-// spi_t spi;
-// i2c_t i2c;
-// sd_card_t sd;
 
 #include "sdkconfig.h"
 #define TAG "AURORA"
+
 
 void app_main(void) {
     ESP_LOGI(TAG, "INIT TASK");
     run_init_task();
     vTaskDelete(NULL);
 }
+
+
+// void app_main(void) {
+//     ESP_LOGI(TAG, "INIT TASK");
+//     // run_init_task();
+
+//     i2c_sensors_init();
+//     bool res = bmp5_wrapper_init();
+//     ESP_LOGE(TAG, "Result %d", res);
+
+//     struct bmp5_sensor_data data;
+//     while(1) {
+//         if (bmp5_wrapper_get_data(&data) == true) {
+//             ESP_LOGI(TAG, "Pressure %.2f \t Temperature %.2f", data.pressure / 100, data.temperature);
+//         }
+//         vTaskDelay(pdMS_TO_TICKS(1000));
+//     }
+//     vTaskDelete(NULL);
+// }
+
+// void app_main(void) {
+//     ESP_LOGI(TAG, "MAG start :D");
+//     i2c_sensors_init();
+//     if (bmi08_wrapper_init() == false) {
+//         ESP_LOGW(TAG, "DUPA");
+//     }
+
+//     bool res = bmp5_wrapper_init();
+//     ESP_LOGI(TAG, "Result %d", res);
+
+//     ESP_LOGI(TAG, "BMI08 initialzied :D");
+//     if (mag_init() == false) {
+//         ESP_LOGE(TAG, "INIT ERROR :C");
+//     }
+
+//     if (mag_set_continous_mode(FREQ_100HZ, PRD_500) == false) {
+//         ESP_LOGE(TAG, "CM ERROR :C");
+//     }
+
+//     ESP_LOGI(TAG, ":D");
+//     struct bmi08_sensor_data_f acc;
+//     struct bmi08_sensor_data_f gyro;
+//     struct bmi08_sensor_data_f acc_prev = {0};
+//     struct bmi08_sensor_data_f gyro_prev = {0};
+//     mmc5983_mag_t mag;
+//     mmc5983_mag_t mag_prev = {0};
+//     // mahony_t mahony;
+//     // mahony_init(10, 0.0, &mahony);
+//     Mahony_Init(100);
+//     double temp[3] = {0};
+
+//     // struct mgos_imu_madgwick * test = mgos_imu_madgwick_create();
+//     // mgos_imu_madgwick_set_params(test, 100, 0.01);
+//     // mgos_imu_madgwick_reset(test);
+
+//     while (true) {
+//         if (bmi08_get_acc_data(&acc) == true && bmi08_get_gyro_data(&gyro) == true && mag_data_ready() == true) {
+//             // mahony_updateIMU(, );
+//             mag_get_data(&mag);
+//             // Mahony_update();
+//             // mgos_imu_madgwick_update(test, gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y, mag.z);
+
+//             // acc.x = acc.x * 0.8 + acc_prev.x * 0.2;
+//             // acc.y = acc.y * 0.8 + acc_prev.y * 0.2;
+//             // acc.z = acc.z * 0.8 + acc_prev.z * 0.2;
+
+//             // gyro.x = gyro.x * 0.8 + gyro_prev.x * 0.2;
+//             // gyro.y = gyro.y * 0.8 + gyro_prev.y * 0.2;
+//             // gyro.z = gyro.z * 0.8 + gyro_prev.z * 0.2;
+
+//             // mag.x = mag.x * 0.8 + mag_prev.x * 0.2;
+//             // mag.y = mag.y * 0.8 + mag_prev.y * 0.2;
+//             // mag.z = mag.z * 0.8 + mag_prev.z * 0.2;
+
+//             // acc_prev = acc;
+//             // gyro_prev = gyro;
+//             // mag_prev = mag;
+
+//             // mahony_update(gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y, mag.z, &mahony);
+//             // fusion_update(gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y, mag.z);
+//             // quaternion_to_euler_ZYX(&mahony.q, test);
+//             // float heading = 360.0 + (atan2(data.y, data.x) * 180 / M_PI);
+//             // ESP_LOGI(TAG, "MAG x: %f\ty: %f\tz: %f\t heading %f", data.x, data.y, data.z, heading);
+//             ESP_LOGI(TAG, "ACC x: %f\ty: %f\tz: %f\t GYRO x: %f\ty: %f\tz: %f", acc.x, acc.y, acc.z, gyro.x, gyro.y, gyro.z);
+
+//             // ESP_LOGI(TAG, "MAHONY q0: %f\tq1: %f\tq2: %f\tq3: %f\t", mahony.q.q0, mahony.q.q1, mahony.q.q2, mahony.q.q3);
+//             // ESP_LOGI(TAG, "Euelr roll: %f\tpitch: %f\tyaw: %f", test[0], test[1], test[2]);
+//             // temp[0] += test[0];
+//             // temp[1] += test[1];
+//             // temp[2] += test[2];
+//             // Mahony_computeAngles();
+//             // float roll = getRoll();
+//             // float pitch = getPitch();
+//             // float yaw = getYaw();
+
+//             // printf("y%fyp%fpr%fr\n", roll, pitch, yaw);
+//             // quaternion_t q;
+//             // mgos_imu_madgwick_get_quaternion(test, &q.q0, &q.q1, &q.q2, &q.q3);
+//             // printf("w%fwa%fab%fbc%fc\n", q.q0, q.q1, q.q2, q.q3);
+//         }
+
+//         vTaskDelay(pdMS_TO_TICKS(10));
+//     }
+// }
+
+
+// void app_main(void) {
+//     ESP_LOGI(TAG, "UaRT init");
+//     uart_init(CONFIG_UART_PORT_NUM, CONFIG_UART_TX, CONFIG_UART_RX, CONFIG_UART_BAUDRATE);
+//     i2c_sensors_init();
+
+//     ESP_LOGI(TAG, "GPS init");
+//     // ublox_m8_t ubx = {
+//     //     .uart_read_fnc = uart_ublox_read,
+//     //     .uart_write_fnc = uart_ublox_write,
+//     //     .delay_fnc = test,
+//     // };
+
+//     // ublox_m8_init(&ubx);
+//     // vTaskDelay(pdMS_TO_TICKS(1000));
+//     if (initialize_gps() == false) {
+//         ESP_LOGE(TAG, "GPS init error");
+//     }
+//     ESP_LOGI(TAG, "Expander init");
+//     gpioexp_init();
+//     gpioexp_led_set_color(CYAN);
+//     vTaskDelay(pdMS_TO_TICKS(100));
+//     gpioexp_led_set_color(YELLOW);
+//     vTaskDelay(pdMS_TO_TICKS(100));
+//     gpioexp_led_set_color(PURPLE);
+//     vTaskDelay(pdMS_TO_TICKS(100));
+//     gpioexp_led_set_color(GREEN);
+//     vTaskDelay(pdMS_TO_TICKS(100));
+//     gpioexp_led_set_color(RED);
+//     vTaskDelay(pdMS_TO_TICKS(100));
+//     gpioexp_led_set_color(BLUE);
+//     vTaskDelay(pdMS_TO_TICKS(100));
+//     gpioexp_led_set_color(WHITE);
+//     vTaskDelay(pdMS_TO_TICKS(100));
+//     gpioexp_led_set_color(NONE);
+
+//     initialize_timers();
+//     sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT);
+//     init_console();
+
+
+//     ublox_m8_pvt_t pvt;
+//     gps_positioning_t position;
+//     while (1) {
+//         // ublox_m8_get_ESFALG(&ubx, &esfalg);
+//         // if (ublox_m8_get_PVT(&ubx, &pvt) == true) {
+//         //     ESP_LOGI(TAG, "Fix type %d", pvt.fix_type);
+//         //     ESP_LOGI(TAG, "Sats %d", pvt.numSV);
+//         //     ESP_LOGI(TAG, "Lat %f", pvt.lat.data / 10e6);
+//         //     ESP_LOGI(TAG, "Long %f", pvt.lon.data / 10e6);
+//         //     ESP_LOGI(TAG, "Height %f", pvt.height.data / 10e3);
+//         // }
+//         position = gps_get_positioning();
+//         ESP_LOGI(TAG, "Fix type %d", position.fix_type);
+//         ESP_LOGI(TAG, "Sats %d", position.sats_in_view);
+//         ESP_LOGI(TAG, "Lat %f", position.latitude);
+//         ESP_LOGI(TAG, "Long %f", position.longitude);
+//         ESP_LOGI(TAG, "Height %f", position.altitude);
+//         uint64_t exp;
+//         sys_timer_get_expiry_time(TIMER_DISCONNECT, &exp);
+//         ESP_LOGI(TAG, "Timer -> %" PRIu64, (exp - esp_timer_get_time()) / 1000 / 1000);
+//         vTaskDelay(pdMS_TO_TICKS(1000));
+//     }
+// }
 
 // typedef struct {
 //     float x;

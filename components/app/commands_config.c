@@ -7,7 +7,8 @@
 #include "esp_now_config.h"
 #include "errors_config.h"
 #include "rocket_data.h"
-#include "recovery.h"
+#include "recovery_task_config.h"
+#include "system_timer_config.h"
 
 #define TAG "CMD"
 // COMMANDS
@@ -20,7 +21,7 @@ static bool state_change_check_countdown(void) {
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_NOT_ARMED, 100);
         return false;
     }
-    
+
     if (rocket_data_woken_up() == false) {
         ESP_LOGE(TAG, "On or more devices are sleeping");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_WAKE_UP, 100);
@@ -29,6 +30,7 @@ static bool state_change_check_countdown(void) {
 
     return true;
 }
+
 
 static void mcb_state_change(uint32_t command, int32_t payload, bool privilage) {
     ESP_LOGI(TAG, "Changing state to -> %d", payload);
@@ -48,19 +50,36 @@ static void mcb_state_change(uint32_t command, int32_t payload, bool privilage) 
 }
 
 static void mcb_abort(uint32_t command, int32_t payload, bool privilage) {
-    // SM_force_change_state(ABORT);
+    states_t state = SM_get_current_state();
+    if (state == FLIGHT && privilage == false) {
+        ESP_LOGW(TAG, "Abort skipped state == FLIGHT");
+        return;
+    }
+
+    if (state > FLIGHT) {
+        return;
+    }
+
+    SM_force_change_state(ABORT);
+
     ESP_LOGI(TAG, "ABORT");
 }
 
 static void mcb_hold(uint32_t command, int32_t payload, bool privilage) {
-    if (SM_get_current_state() == HOLD) {
+    states_t state = SM_get_current_state();
+    if (state == ABORT) {
+        return;
+    }
+
+
+    if (state == HOLD) {
         ESP_LOGI(TAG, "Leaving hold state");
         if (SM_get_previous_state() == COUNTDOWN) {
             SM_force_change_state(RDY_TO_LAUNCH);
         } else {
-            SM_change_to_previous_state(false);
+            SM_change_to_previous_state(true);
         }
-    } else {
+    } else if (state < FLIGHT) {
         SM_force_change_state(HOLD);
         ESP_LOGI(TAG, "HOLD");
     }
@@ -100,7 +119,10 @@ static void mcb_flash_enable(uint32_t command, int32_t payload, bool privilage) 
 }
 
 static void mcb_reset_disconnect_timer(uint32_t command, int32_t payload, bool privilage) {
-    ESP_LOGI(TAG, "Timer reset");
+    if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
+        ESP_LOGE(TAG, "Unable to restart timer");
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_DISCONNECT_TIMER, 100);
+    }
 }
 
 static cmd_command_t mcb_commands[] = {
