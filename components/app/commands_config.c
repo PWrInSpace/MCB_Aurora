@@ -9,6 +9,8 @@
 #include "rocket_data.h"
 #include "recovery_task_config.h"
 #include "system_timer_config.h"
+#include "settings_mem.h"
+#include "mission_timer_config.h"
 
 #define TAG "CMD"
 // COMMANDS
@@ -86,16 +88,20 @@ static void mcb_hold(uint32_t command, int32_t payload, bool privilage) {
 }
 
 static void mcb_change_lora_frequency_khz(uint32_t command, int32_t payload, bool privilage) {
+    // TO DO
     ESP_LOGI(TAG, "Change frequency");
 }
 
 static void mcb_change_lora_transmiting_period(uint32_t command, int32_t payload, bool privilage) {
     ESP_LOGI(TAG, "Transmiting time");
-    if (payload <= 0) {
+    if (payload <= 500) {
         ESP_LOGE(TAG, "Invalid period");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
         return;
     }
+
+    settings_save(SETTINGS_LORA_TRANSMIT_MS, payload);
+    settings_read_all();
 
     if (lora_change_receive_window_period(payload) == false) {
         ESP_LOGE(TAG, "Unable to change period");
@@ -107,11 +113,35 @@ static void mcb_change_lora_transmiting_period(uint32_t command, int32_t payload
 }
 
 static void mcb_change_countdown_time(uint32_t command, int32_t payload, bool privilage) {
-    ESP_LOGI(TAG, "Countdown time");
+    Settings settings = settings_get_all();
+    if (payload > settings.ignitTime || payload > -10000) {
+        ESP_LOGE(TAG, "Unable to set coundown time");
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
+    }
+
+    if (settings_save(SETTINGS_COUNTDOWN_TIME, payload) != ESP_OK) {
+        ESP_LOGE(TAG, "Unable to set coundown time");
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
+    }
+    settings_read_all();
+    settings = settings_get_all();
+
+    hybrid_mission_timer_set_disable_val(settings.countdownTime);
 }
 
 static void mcb_change_ignition_time(uint32_t command, int32_t payload, bool privilage) {
-    ESP_LOGI(TAG, "Change ignition time");
+    Settings settings = settings_get_all();
+    if (payload < settings.countdownTime || payload > 0) {
+        ESP_LOGE(TAG, "Unable to set ignition time");
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
+    }
+
+    if (settings_save(SETTINGS_IGNIT_TIME, payload) != ESP_OK) {
+        ESP_LOGE(TAG, "Unable to set ignition time");
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
+    }
+
+    settings_read_all();
 }
 
 static void mcb_flash_enable(uint32_t command, int32_t payload, bool privilage) {

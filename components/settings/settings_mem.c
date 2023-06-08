@@ -27,10 +27,10 @@ esp_err_t settings_init() {
 
 esp_err_t settings_save_all() {
 
-    esp_err_t err = settings_save(SETTINGS_LORA_FREQ_MHZ, settings.loraFreq_MHz);
+    esp_err_t err = settings_save(SETTINGS_LORA_FREQ_KHZ, settings.loraFreq_KHz);
     if (err) ESP_LOGE(SETTINGS_TAG, "%s\n", esp_err_to_name(err));
 
-    err = settings_save(SETTINGS_LORA_FREQ_MS, settings.loraFreq_ms);
+    err = settings_save(SETTINGS_LORA_TRANSMIT_MS, settings.lora_transmit_ms);
     if (err) ESP_LOGE(SETTINGS_TAG, "%s\n", esp_err_to_name(err));
 
     err = settings_save(SETTINGS_COUNTDOWN_TIME, settings.countdownTime);
@@ -44,8 +44,8 @@ esp_err_t settings_save_all() {
 
 esp_err_t settings_read_all() {
 
-    settings.loraFreq_MHz   = settings_read(SETTINGS_LORA_FREQ_MHZ);
-    settings.loraFreq_ms    = settings_read(SETTINGS_LORA_FREQ_MS);
+    settings.loraFreq_KHz   = settings_read(SETTINGS_LORA_FREQ_KHZ);
+    settings.lora_transmit_ms    = settings_read(SETTINGS_LORA_TRANSMIT_MS);
     settings.countdownTime  = settings_read(SETTINGS_COUNTDOWN_TIME);
     settings.ignitTime      = settings_read(SETTINGS_IGNIT_TIME);
 

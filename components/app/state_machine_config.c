@@ -12,6 +12,7 @@
 #include "rocket_data.h"
 #include "gpio_expander.h"
 #include "recovery_task_config.h"
+#include "settings_mem.h"
 
 #define TAG "SMC"
 static void on_init(void *arg) {
@@ -73,7 +74,9 @@ static void on_countdown(void *arg) {
         goto abort_countdown;
     }
 
-    if (hybrid_mission_timer_start(-30000, -13500) == false) {
+
+    Settings settings = settings_get_all();
+    if (hybrid_mission_timer_start(settings.countdownTime, settings.ignitTime) == false) {
         ESP_LOGE(TAG, "Mission timer error");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_DISCONNECT_TIMER, 100);
         goto abort_countdown;

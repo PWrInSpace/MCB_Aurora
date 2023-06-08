@@ -59,7 +59,6 @@ static void sensors_read_data(void *data_buffer) {
     data->temperature = bar.temperature;
     float prev_altitude = data->altitude;
     data->altitude = bmp5_wrapper_altitude(data->pressure) * FILTER_CONST + (1 - FILTER_CONST) * data->altitude;
-    ESP_LOGI(TAG, "ALTITUDE %f", data->altitude);
     data->velocity = (data->altitude - prev_altitude) / CONFIG_SENSORS_TASK_PERIOD_MS;
 
     mgos_imu_madgwick_get_angles(&madgwick, &data->roll, &data->pitch, &data->yaw);

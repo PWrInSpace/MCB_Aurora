@@ -54,15 +54,17 @@ inline static void CHECK_RESULT_BOOL(esp_err_t res, char *message) {
 
 static void TASK_init(void *arg) {
     CHECK_RESULT_ESP(settings_init(), "Change state");
+    Settings settings = settings_get_all();
+
     CHECK_RESULT_BOOL(rocket_data_init(), "data");
     CHECK_RESULT_BOOL(initialize_errors(), "Errors");
-    CHECK_RESULT_BOOL(hybrid_mission_timer_init(30000), "Mission timer");
+    CHECK_RESULT_BOOL(hybrid_mission_timer_init(settings.countdownTime), "Mission timer");
     CHECK_RESULT_BOOL(vbat_init(), "VBAT MEASUREMENT");
 
     CHECK_RESULT_BOOL(i2c_sensors_init(), "i2c sensors");
     CHECK_RESULT_BOOL(i2c_com_init(), "i2c com");
     CHECK_RESULT_BOOL(spi_init(VSPI_HOST, CONFIG_SPI_MOSI, CONFIG_SPI_MISO, CONFIG_SPI_SCK), "SPI");
-    CHECK_RESULT_BOOL(uart_init(CONFIG_UART_PORT_NUM, CONFIG_UART_TX, CONFIG_UART_RX, CONFIG_UART_BAUDRATE), 
+    CHECK_RESULT_BOOL(uart_init(CONFIG_UART_PORT_NUM, CONFIG_UART_TX, CONFIG_UART_RX, CONFIG_UART_BAUDRATE),
                     "UART init");
     CHECK_RESULT_BOOL(buzzer_init(), "Buzzer");
 

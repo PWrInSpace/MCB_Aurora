@@ -12,14 +12,14 @@
 #define SETTINGS_TAG "SettingsTag"
 
 #define SETTINGS_NAMESPACE "Settings"
-#define SETTINGS_LORA_FREQ_MHZ "lora_MHz"
-#define SETTINGS_LORA_FREQ_MS "lora_ms"
+#define SETTINGS_LORA_FREQ_KHZ "lora_MHz"
+#define SETTINGS_LORA_TRANSMIT_MS "lora_ms"
 #define SETTINGS_COUNTDOWN_TIME "countdownTime"
 #define SETTINGS_IGNIT_TIME "ignitTime"
 
 typedef struct {
-    int32_t loraFreq_MHz;
-    int32_t loraFreq_ms;
+    int32_t loraFreq_KHz;
+    int32_t lora_transmit_ms;
     int32_t countdownTime;
     int32_t ignitTime;
 } Settings;

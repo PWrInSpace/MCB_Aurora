@@ -37,4 +37,7 @@ bool hybrid_mission_timer_stop();
  */
 int hybrid_mission_timer_get_time();
 
+
+void hybrid_mission_timer_set_disable_val(int64_t time);
+
 #endif

@@ -11,6 +11,7 @@
 #include "esp_now_config.h"
 #include "commands.h"
 #include "settings_mem.h"
+#include "mission_timer_config.h"
 #define TAG "CONSOLE_CONFIG"
 
 static int read_flash(int argc, char** argv) {
@@ -113,7 +114,7 @@ static int disable_log(int argc, char **argv) {
     if (argc == 2) {
         esp_log_level_set(argv[1], ESP_LOG_WARN);
     } else {
-        esp_log_level_set("*", ESP_LOG_NONE);
+        esp_log_level_set("*", ESP_LOG_WARN);
     }
 
     return 0;
@@ -168,8 +169,8 @@ static int esp_now_send_main_valve(int argc, char **argv) {
 
 static int cli_settings_read_all(int argc, char **argv) {
     Settings settings = settings_get_all();
-    ESP_LOGI(TAG, "Lora freq MHZ %d", settings.loraFreq_MHz);
-    ESP_LOGI(TAG, "Lora transmit freq %d", settings.loraFreq_ms);
+    ESP_LOGI(TAG, "Lora freq MHZ %d", settings.loraFreq_KHz);
+    ESP_LOGI(TAG, "Lora transmit freq %d", settings.lora_transmit_ms);
     ESP_LOGI(TAG, "CDWN TIME %d", settings.countdownTime);
     ESP_LOGI(TAG, "Igni time %d", settings.ignitTime);
 
@@ -177,10 +178,58 @@ static int cli_settings_read_all(int argc, char **argv) {
 }
 
 static int cli_settings_init_default(int argc, char **argv) {
-    settings_save(SETTINGS_LORA_FREQ_MHZ, 868);
-    settings_save(SETTINGS_LORA_FREQ_MS, 2000);
+    settings_save(SETTINGS_LORA_FREQ_KHZ, 868000);
+    settings_save(SETTINGS_LORA_TRANSMIT_MS, 2000);
     settings_save(SETTINGS_COUNTDOWN_TIME, -30000);
     settings_save(SETTINGS_IGNIT_TIME, -13500);
+    settings_read_all();
+
+    return 0;
+}
+
+static int cli_change_countdown_time(int argc, char **argv) {
+    if (argc != 2) {
+        return -1;
+    }
+
+    int payload = atoi(argv[1]);
+
+    Settings settings = settings_get_all();
+    if (payload > settings.ignitTime || payload > -10000) {
+        ESP_LOGE(TAG, "Unable to set coundown time");
+        return -2;
+    }
+
+    if (settings_save(SETTINGS_COUNTDOWN_TIME, payload) != ESP_OK) {
+        ESP_LOGE(TAG, "Unable to set coundown time");
+        return -2;
+    }
+    settings_read_all();
+    settings = settings_get_all();
+
+    hybrid_mission_timer_set_disable_val(settings.countdownTime);
+
+    return 0;
+}
+
+static int cli_change_ignition_time(int argc, char **argv) {
+    if (argc != 2) {
+        return -1;
+    }
+
+    int payload = atoi(argv[1]);
+
+    Settings settings = settings_get_all();
+    if (payload < settings.countdownTime || payload > 0) {
+        ESP_LOGE(TAG, "Unable to set ignition time");
+        return -2;
+    }
+
+    if (settings_save(SETTINGS_IGNIT_TIME, payload) != ESP_OK) {
+        ESP_LOGE(TAG, "Unable to set ignition time");
+        return -2;
+    }
+
     settings_read_all();
 
     return 0;
@@ -202,6 +251,8 @@ static esp_console_cmd_t cmd[] = {
     {"en_mv", "send command to main valve", NULL, esp_now_send_main_valve, NULL},
     {"settings_all", "get all settings", NULL, cli_settings_read_all, NULL},
     {"settings_init", "init settings default", NULL, cli_settings_init_default, NULL},
+    {"settings_ignit", "change ignition time", NULL, cli_change_ignition_time, NULL},
+    {"settings_cdwn", "change countdown time", NULL, cli_change_countdown_time, NULL},
 };
 
 esp_err_t init_console() {
