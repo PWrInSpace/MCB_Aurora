@@ -77,7 +77,7 @@ static void mcb_hold(uint32_t command, int32_t payload, bool privilage) {
         if (SM_get_previous_state() == COUNTDOWN) {
             SM_force_change_state(RDY_TO_LAUNCH);
         } else {
-            SM_change_to_previous_state(false);
+            SM_change_to_previous_state(true);
         }
     } else if (state < FLIGHT) {
         SM_force_change_state(HOLD);
