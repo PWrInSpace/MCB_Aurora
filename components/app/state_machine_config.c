@@ -131,10 +131,29 @@ static void on_first_stage_recovery(void *arg) {
     ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 }
 
+static void on_ground_gps_process(gps_positioning_t *data) {
+    static uint8_t ground_counter = 0;
+    if (data->altitude < 50) {
+        ground_counter += 1;
+    } else {
+        ground_counter = 0;
+    }
+
+    if (ground_counter >= 5) {
+        if (SM_change_state(ON_GROUND) != SM_OK) {
+            errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
+        }
+    }
+}
+
 static void on_second_stage_recovery(void *arg) {
     ESP_LOGI(TAG, "ON SECOND_STAGE_RECOV");
     if (recovery_remove_process_fnc() == false) {
         ESP_LOGE(TAG, "Unable do remove process fnc");
+    }
+
+    if (gps_change_process_fnc(on_ground_gps_process) == false) {
+        ESP_LOGE(TAG, "Unable to add gps process function");
     }
 
     cmd_message_t cmd = cmd_create_message(VENT_VALVE_OPEN, 0x00);
@@ -142,6 +161,10 @@ static void on_second_stage_recovery(void *arg) {
 }
 
 static void on_ground(void *arg) {
+    if (gps_remove_process_fnc() == false) {
+        ESP_LOGE(TAG, "Unable to remove gps process fnc");
+    }
+
     if (sys_timer_delete(TIMER_SD_DATA) == false) {
         ESP_LOGE(TAG, "Unable to delete sd data timer");
     }

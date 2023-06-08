@@ -31,7 +31,7 @@ struct  LoRaFrame
    * mcb frame
    */
   uint32_t obc_state;
-  uint32_t uptime;
+  uint32_t dc_time;
   uint32_t flight_time;
   float mcb_battery;
   float gps_lat;

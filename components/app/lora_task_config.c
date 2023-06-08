@@ -42,7 +42,7 @@ static size_t lora_packet(uint8_t *buffer, size_t buffer_size) {
     size_t size;
     create_porotobuf_frame(&frame);
     size = lo_ra_frame__pack(&frame, buffer);
-    ESP_LOGI(TAG, "Sending LoRa frame -> size: %d", size);
+    ESP_LOGD(TAG, "Sending LoRa frame -> size: %d", size);
 
     return size;
 }

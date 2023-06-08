@@ -69,7 +69,7 @@ static void debug_data(void *arg) {
     char buffer[512];
     rocket_data_t rocket_data = rocket_data_get();
     pysd_create_sd_frame(buffer, sizeof(buffer), rocket_data, false);
-    ESP_LOGI(TAG, "%s", buffer);
+    ESP_LOGD(TAG, "%s", buffer);
 }
 
 bool initialize_timers(void) {

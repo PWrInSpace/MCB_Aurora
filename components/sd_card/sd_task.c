@@ -193,7 +193,6 @@ static bool check_if_file_exists(char *path) {
 static bool create_unique_path(char *path, size_t size) {
     char temp_path[SD_PATH_SIZE] = {0};
     int ret = 0;
-    ESP_LOGI(TAG, "%s", path);
     for (int i = 0; i < 1000; ++i) {
         ret = snprintf(temp_path, sizeof(temp_path), SD_MOUNT_POINT "/%s%d.txt", path, i);
         if (ret == SD_PATH_SIZE) {
@@ -201,7 +200,6 @@ static bool create_unique_path(char *path, size_t size) {
         }
 
         if (check_if_file_exists(temp_path) == false) {
-            ESP_LOGI(TAG, "TEST %s", temp_path);
             memcpy(path, temp_path, size);
             return true;
         }

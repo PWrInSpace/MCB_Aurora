@@ -46,10 +46,6 @@ static void recovery_process_data(void) {
         gb.recovery_data = copy;
     }
 
-    ESP_LOGI(TAG, "Telemetru %d", gb.recovery_data.isTeleActive);
-    ESP_LOGI(TAG, "EasyMini %d", gb.recovery_data.isArmed);
-    ESP_LOGI(TAG, "First %d", gb.recovery_data.telemetrumFirstStage);
-    ESP_LOGI(TAG, "Second %d", gb.recovery_data.telemetrumSecondStage);
     rocket_data_update_recovery(&gb.recovery_data);
 
     xSemaphoreTake(gb.processing_mutex, portMAX_DELAY);

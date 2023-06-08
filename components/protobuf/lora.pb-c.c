@@ -112,12 +112,12 @@ static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[35] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "uptime",
+    "dc_time",
     2,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT32,
     0,   /* quantifier_offset */
-    offsetof(LoRaFrame, uptime),
+    offsetof(LoRaFrame, dc_time),
     NULL,
     NULL,
     0,             /* flags */
@@ -497,7 +497,7 @@ static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[35] =
   },
   {
     "esp_now_byte_data",
-    34,
+    35,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_FIXED32,
     0,   /* quantifier_offset */
@@ -509,7 +509,7 @@ static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[35] =
   },
   {
     "errors",
-    35,
+    36,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_FIXED32,
     0,   /* quantifier_offset */
@@ -521,6 +521,7 @@ static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[35] =
   },
 };
 static const unsigned lo_ra_frame__field_indices_by_name[] = {
+  1,   /* field[1] = dc_time */
   34,   /* field[34] = errors */
   33,   /* field[33] = esp_now_byte_data */
   10,   /* field[10] = euler_fi */
@@ -553,13 +554,13 @@ static const unsigned lo_ra_frame__field_indices_by_name[] = {
   27,   /* field[27] = tanwa_state */
   30,   /* field[30] = temperature1 */
   31,   /* field[31] = temperature2 */
-  1,   /* field[1] = uptime */
   22,   /* field[22] = vent_battery */
   24,   /* field[24] = vent_byte_data */
 };
-static const ProtobufCIntRange lo_ra_frame__number_ranges[1 + 1] =
+static const ProtobufCIntRange lo_ra_frame__number_ranges[2 + 1] =
 {
   { 1, 0 },
+  { 35, 33 },
   { 0, 35 }
 };
 const ProtobufCMessageDescriptor lo_ra_frame__descriptor =
@@ -573,7 +574,7 @@ const ProtobufCMessageDescriptor lo_ra_frame__descriptor =
   35,
   lo_ra_frame__field_descriptors,
   lo_ra_frame__field_indices_by_name,
-  1,  lo_ra_frame__number_ranges,
+  2,  lo_ra_frame__number_ranges,
   (ProtobufCMessageInit) lo_ra_frame__init,
   NULL,NULL,NULL    /* reserved[123] */
 };

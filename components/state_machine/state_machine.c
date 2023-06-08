@@ -209,7 +209,7 @@ static void SM_loop(void *arg) {
             if (sm.states[sm.current_state].callback != NULL) {
                 sm.states[sm.current_state].callback(sm.states[sm.current_state].arg);
             }
-            
+
             if (state + 1 >= sm.states_quantity) {
                 ESP_LOGI(TAG, "End function enable");
                 sm_completed = true;

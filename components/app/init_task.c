@@ -87,6 +87,7 @@ static void TASK_init(void *arg) {
 
     CHECK_RESULT_BOOL(initialize_lora(), "LORA");
     CHECK_RESULT_ESP(init_console(), "CLI");
+    esp_log_level_set("*", ESP_LOG_INFO);
 
     CHECK_RESULT_ESP(SM_change_state(IDLE), "Change state to idle");
     vTaskDelete(NULL);

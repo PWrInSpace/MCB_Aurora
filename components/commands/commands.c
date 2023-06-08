@@ -74,7 +74,7 @@ static bool process_command(cmd_t *cmd,
     if (get_device_index(cmd, dev_id, &index) == false) {
         return false;
     }
-    ESP_LOGI(TAG, "INDEX %d", index);
+
     return find_command_and_execute(&cmd->devices[index], message, privilage);
 }
 

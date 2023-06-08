@@ -10,8 +10,13 @@ static struct {
     gps_positioning_t position;
     SemaphoreHandle_t data_mutex;
     basic_task_t task;
+
+    SemaphoreHandle_t processing_mutex;
+    gps_task_process_fnc process_fnc;
 } gb = {
     .data_mutex = NULL,
+    .process_fnc = NULL,
+    .processing_mutex = NULL,
 };
 
 static void ubx_delay(uint32_t millis) {
@@ -29,6 +34,36 @@ static void process_gps_data(void) {
     gb.position.sats_in_view = pvt.numSV;
     gb.position.fix_type = pvt.fix_type;
     xSemaphoreGive(gb.data_mutex);
+
+    xSemaphoreTake(gb.processing_mutex, portMAX_DELAY);
+    if (gb.process_fnc != NULL) {
+        gb.process_fnc(&gb.position);
+    }
+    xSemaphoreGive(gb.processing_mutex);
+}
+
+bool gps_change_process_fnc(gps_task_process_fnc fnc) {
+    if (xSemaphoreTake(gb.processing_mutex, pdMS_TO_TICKS(5000)) != pdTRUE) {
+        return false;
+    }
+
+    gb.process_fnc = fnc;
+
+    xSemaphoreGive(gb.processing_mutex);
+
+    return true;
+}
+
+bool gps_remove_process_fnc(void) {
+    if (xSemaphoreTake(gb.processing_mutex, pdMS_TO_TICKS(5000)) != pdTRUE) {
+        return false;
+    }
+
+    gb.process_fnc = NULL;
+
+    xSemaphoreGive(gb.processing_mutex);
+
+    return true;
 }
 
 bool initialize_gps(void) {
@@ -42,6 +77,11 @@ bool initialize_gps(void) {
 
     gb.data_mutex = xSemaphoreCreateMutex();
     if (gb.data_mutex == NULL) {
+        return false;
+    }
+
+    gb.processing_mutex = xSemaphoreCreateMutex();
+    if (gb.processing_mutex == NULL) {
         return false;
     }
 

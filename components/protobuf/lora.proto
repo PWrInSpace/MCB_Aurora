@@ -3,7 +3,7 @@ syntax = "proto2";
 message LoRaFrame {
     // mcb frame
     required uint32 obc_state = 1;
-    required uint32 uptime = 2;
+    required uint32 dc_time = 2;
     required uint32 flight_time = 3;
     required float mcb_battery = 4;
     required float gps_lat = 5;

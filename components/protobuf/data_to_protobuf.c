@@ -16,13 +16,15 @@ void create_porotobuf_frame(LoRaFrame *frame) {
 
     // mcb
     frame->obc_state = data.mcb.state;
-    frame->uptime = data.mcb.disconnect_timer;
+    frame->dc_time = data.mcb.disconnect_timer;
     frame->flight_time = data.mcb.flight_time;
     frame->mcb_battery = data.mcb.battery_voltage;
-    frame->mcb_altitude = data.mcb.altitude;
     frame->gps_lat = data.mcb.latitude;
     frame->gps_long = data.mcb.longitude;
     frame->gps_sat = data.mcb.satelites_in_view;
+
+    frame->mcb_altitude = data.mcb.altitude;
+    frame->mcb_velocity = data.mcb.velocity;
     frame->mcb_temperature = data.mcb.temperature;
     frame->euler_psi = data.mcb.yaw;
     frame->euler_theta = data.mcb.roll;
@@ -68,7 +70,7 @@ void create_porotobuf_frame(LoRaFrame *frame) {
     frame->tanwa_state = data.tanwa.tanWaState;
     frame->rocket_weight = data.tanwa.rocketWeight_val;
     frame->tank_weight = data.tanwa.tankWeight_val;
-    frame->tanwa_byte_data |= 0x00;
+    frame->tanwa_byte_data |= 0x00; // TO DO
 
     // esp now
     frame->esp_now_byte_data |= (data.pitot.waken_up << 0);
