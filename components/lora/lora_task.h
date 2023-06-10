@@ -34,6 +34,8 @@ typedef struct {
     lora_task_process_rx_packet process_rx_packet_fnc;
     lora_task_get_tx_packet get_tx_packet_fnc;
     lora_struct_t *lora;
+    uint32_t frequency_khz;
+    uint32_t transmiting_period;
 } lora_api_config_t;
 
 /**
@@ -53,5 +55,7 @@ bool lora_task_init(lora_api_config_t *cfg);
 void lora_task_irq_notify(void *arg);
 
 bool lora_change_receive_window_period(uint32_t period_ms);
+
+bool lora_change_frequency(uint32_t frequency_khz);
 
 #endif

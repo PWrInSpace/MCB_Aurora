@@ -3,7 +3,7 @@
 #include "commands_config.h"
 #include "esp_log.h"
 #include "state_machine_config.h"
-#include "lora_task.h"
+#include "lora_task_config.h"
 #include "esp_now_config.h"
 #include "errors_config.h"
 #include "rocket_data.h"
@@ -73,7 +73,6 @@ static void mcb_hold(uint32_t command, int32_t payload, bool privilage) {
         return;
     }
 
-
     if (state == HOLD) {
         ESP_LOGI(TAG, "Leaving hold state");
         if (SM_get_previous_state() == COUNTDOWN) {
@@ -88,7 +87,21 @@ static void mcb_hold(uint32_t command, int32_t payload, bool privilage) {
 }
 
 static void mcb_change_lora_frequency_khz(uint32_t command, int32_t payload, bool privilage) {
-    // TO DO
+    if (payload < 4e5 || payload > 1e6) {
+        ESP_LOGE(TAG, "Invalid frequency");
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
+        return;
+    }
+
+    if (lora_change_frequency(payload)  == false) {
+        ESP_LOGE(TAG, "Unable to change lora frequency");
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
+        return;
+    }
+
+    settings_save(SETTINGS_LORA_FREQ_KHZ, payload);
+    settings_read_all();
+
     ESP_LOGI(TAG, "Change frequency");
 }
 
@@ -100,14 +113,14 @@ static void mcb_change_lora_transmiting_period(uint32_t command, int32_t payload
         return;
     }
 
-    settings_save(SETTINGS_LORA_TRANSMIT_MS, payload);
-    settings_read_all();
-
     if (lora_change_receive_window_period(payload) == false) {
         ESP_LOGE(TAG, "Unable to change period");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
         return;
     }
+
+    settings_save(SETTINGS_LORA_TRANSMIT_MS, payload);
+    settings_read_all();
 
     ESP_LOGI(TAG, "Tranismiting period change to %d ms", payload);
 }
@@ -145,8 +158,31 @@ static void mcb_change_ignition_time(uint32_t command, int32_t payload, bool pri
 }
 
 static void mcb_flash_enable(uint32_t command, int32_t payload, bool privilage) {
-    ESP_LOGI(TAG, "Flash enable");
+    ESP_LOGW(TAG, "Command not implemented");
 }
+
+static void mcb_settings_frame(uint32_t command, int32_t payload, bool privilage) {
+    lora_send_settings_frame();
+}
+
+static void mcb_reset_errors(uint32_t command, int32_t payload, bool privilage) {
+    errors_reset_all();
+}
+
+
+static void mcb_reset_dev(uint32_t command, int32_t payload, bool privilage) {
+    if (privilage == false) {
+        return;
+    }
+
+    states_t state = SM_get_current_state();
+    if (state >= COUNTDOWN && state <= ON_GROUND) {
+        return;
+    }
+
+    esp_restart();
+}
+
 
 static void mcb_reset_disconnect_timer(uint32_t command, int32_t payload, bool privilage) {
     if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
@@ -164,11 +200,18 @@ static cmd_command_t mcb_commands[] = {
     {MCB_CHANGE_COUNTODWN_TIME,     mcb_change_countdown_time},
     {MCB_CHANGE_IGNITION_TIME,      mcb_change_ignition_time},
     {MCB_FLASH_ENABLE,              mcb_flash_enable},
+    {MCB_SETTINGS_FRAME,            mcb_settings_frame},
+    {MCB_RESET_ERRORS,              mcb_reset_errors},
+    {MCB_RESET_DEV,                 mcb_reset_dev},
     {MCB_RESET_DISCONNECT_TIMER,    mcb_reset_disconnect_timer},
 };
 
 // RECOVERY
-static void send_command_recovery(uint32_t command, int32_t payload) {
+static void send_command_recovery(uint32_t command, int32_t payload, bool privilage) {
+    if (privilage == false) {
+        return;
+    }
+
     if (recovery_send_cmd(command, payload) == false) {
         errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
         ESP_LOGE(TAG, "Recovery send error :C");
@@ -177,27 +220,27 @@ static void send_command_recovery(uint32_t command, int32_t payload) {
 
 
 static void recov_easymini_arm(uint32_t command, int32_t payload, bool privilage) {
-    send_command_recovery(command, payload);
+    send_command_recovery(command, payload, privilage);
 }
 
 static void recov_easymini_disarm(uint32_t command, int32_t payload, bool privilage) {
-    send_command_recovery(command, payload);
+    send_command_recovery(command, payload, privilage);
 }
 
 static void recov_telemetrum_arm(uint32_t command, int32_t payload, bool privilage) {
-    send_command_recovery(command, payload);
+    send_command_recovery(command, payload, privilage);
 }
 
 static void recov_telemetrum_disarm(uint32_t command, int32_t payload, bool privilage) {
-    send_command_recovery(command, payload);
+    send_command_recovery(command, payload, privilage);
 }
 
 static void recov_force_first_separation(uint32_t command, int32_t payload, bool privilage) {
-    send_command_recovery(command, payload);
+    send_command_recovery(command, payload, privilage);
 }
 
 static void recov_force_second_separation(uint32_t command, int32_t payload, bool privilage) {
-    send_command_recovery(command, payload);
+    send_command_recovery(command, payload, privilage);
 }
 
 static cmd_command_t recovery_commands[] = {
@@ -224,15 +267,26 @@ static void mval_valve_close(uint32_t command, int32_t payload, bool privilage) 
 }
 
 static void mval_valve_open(uint32_t command, int32_t payload, bool privilage) {
+    if (privilage == false) {
+        return;
+    }
+
     send_command_esp_now(&esp_now_main_valve, command, payload);
 }
 
-
 static void mval_valve_open_angle(uint32_t command, int32_t payload, bool privilage) {
+    if (privilage == false) {
+        return;
+    }
+
     send_command_esp_now(&esp_now_main_valve, command, payload);
 }
 
 static void mval_valve_calibrate(uint32_t command, int32_t payload, bool privilage) {
+    if (privilage == false) {
+        return;
+    }
+
     send_command_esp_now(&esp_now_main_valve, command, payload);
 }
 
@@ -278,26 +332,17 @@ static cmd_command_t vent_valve_commands[] = {
 
 // DEVICES
 
-typedef enum {
-    MCB = 0x01,
-    RECOVERY = 0x02,
-    TANWA = 0x03,
-    MAIN_VALVE = 0x04,
-    VENT_VALVE = 0x05,
-    PITOT = 0x06,
-} device_t;
-
 #define SIZE_OF(x) sizeof(x) / sizeof(x[0])
 
 static cmd_device_t devices[] = {
-    {MCB,           mcb_commands,           SIZE_OF(mcb_commands)},
-    {RECOVERY,      recovery_commands,      SIZE_OF(recovery_commands)},
-    {MAIN_VALVE,    main_valve_commands,    SIZE_OF(main_valve_commands)},
-    {VENT_VALVE,    vent_valve_commands,    SIZE_OF(vent_valve_commands)},
+    {DEVICE_MCB,           mcb_commands,           SIZE_OF(mcb_commands)},
+    {DEVICE_RECOVERY,      recovery_commands,      SIZE_OF(recovery_commands)},
+    {DEVICE_MAIN_VALVE,    main_valve_commands,    SIZE_OF(main_valve_commands)},
+    {DEVICE_VENT_VALVE,    vent_valve_commands,    SIZE_OF(vent_valve_commands)},
 };
 
 static cmd_t commands = {
-    .lora_dev_id = 0x02,
+    .lora_dev_id = LORA_DEV_ID,
     .devices = devices,
     .number_of_devices = SIZE_OF(devices),
 };

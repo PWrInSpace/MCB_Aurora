@@ -3,10 +3,11 @@
 #include "rocket_data.h"
 #include "errors_config.h"
 #include "esp_log.h"
+#include "settings_mem.h"
 
 #define TAG "PBF"
 
-void create_porotobuf_frame(LoRaFrame *frame) {
+void create_porotobuf_data_frame(LoRaFrame *frame) {
     rocket_data_t data = rocket_data_get();
     lo_ra_frame__init(frame);   // fill struct with 0
     error_data_t errors[MAX_NUMBER_OF_ERRORS];
@@ -70,7 +71,16 @@ void create_porotobuf_frame(LoRaFrame *frame) {
     frame->tanwa_state = data.tanwa.tanWaState;
     frame->rocket_weight = data.tanwa.rocketWeight_val;
     frame->tank_weight = data.tanwa.tankWeight_val;
-    frame->tanwa_byte_data |= 0x00; // TO DO
+
+    frame->tanwa_byte_data |= data.tanwa.motorState_1;
+    frame->tanwa_byte_data |= (data.tanwa.motorState_2 << 3);
+    frame->tanwa_byte_data |= (data.tanwa.motorState_3 << 6);
+    frame->tanwa_byte_data |= (data.tanwa.motorState_4 << 9);
+    frame->tanwa_byte_data |= (data.tanwa.hxRequest_RCK << 20);
+    frame->tanwa_byte_data |= (data.tanwa.hxRequest_TANK << 22);
+
+    frame->tanwa_byte_data |= (data.tanwa.igniterContinouity_1 << 30);
+    frame->tanwa_byte_data |= (data.tanwa.igniterContinouity_2 << 31);
 
     // esp now
     frame->esp_now_byte_data |= (data.pitot.waken_up << 0);
@@ -92,4 +102,12 @@ void create_porotobuf_frame(LoRaFrame *frame) {
     frame->errors |= (errors[ERROR_TYPE_MEMORY] << 16);
     frame->errors |= (errors[ERROR_TYPE_MCB] << 24);
     frame->errors |= (errors[ERROR_TYPE_SENSORS] << 28);
+}
+
+void create_protobuf_settings_frame(LoRaSettings *frame) {
+    Settings settings = settings_get_all();
+    frame->countdown_time = settings.countdownTime;
+    frame->ingition_time = settings.ignitTime;
+    frame->lora_freq_khz = settings.loraFreq_KHz;
+    frame->lora_transmit_ms = settings.lora_transmit_ms;
 }

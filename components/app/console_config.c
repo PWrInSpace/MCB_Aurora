@@ -1,20 +1,22 @@
 // Copyright 2022 PWrInSpace, Kuba
 #include "console_config.h"
+
+#include "commands.h"
+#include "commands_config.h"
 #include "console.h"
-#include "flash_task.h"
 #include "esp_log.h"
+#include "esp_now_config.h"
 #include "esp_system.h"
-#include "gen_pysd.h"
 #include "flash.h"
+#include "flash_task.h"
+#include "gen_pysd.h"
+#include "mission_timer_config.h"
+#include "settings_mem.h"
 #include "state_machine_config.h"
 #include "system_timer_config.h"
-#include "esp_now_config.h"
-#include "commands.h"
-#include "settings_mem.h"
-#include "mission_timer_config.h"
 #define TAG "CONSOLE_CONFIG"
 
-static int read_flash(int argc, char** argv) {
+static int read_flash(int argc, char **argv) {
     esp_log_level_set("*", ESP_LOG_NONE);
     FILE *file = NULL;
     file = fopen(FLASH_PATH, "r");
@@ -36,17 +38,17 @@ static int read_flash(int argc, char** argv) {
     return 0;
 }
 
-static int reset_device(int argc, char** arg) {
+static int reset_device(int argc, char **arg) {
     esp_restart();
     return 0;
 }
 
-static int flash_start(int argc, char** arg ) {
+static int flash_start(int argc, char **arg) {
     FT_erase_and_run_loop();
     return 0;
 }
 
-static int flash_terminate(int argc, char ** arg) {
+static int flash_terminate(int argc, char **arg) {
     FT_terminate_task();
     return 0;
 }
@@ -56,9 +58,8 @@ static int change_state(int argc, char **argv) {
         return -1;
     }
 
-    int state = atoi(argv[1]);
-
-    if (SM_change_state(state) != SM_OK) {
+    cmd_message_t command = cmd_create_message(MCB_STATE_CHANGE, atoi(argv[1]));
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
         return -1;
     }
 
@@ -130,13 +131,11 @@ static int enable_log(int argc, char **argv) {
     return 0;
 }
 
-
 static int reset_dc_timer(int argc, char **argv) {
-    if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
-        ESP_LOGE(TAG, "Unable to restart timer");
+    cmd_message_t command = cmd_create_message(MCB_RESET_DISCONNECT_TIMER, 0);
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
         return -1;
     }
-    ESP_LOGW(TAG, "Timer restarted");
     return 0;
 }
 
@@ -192,22 +191,10 @@ static int cli_change_countdown_time(int argc, char **argv) {
         return -1;
     }
 
-    int payload = atoi(argv[1]);
-
-    Settings settings = settings_get_all();
-    if (payload > settings.ignitTime || payload > -10000) {
-        ESP_LOGE(TAG, "Unable to set coundown time");
-        return -2;
+    cmd_message_t command = cmd_create_message(MCB_CHANGE_COUNTODWN_TIME, atoi(argv[1]));
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
+        return -1;
     }
-
-    if (settings_save(SETTINGS_COUNTDOWN_TIME, payload) != ESP_OK) {
-        ESP_LOGE(TAG, "Unable to set coundown time");
-        return -2;
-    }
-    settings_read_all();
-    settings = settings_get_all();
-
-    hybrid_mission_timer_set_disable_val(settings.countdownTime);
 
     return 0;
 }
@@ -217,20 +204,36 @@ static int cli_change_ignition_time(int argc, char **argv) {
         return -1;
     }
 
-    int payload = atoi(argv[1]);
-
-    Settings settings = settings_get_all();
-    if (payload < settings.countdownTime || payload > 0) {
-        ESP_LOGE(TAG, "Unable to set ignition time");
-        return -2;
+    cmd_message_t command = cmd_create_message(MCB_CHANGE_IGNITION_TIME, atoi(argv[1]));
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
+        return -1;
     }
 
-    if (settings_save(SETTINGS_IGNIT_TIME, payload) != ESP_OK) {
-        ESP_LOGE(TAG, "Unable to set ignition time");
-        return -2;
+    return 0;
+}
+
+static int cli_change_lora_transmiting_period(int argc, char **argv) {
+    if (argc != 2) {
+        return -1;
     }
 
-    settings_read_all();
+    cmd_message_t command = cmd_create_message(MCB_CHANGE_TX_PERIOD, atoi(argv[1]));
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
+        return -1;
+    }
+
+    return 0;
+}
+
+static int cli_change_lora_frequency(int argc, char **argv) {
+    if (argc != 2) {
+        return -1;
+    }
+
+    cmd_message_t command = cmd_create_message(MCB_CHANGE_LORA_FREQ, atoi(argv[1]));
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
+        return -1;
+    }
 
     return 0;
 }
@@ -253,12 +256,16 @@ static esp_console_cmd_t cmd[] = {
     {"settings_init", "init settings default", NULL, cli_settings_init_default, NULL},
     {"settings_ignit", "change ignition time", NULL, cli_change_ignition_time, NULL},
     {"settings_cdwn", "change countdown time", NULL, cli_change_countdown_time, NULL},
+    {"lora_period", "change lora transmit period ms", NULL,
+     cli_change_lora_transmiting_period, NULL},
+    {"lora_frequency", "change lora frerquency ms", NULL,
+     cli_change_lora_frequency, NULL},
 };
 
 esp_err_t init_console() {
     esp_err_t ret;
     ret = console_init();
-    ret = console_register_commands(cmd, sizeof(cmd)/sizeof(cmd[0]));
+    ret = console_register_commands(cmd, sizeof(cmd) / sizeof(cmd[0]));
     // ESP_LOGW(TAG, "%s", esp_err_to_name(ret));
     return ret;
 }

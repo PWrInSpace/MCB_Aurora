@@ -97,6 +97,51 @@ void   lo_ra_command__free_unpacked
   assert(message->base.descriptor == &lo_ra_command__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   lo_ra_settings__init
+                     (LoRaSettings         *message)
+{
+  static const LoRaSettings init_value = LO_RA_SETTINGS__INIT;
+  *message = init_value;
+}
+size_t lo_ra_settings__get_packed_size
+                     (const LoRaSettings *message)
+{
+  assert(message->base.descriptor == &lo_ra_settings__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t lo_ra_settings__pack
+                     (const LoRaSettings *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &lo_ra_settings__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t lo_ra_settings__pack_to_buffer
+                     (const LoRaSettings *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &lo_ra_settings__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+LoRaSettings *
+       lo_ra_settings__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (LoRaSettings *)
+     protobuf_c_message_unpack (&lo_ra_settings__descriptor,
+                                allocator, len, data);
+}
+void   lo_ra_settings__free_unpacked
+                     (LoRaSettings *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &lo_ra_settings__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[35] =
 {
   {
@@ -653,5 +698,82 @@ const ProtobufCMessageDescriptor lo_ra_command__descriptor =
   lo_ra_command__field_indices_by_name,
   1,  lo_ra_command__number_ranges,
   (ProtobufCMessageInit) lo_ra_command__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor lo_ra_settings__field_descriptors[4] =
+{
+  {
+    "lora_freq_khz",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaSettings, lora_freq_khz),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "lora_transmit_ms",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaSettings, lora_transmit_ms),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "countdown_time",
+    3,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaSettings, countdown_time),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "ingition_time",
+    4,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaSettings, ingition_time),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned lo_ra_settings__field_indices_by_name[] = {
+  2,   /* field[2] = countdown_time */
+  3,   /* field[3] = ingition_time */
+  0,   /* field[0] = lora_freq_khz */
+  1,   /* field[1] = lora_transmit_ms */
+};
+static const ProtobufCIntRange lo_ra_settings__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 4 }
+};
+const ProtobufCMessageDescriptor lo_ra_settings__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "LoRaSettings",
+  "LoRaSettings",
+  "LoRaSettings",
+  "",
+  sizeof(LoRaSettings),
+  4,
+  lo_ra_settings__field_descriptors,
+  lo_ra_settings__field_indices_by_name,
+  1,  lo_ra_settings__number_ranges,
+  (ProtobufCMessageInit) lo_ra_settings__init,
   NULL,NULL,NULL    /* reserved[123] */
 };

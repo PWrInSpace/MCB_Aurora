@@ -5,13 +5,18 @@
 #include "esp_log.h"
 #include "lora.pb-c.h"
 #include "lora_hw_config.h"
-#include "lora_task.h"
 #include "sdkconfig.h"
 #include "utils.h"
 #include "errors_config.h"
 #include "system_timer_config.h"
 
 #define TAG "LORA_C"
+
+static bool settings_frame = false;
+
+void lora_send_settings_frame(void) {
+    settings_frame = true;
+}
 
 static void lora_process(uint8_t *packet, size_t packet_size) {
     LoRaCommand *received = lo_ra_command__unpack(NULL, packet_size, packet);
@@ -28,26 +33,44 @@ static void lora_process(uint8_t *packet, size_t packet_size) {
             return;
         }
 
-        // if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
-        //     ESP_LOGE(TAG, "Unable to restart timer");
-        // }
+        if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
+            ESP_LOGE(TAG, "Unable to restart timer");
+        }
     } else {
         errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 200);
         ESP_LOGE(TAG, "Unable to decode received package");
     }
 }
 
-static size_t lora_packet(uint8_t *buffer, size_t buffer_size) {
+static size_t lora_create_settings_packet(uint8_t* buffer) {
+    LoRaSettings frame;
+    create_protobuf_settings_frame(&frame);
+    return lo_ra_settings__pack(&frame, buffer);
+}
+
+static size_t lora_create_data_packet(uint8_t *buffer) {
     LoRaFrame frame;
-    size_t size;
-    create_porotobuf_frame(&frame);
-    size = lo_ra_frame__pack(&frame, buffer);
+    create_porotobuf_data_frame(&frame);
+    return lo_ra_frame__pack(&frame, buffer);
+}
+
+static size_t lora_packet(uint8_t *buffer, size_t buffer_size) {
+    size_t size = 0;
+
+    if (settings_frame == true) {
+        size = lora_create_settings_packet(buffer);
+        settings_frame = false;
+        ESP_LOGI(TAG, "Transmiting settings frame");
+    } else {
+        size = lora_create_data_packet(buffer);
+    }
+
     ESP_LOGD(TAG, "Sending LoRa frame -> size: %d", size);
 
     return size;
 }
 
-bool initialize_lora(void) {
+bool initialize_lora(uint32_t frequency_khz, uint32_t transmiting_period) {
     RETURN_ON_FALSE(lora_hw_spi_add_device(VSPI_HOST));
     RETURN_ON_FALSE(lora_hw_set_gpio());
     RETURN_ON_FALSE(lora_hw_attach_d0_interrupt(lora_task_irq_notify));
@@ -64,6 +87,8 @@ bool initialize_lora(void) {
         .lora = &lora,
         .process_rx_packet_fnc = lora_process,
         .get_tx_packet_fnc = lora_packet,
+        .frequency_khz = frequency_khz,
+        .transmiting_period = transmiting_period,
     };
     RETURN_ON_FALSE(lora_task_init(&cfg));
     return true;

@@ -1,34 +1,34 @@
 // Copyright 2022 PWrInSpace, Kuba
 #include "init_task.h"
 
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "spi.h"
-#include "uart.h"
-#include "i2c.h"
+#include "buzzer_pwm.h"
 #include "console_config.h"
+#include "errors_config.h"
 #include "esp_log.h"
 #include "esp_now_config.h"
 #include "esp_system.h"
 #include "esp_timer.h"
 #include "flash_task_config.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "gpio_expander.h"
+#include "gps_task_config.h"
+#include "i2c.h"
 #include "lora.pb-c.h"
 #include "lora_hw_config.h"
 #include "lora_task.h"
 #include "lora_task_config.h"
+#include "mission_timer_config.h"
 #include "processing_task_config.h"
+#include "recovery_task_config.h"
 #include "rocket_data.h"
-#include "errors_config.h"
 #include "sd_card_config.h"
+#include "settings_mem.h"
+#include "spi.h"
 #include "state_machine_config.h"
 #include "system_timer_config.h"
+#include "uart.h"
 #include "utils.h"
-#include "mission_timer_config.h"
-#include "settings_mem.h"
-#include "gpio_expander.h"
-#include "gps_task_config.h"
-#include "recovery_task_config.h"
-#include "buzzer_pwm.h"
 #include "vbat_wrapper.h"
 
 #define TAG "INIT"
@@ -64,8 +64,9 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(i2c_sensors_init(), "i2c sensors");
     CHECK_RESULT_BOOL(i2c_com_init(), "i2c com");
     CHECK_RESULT_BOOL(spi_init(VSPI_HOST, CONFIG_SPI_MOSI, CONFIG_SPI_MISO, CONFIG_SPI_SCK), "SPI");
-    CHECK_RESULT_BOOL(uart_init(CONFIG_UART_PORT_NUM, CONFIG_UART_TX, CONFIG_UART_RX, CONFIG_UART_BAUDRATE),
-                    "UART init");
+    CHECK_RESULT_BOOL(
+        uart_init(CONFIG_UART_PORT_NUM, CONFIG_UART_TX, CONFIG_UART_RX, CONFIG_UART_BAUDRATE),
+        "UART init");
     CHECK_RESULT_BOOL(buzzer_init(), "Buzzer");
 
     CHECK_RESULT_BOOL(gpioexp_init(), "GPIO Expander");
@@ -79,17 +80,19 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_gps(), "Gps task");
     CHECK_RESULT_BOOL(initialize_recovery(), "Recovery task");
 
-
     CHECK_RESULT_BOOL(initialize_timers(), "TIMERS");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_ESP_NOW_BROADCAST, 500, TIMER_TYPE_PERIODIC),
                       "ESP_NOW_TIMER");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT), "DC TIMER");
+    CHECK_RESULT_BOOL(
+        sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT),
+        "DC TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_BUZZER, 2000, TIMER_TYPE_PERIODIC), "BUZZER TIMER");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_CONNECTED_DEV, 40000, TIMER_TYPE_PERIODIC), "CONNECTED TIMER");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_CONNECTED_DEV, 40000, TIMER_TYPE_PERIODIC),
+                      "CONNECTED TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 30, TIMER_TYPE_PERIODIC), "SD TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_DEBUG, 1000, TIMER_TYPE_PERIODIC), "DEBUG TIMER");
 
-    CHECK_RESULT_BOOL(initialize_lora(), "LORA");
+    CHECK_RESULT_BOOL(initialize_lora(settings.loraFreq_KHz, settings.lora_transmit_ms), "LORA");
     CHECK_RESULT_ESP(init_console(), "CLI");
     esp_log_level_set("*", ESP_LOG_INFO);
 
