@@ -19,6 +19,11 @@ void lora_send_settings_frame(void) {
 }
 
 static void lora_process(uint8_t *packet, size_t packet_size) {
+    if (packet_size > 20) {
+        ESP_LOGI(TAG, "Recevied packet is too big");
+        return;
+    }
+
     LoRaCommand *received = lo_ra_command__unpack(NULL, packet_size, packet);
     if (received != NULL) {
         ESP_LOGI(TAG, "Received LORA_ID %d, DEV_ID %d, COMMAND %d, PLD %d", received->lora_dev_id,

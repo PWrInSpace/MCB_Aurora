@@ -166,7 +166,7 @@ static void mcb_settings_frame(uint32_t command, int32_t payload, bool privilage
 }
 
 static void mcb_reset_errors(uint32_t command, int32_t payload, bool privilage) {
-    errors_reset_all();
+    errors_reset_all(1000);
 }
 
 
@@ -217,7 +217,6 @@ static void send_command_recovery(uint32_t command, int32_t payload, bool privil
         ESP_LOGE(TAG, "Recovery send error :C");
     }
 }
-
 
 static void recov_easymini_arm(uint32_t command, int32_t payload, bool privilage) {
     send_command_recovery(command, payload, privilage);

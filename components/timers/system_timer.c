@@ -106,10 +106,16 @@ bool sys_timer_delete(sys_timer_id_t id) {
         return false;
     }
 
-    if (esp_timer_stop(gb.timers[index].timer_handle) == ESP_OK) {
-        ESP_LOGW(TAG, "TIMER WAS RUNNING");
+    if (esp_timer_stop(gb.timers[index].timer_handle) != ESP_OK) {
+        ESP_LOGW(TAG, "TIMER stop error");
+        return false;
     }
-    esp_timer_delete(gb.timers[index].timer_handle);
+
+    if (esp_timer_delete(gb.timers[index].timer_handle) != ESP_OK) {
+        ESP_LOGE(TAG, "Timer delete error");
+        return false;
+    }
+
     return true;
 }
 
@@ -135,8 +141,12 @@ bool sys_timer_get_expiry_time(sys_timer_id_t id, uint64_t *expiry) {
         return false;
     }
 
+    if (esp_timer_is_active(gb.timers[index].timer_handle) == false) {
+        return false;
+    }
+
     if (esp_timer_get_expiry_time(gb.timers[index].timer_handle, expiry) != ESP_OK) {
-        ESP_LOGW(TAG, "Get expiry time error");
+        return false;
     }
 
     return true;

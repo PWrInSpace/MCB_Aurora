@@ -142,7 +142,52 @@ void   lo_ra_settings__free_unpacked
   assert(message->base.descriptor == &lo_ra_settings__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[35] =
+void   lo_ra_frame_tanwa__init
+                     (LoRaFrameTanwa         *message)
+{
+  static const LoRaFrameTanwa init_value = LO_RA_FRAME_TANWA__INIT;
+  *message = init_value;
+}
+size_t lo_ra_frame_tanwa__get_packed_size
+                     (const LoRaFrameTanwa *message)
+{
+  assert(message->base.descriptor == &lo_ra_frame_tanwa__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t lo_ra_frame_tanwa__pack
+                     (const LoRaFrameTanwa *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &lo_ra_frame_tanwa__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t lo_ra_frame_tanwa__pack_to_buffer
+                     (const LoRaFrameTanwa *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &lo_ra_frame_tanwa__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+LoRaFrameTanwa *
+       lo_ra_frame_tanwa__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (LoRaFrameTanwa *)
+     protobuf_c_message_unpack (&lo_ra_frame_tanwa__descriptor,
+                                allocator, len, data);
+}
+void   lo_ra_frame_tanwa__free_unpacked
+                     (LoRaFrameTanwa *message,
+                      ProtobufCAllocator *allocator)
+{
+  if(!message)
+    return;
+  assert(message->base.descriptor == &lo_ra_frame_tanwa__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[36] =
 {
   {
     "obc_state",
@@ -541,6 +586,18 @@ static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[35] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
+    "payload_battery",
+    34,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_FLOAT,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrame, payload_battery),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
     "esp_now_byte_data",
     35,
     PROTOBUF_C_LABEL_REQUIRED,
@@ -567,8 +624,8 @@ static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[35] =
 };
 static const unsigned lo_ra_frame__field_indices_by_name[] = {
   1,   /* field[1] = dc_time */
-  34,   /* field[34] = errors */
-  33,   /* field[33] = esp_now_byte_data */
+  35,   /* field[35] = errors */
+  34,   /* field[34] = esp_now_byte_data */
   10,   /* field[10] = euler_fi */
   11,   /* field[11] = euler_psi */
   12,   /* field[12] = euler_theta */
@@ -583,6 +640,7 @@ static const unsigned lo_ra_frame__field_indices_by_name[] = {
   20,   /* field[20] = mval_battery */
   21,   /* field[21] = mval_byte_data */
   0,   /* field[0] = obc_state */
+  33,   /* field[33] = payload_battery */
   17,   /* field[17] = pitot_altitude */
   16,   /* field[16] = pitot_battery */
   19,   /* field[19] = pitot_temperature */
@@ -602,11 +660,10 @@ static const unsigned lo_ra_frame__field_indices_by_name[] = {
   22,   /* field[22] = vent_battery */
   24,   /* field[24] = vent_byte_data */
 };
-static const ProtobufCIntRange lo_ra_frame__number_ranges[2 + 1] =
+static const ProtobufCIntRange lo_ra_frame__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 35, 33 },
-  { 0, 35 }
+  { 0, 36 }
 };
 const ProtobufCMessageDescriptor lo_ra_frame__descriptor =
 {
@@ -616,10 +673,10 @@ const ProtobufCMessageDescriptor lo_ra_frame__descriptor =
   "LoRaFrame",
   "",
   sizeof(LoRaFrame),
-  35,
+  36,
   lo_ra_frame__field_descriptors,
   lo_ra_frame__field_indices_by_name,
-  2,  lo_ra_frame__number_ranges,
+  1,  lo_ra_frame__number_ranges,
   (ProtobufCMessageInit) lo_ra_frame__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
@@ -775,5 +832,329 @@ const ProtobufCMessageDescriptor lo_ra_settings__descriptor =
   lo_ra_settings__field_indices_by_name,
   1,  lo_ra_settings__number_ranges,
   (ProtobufCMessageInit) lo_ra_settings__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor lo_ra_frame_tanwa__field_descriptors[23] =
+{
+  {
+    "tanWaState",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, tanwastate),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "pressureSensor",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, pressuresensor),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "solenoid_fill",
+    3,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, solenoid_fill),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "solenoid_depr",
+    4,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, solenoid_depr),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "abortButton",
+    5,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, abortbutton),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "igniterContinouity_1",
+    6,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, ignitercontinouity_1),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "igniterContinouity_2",
+    7,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, ignitercontinouity_2),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "hxRequest_RCK",
+    8,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, hxrequest_rck),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "hxRequest_TANK",
+    9,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, hxrequest_tank),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "vbat",
+    10,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_FLOAT,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, vbat),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "motorState_1",
+    11,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, motorstate_1),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "motorState_2",
+    12,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, motorstate_2),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "motorState_3",
+    13,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, motorstate_3),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "motorState_4",
+    14,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, motorstate_4),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "rocketWeight_temp",
+    15,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_FLOAT,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, rocketweight_temp),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "tankWeight_temp",
+    16,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_FLOAT,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, tankweight_temp),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "rocketWeight_val",
+    17,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_FLOAT,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, rocketweight_val),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "tankWeight_val",
+    18,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_FLOAT,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, tankweight_val),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "rocketWeightRaw_val",
+    19,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, rocketweightraw_val),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "tankWeightRaw_val",
+    20,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, tankweightraw_val),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "interface_rck",
+    21,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, interface_rck),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "interface_tank",
+    22,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, interface_tank),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "interface_mcu",
+    23,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BOOL,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrameTanwa, interface_mcu),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned lo_ra_frame_tanwa__field_indices_by_name[] = {
+  4,   /* field[4] = abortButton */
+  7,   /* field[7] = hxRequest_RCK */
+  8,   /* field[8] = hxRequest_TANK */
+  5,   /* field[5] = igniterContinouity_1 */
+  6,   /* field[6] = igniterContinouity_2 */
+  22,   /* field[22] = interface_mcu */
+  20,   /* field[20] = interface_rck */
+  21,   /* field[21] = interface_tank */
+  10,   /* field[10] = motorState_1 */
+  11,   /* field[11] = motorState_2 */
+  12,   /* field[12] = motorState_3 */
+  13,   /* field[13] = motorState_4 */
+  1,   /* field[1] = pressureSensor */
+  18,   /* field[18] = rocketWeightRaw_val */
+  14,   /* field[14] = rocketWeight_temp */
+  16,   /* field[16] = rocketWeight_val */
+  3,   /* field[3] = solenoid_depr */
+  2,   /* field[2] = solenoid_fill */
+  0,   /* field[0] = tanWaState */
+  19,   /* field[19] = tankWeightRaw_val */
+  15,   /* field[15] = tankWeight_temp */
+  17,   /* field[17] = tankWeight_val */
+  9,   /* field[9] = vbat */
+};
+static const ProtobufCIntRange lo_ra_frame_tanwa__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 23 }
+};
+const ProtobufCMessageDescriptor lo_ra_frame_tanwa__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "LoRaFrameTanwa",
+  "LoRaFrameTanwa",
+  "LoRaFrameTanwa",
+  "",
+  sizeof(LoRaFrameTanwa),
+  23,
+  lo_ra_frame_tanwa__field_descriptors,
+  lo_ra_frame_tanwa__field_indices_by_name,
+  1,  lo_ra_frame_tanwa__number_ranges,
+  (ProtobufCMessageInit) lo_ra_frame_tanwa__init,
   NULL,NULL,NULL    /* reserved[123] */
 };

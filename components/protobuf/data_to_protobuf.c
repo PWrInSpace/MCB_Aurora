@@ -71,6 +71,9 @@ void create_porotobuf_data_frame(LoRaFrame *frame) {
     frame->tanwa_state = data.tanwa.tanWaState;
     frame->rocket_weight = data.tanwa.rocketWeight_val;
     frame->tank_weight = data.tanwa.tankWeight_val;
+    frame->temperature1 = data.tanwa.rocketWeight_temp;
+    frame->temperature2 = data.tanwa.tankWeight_temp;
+    frame->pressure = data.tanwa.pressureSensor;
 
     frame->tanwa_byte_data |= data.tanwa.motorState_1;
     frame->tanwa_byte_data |= (data.tanwa.motorState_2 << 3);
@@ -81,6 +84,9 @@ void create_porotobuf_data_frame(LoRaFrame *frame) {
 
     frame->tanwa_byte_data |= (data.tanwa.igniterContinouity_1 << 30);
     frame->tanwa_byte_data |= (data.tanwa.igniterContinouity_2 << 31);
+
+    // payload
+    frame->payload_battery = (data.payload.vbat);
 
     // esp now
     frame->esp_now_byte_data |= (data.pitot.waken_up << 0);
