@@ -12,5 +12,8 @@ int uart_ublox_read(uint8_t *data, uint8_t data_size);
 
 int uart_ublox_write(uint8_t *data, uint8_t data_size);
 
+int uart_flush_rx(void);
+
+int uart_flush_tx(void);
 
 #endif

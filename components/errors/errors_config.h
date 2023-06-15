@@ -42,9 +42,10 @@ typedef enum {
 
 typedef enum {
     ERROR_SENSORS_OK = 0,
-    ERROR_SENSOR_BAR = (1 << 0),
-    ERROR_SENSOR_MAG = (1 << 1),
-    ERROR_SENSOR_IMU = (1 << 2),
+    ERROR_SENSOR_IMU = (1 << 0),
+    ERROR_SENSOR_BAR = (1 << 1),
+    ERROR_SENSOR_MAG = (1 << 2),
+    ERROR_SENSOR_GPS = (1 << 3),
 } errors_sensors_t;
 
 typedef enum {

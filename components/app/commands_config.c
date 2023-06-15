@@ -179,7 +179,7 @@ static void mcb_reset_dev(uint32_t command, int32_t payload, bool privilage) {
     states_t state = SM_get_current_state();
     if (state >= COUNTDOWN && state < ON_GROUND) {
         return;
-    }
+}
 
     esp_restart();
 }
@@ -210,6 +210,7 @@ static cmd_command_t mcb_commands[] = {
 // RECOVERY
 static void send_command_recovery(uint32_t command, int32_t payload, bool privilage) {
     if (privilage == false) {
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
         return;
     }
 

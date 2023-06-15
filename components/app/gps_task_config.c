@@ -4,6 +4,10 @@
 #include "freertos/semphr.h"
 #include "uart.h"
 #include "basic_task.h"
+#include "esp_log.h"
+#include "errors_config.h"
+
+#define TAG "GPS"
 
 static struct {
     ublox_m8_t ubx;
@@ -13,6 +17,7 @@ static struct {
 
     SemaphoreHandle_t processing_mutex;
     gps_task_process_fnc process_fnc;
+    uint8_t read_error_counter;
 } gb = {
     .data_mutex = NULL,
     .process_fnc = NULL,
@@ -25,7 +30,17 @@ static void ubx_delay(uint32_t millis) {
 
 static void process_gps_data(void) {
     ublox_m8_pvt_t pvt;
-    ublox_m8_get_PVT(&gb.ubx, &pvt);
+    if (ublox_m8_get_PVT(&gb.ubx, &pvt) == false) {
+        uart_flush_rx();
+        uart_flush_tx();
+        gb.read_error_counter += 1;
+        if (gb.read_error_counter > 7) {
+            errors_add(ERROR_TYPE_SENSORS, ERROR_SENSOR_GPS, 100);
+        }
+        return;
+    }
+
+    gb.read_error_counter = 0;
 
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
     gb.position.latitude = pvt.lat.data / 10e6;

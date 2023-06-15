@@ -50,7 +50,6 @@ static void on_disconnect_timer(void *arg) {
 
 static void buzzer_timer(void *arg) {
     static uint8_t state = 1;
-    ESP_LOGI(TAG, "Buzzer state %d", state);
     if (state == 0) {
         buzzer_turn_on();
         state = 1;
