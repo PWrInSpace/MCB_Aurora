@@ -141,7 +141,7 @@ static void on_ground_gps_process(gps_positioning_t *data) {
     } else {
         ground_counter = 0;
     }
-
+    ESP_LOGI(TAG, "GPS PROCESS, %f", data->altitude);
     if (ground_counter >= 5) {
         if (SM_change_state(ON_GROUND) != SM_OK) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);

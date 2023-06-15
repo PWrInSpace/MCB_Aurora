@@ -46,8 +46,11 @@ static void on_disconnect_timer(void *arg) {
     SM_force_change_state(ABORT);
 }
 
+#define TAG "TIM"
+
 static void buzzer_timer(void *arg) {
     static uint8_t state = 1;
+    ESP_LOGI(TAG, "Buzzer state %d", state);
     if (state == 0) {
         buzzer_turn_on();
         state = 1;
@@ -64,7 +67,6 @@ static void connected_dev(void *arg) {
     esp_now_clear_connected_dev();
 }
 
-#define TAG "TIM"
 static void debug_data(void *arg) {
     char buffer[512];
     rocket_data_t rocket_data = rocket_data_get();

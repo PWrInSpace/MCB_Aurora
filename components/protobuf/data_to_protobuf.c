@@ -86,7 +86,7 @@ void create_porotobuf_data_frame(LoRaFrame *frame) {
     frame->tanwa_byte_data |= (data.tanwa.igniterContinouity_2 << 31);
 
     // payload
-    frame->payload_battery = (data.payload.vbat);
+    frame->payload_battery = data.payload.vbat;
 
     // esp now
     frame->esp_now_byte_data |= (data.pitot.waken_up << 0);

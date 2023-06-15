@@ -44,6 +44,7 @@ static void mcb_state_change(uint32_t command, int32_t payload, bool privilage) 
     }
 
     if (SM_change_state(payload) != SM_OK) {
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 100);
         ESP_LOGE(TAG, "Unable to change state");
         return;
     }
@@ -176,7 +177,7 @@ static void mcb_reset_dev(uint32_t command, int32_t payload, bool privilage) {
     }
 
     states_t state = SM_get_current_state();
-    if (state >= COUNTDOWN && state <= ON_GROUND) {
+    if (state >= COUNTDOWN && state < ON_GROUND) {
         return;
     }
 

@@ -83,7 +83,7 @@ bool cmd_process_command(cmd_t *cmd, cmd_sys_dev_id dev_id, cmd_message_t *messa
 }
 
 static bool check_lora_dev_id(cmd_t *cmd, cmd_lora_dev_id dev_id) {
-    if (dev_id == 0x00) {
+    if (dev_id == 0x00 || dev_id == 0x01) {
         return true;
     }
     // remove privilage mask and check id

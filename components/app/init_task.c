@@ -67,10 +67,10 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(
         uart_init(CONFIG_UART_PORT_NUM, CONFIG_UART_TX, CONFIG_UART_RX, CONFIG_UART_BAUDRATE),
         "UART init");
-    CHECK_RESULT_BOOL(buzzer_init(), "Buzzer");
 
     CHECK_RESULT_BOOL(gpioexp_init(), "GPIO Expander");
     CHECK_RESULT_BOOL(gpioexp_led_set_color(WHITE), "GPIO Expander change color");
+    CHECK_RESULT_BOOL(buzzer_init(), "Buzzer");
 
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
     CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
@@ -86,7 +86,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(
         sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT),
         "DC TIMER");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_BUZZER, 2000, TIMER_TYPE_PERIODIC), "BUZZER TIMER");
+    // CHECK_RESULT_BOOL(sys_timer_start(TIMER_BUZZER, 2000, TIMER_TYPE_PERIODIC), "BUZZER TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_CONNECTED_DEV, 40000, TIMER_TYPE_PERIODIC),
                       "CONNECTED TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 30, TIMER_TYPE_PERIODIC), "SD TIMER");

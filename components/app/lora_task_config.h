@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include "lora_task.h"
 
+#define PACKET_PREFIX "SP3MIK"
+
 /**
  * @brief Initialize lora api and run lora task
  *q
