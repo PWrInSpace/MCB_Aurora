@@ -81,9 +81,9 @@ void app_main(void) {
         ._delay = lora_hw_delay,
         ._gpio_set_level = lora_hw_gpio_set_level,
         .log = lora_hw_log,
-        .rst_gpio_num = 16,
-        .cs_gpio_num = 4,
-        .d0_gpio_num = 17,
+        .rst_gpio_num = 33,
+        .cs_gpio_num = 32,
+        .d0_gpio_num = 35,
         .implicit_header = 0,
         .frequency = 0
     };

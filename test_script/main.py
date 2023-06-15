@@ -35,7 +35,7 @@ class LoRaTest():
     def start_test(self):
         self._reset_dev()
         self.lock.acquire()
-        th.Timer(0.5, self.on_timer).start()
+        th.Timer(1, self.on_timer).start()
         logging.info("Starting test")
         self.ser.flush()
         self._test_loop()
@@ -51,7 +51,7 @@ class LoRaTest():
         logging.info("Lost %d message", self.TEST_PACKET_NB - self.received_package)
         logging.info("Unable to decode %d", self.unable_to_decode)
         logging.info("Precent of received %f", self.received_package/float(self.TEST_PACKET_NB) * 100)
-        test_data = np.loadtxt(self.TEST_OUTPUT_DIR + self.file_name, delimiter=";", dtype=str)
+        test_data = np.loadtxt(self.TEST_OUTPUT_DIR + self.file_name, delimiter=";", dtype=str, usecols=8)
         rssi = np.array([int(z) for z in test_data[:,5]])
         snr = np.array([float(z) for z in test_data[:,6]])
         logging.info("RSSI:\tAverage %f\tMAX %d\tMin %d", np.average(rssi), max(rssi), min(rssi))
@@ -68,12 +68,9 @@ class LoRaTest():
         while self.lock.locked():
             try:
                 line = self.ser.readline().decode()
-                logging.info("Receive -> %s...", line[:25])
-                if  line.startswith("MCB;") is True:
-                    self.file.write(line)
-                    self.received_package += 1
-                else :
-                    logging.error("Invalid prefix -> %s", line)
+                print(line)
+                self.file.write(line)
+                self.received_package += 1
             except Exception as err:
                 self.unable_to_decode += 1
                 logging.error("Unable to decode message")
