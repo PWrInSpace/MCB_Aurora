@@ -92,7 +92,7 @@ void app_main(void) {
                                         pdTRUE, NULL, on_timer);
     xTimerStart(timer, portMAX_DELAY);
     lora_init(&lora);
-    lora_set_frequency(&lora, 868e6);
+    lora_set_frequency(&lora, 915e6);
     lora_set_bandwidth(&lora, LORA_BW_250_kHz);
     // lora_disable_crc(&lora);
     lora_explicit_header_mode(&lora);
@@ -126,10 +126,10 @@ void app_main(void) {
                     crc_error = 0;
                 } else {
                     vTaskDelay(pdMS_TO_TICKS(100));
-                    snprintf((char*)buffer, sizeof(buffer), "MCB;%lu;%d;%d;%d;%d;%f;"PAYLOAD"\n",
+                    size_t size = snprintf((char*)buffer, sizeof(buffer), "MCB;%lu;%d;%d;%d;%d;%f;"PAYLOAD"\n",
                         (uint32_t)get_time_ms(), received_packet, transmited_packet, crc_error, lora_packet_rssi(&lora), lora_packet_snr(&lora));
                     ESP_LOGI(TAG, "%s", buffer);
-                    lora_send_packet(&lora, buffer, sizeof(buffer));
+                    lora_send_packet(&lora, buffer, size);
                     transmited_packet += 1;
                 }
                 lora_set_receive_mode(&lora);

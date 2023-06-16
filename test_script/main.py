@@ -7,7 +7,7 @@ import numpy as np
 
 class LoRaTest():
     TEST_PACKET_NB = 150
-    TEST_OUTPUT_DIR = "outputs/"
+    TEST_OUTPUT_DIR = "stany/"
 
     def __init__(self, antenna_name, distance) -> None:
         self.ser = serial.Serial("/dev/ttyACM0", baudrate=115200, timeout=1)
@@ -51,7 +51,7 @@ class LoRaTest():
         logging.info("Lost %d message", self.TEST_PACKET_NB - self.received_package)
         logging.info("Unable to decode %d", self.unable_to_decode)
         logging.info("Precent of received %f", self.received_package/float(self.TEST_PACKET_NB) * 100)
-        test_data = np.loadtxt(self.TEST_OUTPUT_DIR + self.file_name, delimiter=";", dtype=str, usecols=8)
+        test_data = np.loadtxt(self.TEST_OUTPUT_DIR + self.file_name, delimiter=";", dtype=str)
         rssi = np.array([int(z) for z in test_data[:,5]])
         snr = np.array([float(z) for z in test_data[:,6]])
         logging.info("RSSI:\tAverage %f\tMAX %d\tMin %d", np.average(rssi), max(rssi), min(rssi))
