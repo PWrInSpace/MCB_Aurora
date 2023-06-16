@@ -13,6 +13,7 @@
 #include "gpio_expander.h"
 #include "recovery_task_config.h"
 #include "settings_mem.h"
+#include "processing_task_config.h"
 
 #define TAG "SMC"
 static void on_init(void *arg) {
@@ -134,14 +135,16 @@ static void on_first_stage_recovery(void *arg) {
     ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 }
 
-static void on_ground_gps_process(gps_positioning_t *data) {
+static void on_ground_sensors_process(void *data_buffer) {
     static uint8_t ground_counter = 0;
+    sensors_data_t *data = (sensors_data_t*) data_buffer;
+
     if (data->altitude < 50) {
         ground_counter += 1;
     } else {
         ground_counter = 0;
     }
-    ESP_LOGI(TAG, "GPS PROCESS, %f", data->altitude);
+
     if (ground_counter >= 5) {
         if (SM_change_state(ON_GROUND) != SM_OK) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
@@ -155,8 +158,8 @@ static void on_second_stage_recovery(void *arg) {
         ESP_LOGE(TAG, "Unable do remove process fnc");
     }
 
-    if (gps_change_process_fnc(on_ground_gps_process) == false) {
-        ESP_LOGE(TAG, "Unable to add gps process function");
+    if (sensors_change_process_function(on_ground_sensors_process, 1000) == false) {
+        ESP_LOGE(TAG, "Unable to add process function");
     }
 
     cmd_message_t cmd = cmd_create_message(VENT_VALVE_OPEN, 0x00);
@@ -164,8 +167,8 @@ static void on_second_stage_recovery(void *arg) {
 }
 
 static void on_ground(void *arg) {
-    if (gps_remove_process_fnc() == false) {
-        ESP_LOGE(TAG, "Unable to remove gps process fnc");
+    if (sensors_remove_process_function(1000) == false) {
+        ESP_LOGE(TAG, "Unable to remove process fnc");
     }
 
     if (sys_timer_delete(TIMER_SD_DATA) == false) {

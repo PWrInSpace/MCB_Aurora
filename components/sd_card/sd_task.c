@@ -218,7 +218,7 @@ static bool initialize_sd_card(sd_task_cfg_t *task_cfg) {
     if (ret == false) {
         ESP_LOGW(TAG, "Unable to initialize SD card");
         report_error(SD_INIT);
-        // return false;    not returning -> user can insert sd card after system init
+        return false;
     }
 
     mem.error_handler_fnc = task_cfg->error_handler_fnc;
@@ -296,7 +296,7 @@ bool SDT_init(sd_task_cfg_t *task_cfg) {
 
     if (initialize_sd_card(task_cfg) == false) {
         ESP_LOGE(TAG, "Unable to initialzie sd card");
-        // return false;
+        return false;
     }
 
     if (initialize_task(task_cfg) == false) {

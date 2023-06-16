@@ -22,11 +22,11 @@ static struct mgos_imu_madgwick madgwick;
 static void sensors_read_data(void *data_buffer) {
     sensors_data_t *data = (sensors_data_t *)data_buffer;
 
-    // if (mag_data_ready() == true) {
-    //     if (mag_get_data(&mag) == false) {
-    //         errors_add(ERROR_TYPE_SENSORS, ERROR_SENSOR_MAG, 100);
-    //     }
-    // }
+    if (mag_data_ready() == true) {
+        if (mag_get_data(&mag) == false) {
+            errors_add(ERROR_TYPE_SENSORS, ERROR_SENSOR_MAG, 100);
+        }
+    }
 
     if (bmi08_get_acc_data(&acc) == false) {
         errors_add(ERROR_TYPE_SENSORS, ERROR_SENSOR_IMU, 100);
@@ -81,15 +81,15 @@ bool initialize_processing_task(void) {
         return false;
     }
 
-    // if (mag_init() == false) {
-    //     ESP_LOGE(TAG, "MAG");
-    //     return false;
-    // }
+    if (mag_init() == false) {
+        ESP_LOGE(TAG, "MAG");
+        return false;
+    }
 
-    // if (mag_set_continous_mode(FREQ_100HZ, PRD_500) == false) {
-    //     ESP_LOGE(TAG, "BMAGMODE");
-    //     return false;
-    // }
+    if (mag_set_continous_mode(FREQ_100HZ, PRD_500) == false) {
+        ESP_LOGE(TAG, "BMAGMODE");
+        return false;
+    }
 
     if (mgos_imu_madgwick_create(&madgwick) == false) {
         ESP_LOGE(TAG, "MADGWICK");
