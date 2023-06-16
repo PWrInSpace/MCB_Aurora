@@ -22,12 +22,6 @@ esp_err_t settings_init() {
         return err;
     }
 
-    settings.loraFreq_KHz = 868000;
-    settings.lora_transmit_ms = 1800;
-    settings.countdownTime = -30000;
-    settings.ignitTime = -13500;
-    settings_save_all();
-
     return settings_read_all();
 }
 
