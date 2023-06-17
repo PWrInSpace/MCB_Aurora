@@ -40,7 +40,7 @@ bool sensors_get_data(void *buffer, size_t buffer_size, uint32_t timeout_ms) {
     }
 
     if (xSemaphoreTake(gb.data_mutex, pdMS_TO_TICKS(timeout_ms)) == pdFAIL) { // TODO: check return value
-        ESP_LOGE(TAG, "Semaphore error");
+        ESP_LOGE(TAG, "Semaphore get data error");
         return false;
     }
     memcpy(buffer, gb.data_buffer, buffer_size);

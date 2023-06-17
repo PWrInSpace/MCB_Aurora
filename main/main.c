@@ -45,6 +45,31 @@ void app_main(void) {
 
 
 // void app_main(void) {
+//     spi_init(VSPI_HOST, CONFIG_SPI_MOSI, CONFIG_SPI_MISO, CONFIG_SPI_SCK);
+//     esp_flash_t *flash;
+//     const esp_flash_spi_device_config_t device_config = {
+//         .host_id = VSPI_HOST,
+//         .cs_id = 0,
+//         .cs_io_num = 4,
+//         .io_mode = SPI_FLASH_FASTRD,
+//         .freq_mhz = 10,
+//     };
+
+//     esp_err_t err = spi_bus_add_flash_device(&flash, &device_config);
+//         if (err != ESP_OK) {
+//         ESP_LOGE(TAG, "Failed to add", esp_err_to_name(err), err);
+//     }
+
+//    err = esp_flash_init(flash);
+//     if (err != ESP_OK) {
+//         ESP_LOGE(TAG, "Failed to initialize external Flash: %s (0x%x)", esp_err_to_name(err), err);
+//     }
+
+//     ESP_LOGI(TAG, "INIT TASK");
+// }
+
+
+// void app_main(void) {
 //     ESP_LOGI(TAG, "INIT TASK");
 //     // run_init_task();
 

@@ -56,13 +56,13 @@ static void on_fueling(void *arg) {
 static void on_armed_to_launch(void *arg) {
     gpioexp_led_set_color(YELLOW);
     ESP_LOGI(TAG, "ON ARMED TO LAUNCH");
-    // FT_erase_and_run_loop();
+    FT_erase_and_run_loop();
 }
 
 static void on_ready_to_lauch(void *arg) {
     gpioexp_led_set_color(PURPLE);
     ESP_LOGI(TAG, "ON READY_TO_LAUNCH");
-    // sys_timer_start(TIMER_FLASH_DATA, 500, TIMER_TYPE_PERIODIC);
+    sys_timer_start(TIMER_FLASH_DATA, 500, TIMER_TYPE_PERIODIC);
     // turn on camera
 }
 
