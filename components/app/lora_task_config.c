@@ -41,7 +41,7 @@ static uint8_t calculate_checksum(uint8_t* buffer, size_t size) {
 }
 
 static void lora_process(uint8_t* packet, size_t packet_size) {
-    if (packet_size > 20) {
+    if (packet_size > 40) {
         ESP_LOGI(TAG, "Recevied packet is too big");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 100);
         return;
@@ -94,7 +94,7 @@ static size_t add_prefix(uint8_t* buffer, size_t size) {
 }
 
 static size_t lora_create_settings_packet(uint8_t* buffer, size_t size) {
-    LoRaSettings frame;
+    LoRaSettings frame = LO_RA_SETTINGS__INIT;
     create_protobuf_settings_frame(&frame);
 
     uint8_t data_size = 0;

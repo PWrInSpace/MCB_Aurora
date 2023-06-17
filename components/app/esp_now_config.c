@@ -86,6 +86,8 @@ static void callback_payload(uint8_t *data, size_t size) {
     connected.payload = true;
     if (size == sizeof(payload_data_t)) {
         rocket_data_update_payload((payload_data_t *) data);
+    } else {
+        ESP_LOGE(TAG, "Payload invalid size");
     }
 }
 

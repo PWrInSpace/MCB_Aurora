@@ -56,13 +56,13 @@ static void on_fueling(void *arg) {
 static void on_armed_to_launch(void *arg) {
     gpioexp_led_set_color(YELLOW);
     ESP_LOGI(TAG, "ON ARMED TO LAUNCH");
-    FT_erase_and_run_loop();
+    // FT_erase_and_run_loop();
 }
 
 static void on_ready_to_lauch(void *arg) {
     gpioexp_led_set_color(PURPLE);
     ESP_LOGI(TAG, "ON READY_TO_LAUNCH");
-    sys_timer_start(TIMER_FLASH_DATA, 500, TIMER_TYPE_PERIODIC);
+    // sys_timer_start(TIMER_FLASH_DATA, 500, TIMER_TYPE_PERIODIC);
     // turn on camera
 }
 
@@ -96,7 +96,7 @@ static void recovery_first_stage_process(recovery_data_t *data) {
         return;
     }
 
-    if (data->easyMiniFirstStage == true || data->telemetrumFirstStage == true) {
+    if (data->firstStageDone == true) {
         if (SM_change_state(FIRST_STAGE_RECOVERY) != SM_OK) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
         }
@@ -118,7 +118,7 @@ static void recovery_second_stage_process(recovery_data_t *data) {
         return;
     }
 
-    if (data->easyMiniSecondStage == true || data->telemetrumSecondStage == true) {
+    if (data->secondStageDone == true) {
         if (SM_change_state(SECOND_STAGE_RECOVERY) != SM_OK) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
         }
@@ -129,6 +129,10 @@ static void on_first_stage_recovery(void *arg) {
     ESP_LOGI(TAG, "ON FIRST_STAGE_RECOV");
     if (recovery_change_process_fnc(recovery_second_stage_process) == false) {
         ESP_LOGE(TAG, "Unable do add process fnc");
+    }
+
+    if (recovery_send_cmd(RECOV_FORCE_FIRST_STAGE, 0) == false) {
+        ESP_LOGE(TAG, "Unable to send first stage recov");
     }
 
     cmd_message_t cmd = cmd_create_message(MAIN_VALVE_CLOSE, 0x00);
@@ -160,6 +164,10 @@ static void on_second_stage_recovery(void *arg) {
 
     if (sensors_change_process_function(on_ground_sensors_process, 1000) == false) {
         ESP_LOGE(TAG, "Unable to add process function");
+    }
+
+    if (recovery_send_cmd(RECOV_FORCE_SECOND_STAGE, 0) == false) {
+        ESP_LOGE(TAG, "Unable to send first stage recov");
     }
 
     cmd_message_t cmd = cmd_create_message(VENT_VALVE_OPEN, 0x00);

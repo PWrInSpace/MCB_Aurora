@@ -25,11 +25,11 @@ typedef struct {
 typedef struct {
     bool waken_up : 1;
     uint8_t valve_state : 2;
-    uint16_t thermistor1;
-    uint16_t thermistor2;
-    float tank_pressure;
-    float battery_voltage;
-} vent_valve_data_t;
+    uint32_t thermistor1;
+    uint32_t thermistor2;
+    uint32_t tank_pressure;
+    uint32_t battery_voltage;
+} vent_valve_data_t;\
 
 typedef struct {
     bool isArmed :1;
@@ -51,7 +51,7 @@ typedef struct {
 
 typedef struct {
     bool waken_up : 1;
-    uint16_t vbat;
+    float vbat;
 } payload_data_t;
 
 typedef struct {
@@ -74,7 +74,7 @@ typedef struct {
     int tankWeight_blink;
     float tankWeight_temp;
     float rocketWeight_val;
-    float tankWeight_val; 
+    float tankWeight_val;
     uint32_t rocketWeightRaw_val;
     uint32_t tankWeightRaw_val;
     bool interface_rck;

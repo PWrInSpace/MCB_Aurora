@@ -27,9 +27,9 @@ void create_porotobuf_data_frame(LoRaFrame *frame) {
     frame->mcb_altitude = data.mcb.altitude;
     frame->mcb_velocity = data.mcb.velocity;
     frame->mcb_temperature = data.mcb.temperature;
-    frame->euler_psi = data.mcb.yaw;
+    frame->euler_psi = data.mcb.pitch;
     frame->euler_theta = data.mcb.roll;
-    frame->euler_fi = data.mcb.pitch;
+    frame->euler_fi = data.mcb.yaw;
 
     // recovery
     frame->recov_pressure_1 = data.recovery.pressure1;
@@ -82,6 +82,8 @@ void create_porotobuf_data_frame(LoRaFrame *frame) {
     frame->tanwa_byte_data |= (data.tanwa.hxRequest_RCK << 20);
     frame->tanwa_byte_data |= (data.tanwa.hxRequest_TANK << 22);
 
+    frame->tanwa_byte_data |= (data.tanwa.tankWeight_blink << 28);
+    frame->tanwa_byte_data |= (data.tanwa.rocketWeight_blink << 29);
     frame->tanwa_byte_data |= (data.tanwa.igniterContinouity_1 << 30);
     frame->tanwa_byte_data |= (data.tanwa.igniterContinouity_2 << 31);
 

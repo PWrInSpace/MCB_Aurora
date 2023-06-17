@@ -11,6 +11,7 @@
 #include "system_timer_config.h"
 #include "settings_mem.h"
 #include "mission_timer_config.h"
+#include "flash_task.h"
 
 #define TAG "CMD"
 // COMMANDS
@@ -170,6 +171,15 @@ static void mcb_reset_errors(uint32_t command, int32_t payload, bool privilage) 
     errors_reset_all(1000);
 }
 
+// static void mcb_foramt_flash(uint32_t command, int32_t payload, bool privilage) {
+//     if (SM_get_current_state() > RDY_TO_LAUNCH) {
+//         return;
+//     }
+
+//     FT_erase();
+//     ESP_LOGI(TAG, "FLASH FORMATTED");
+// }
+
 
 static void mcb_reset_dev(uint32_t command, int32_t payload, bool privilage) {
     if (privilage == false) {
@@ -203,6 +213,7 @@ static cmd_command_t mcb_commands[] = {
     {MCB_FLASH_ENABLE,              mcb_flash_enable},
     {MCB_SETTINGS_FRAME,            mcb_settings_frame},
     {MCB_RESET_ERRORS,              mcb_reset_errors},
+    // {MCB_FORMAT_FLASH,              mcb_foramt_flash},
     {MCB_RESET_DEV,                 mcb_reset_dev},
     {MCB_RESET_DISCONNECT_TIMER,    mcb_reset_disconnect_timer},
 };
@@ -331,8 +342,34 @@ static cmd_command_t vent_valve_commands[] = {
     {VENT_VALVE_AUTOPRESS_LIMIT,    vval_autopress_limit    },
 };
 
-// DEVICES
+static void tanwa_process_command(uint32_t command, int32_t payload, bool privilage) {
+    send_command_esp_now(&esp_now_tanwa, command, payload);
+}
 
+static cmd_command_t tanwa_commands[] = {
+    {TANWA_FILL,                tanwa_process_command},
+    {TANWA_FILL_TIME,           tanwa_process_command},
+    {TANWA_DEPR,                tanwa_process_command},
+    {TANWA_QD,                  tanwa_process_command},
+    {TANWA_RESTART_ESP_RCK,     tanwa_process_command},
+    {TANWA_RESTART_ESP_BTL,     tanwa_process_command},
+    {TANWA_SOFT_RESTART_ESP,    tanwa_process_command},
+    {TANWA_SOFT_RESTART_STM,    tanwa_process_command},
+    {TANWA_CALIBRATE_RCK,       tanwa_process_command},
+    {TANWA_TARE_RCK,            tanwa_process_command},
+    {TANWA_SET_CAL_FACTOR_RCK,  tanwa_process_command},
+    {TANWA_SET_OFFSET_RCK,      tanwa_process_command},
+    {TANWA_CALIBRATE_TANK,      tanwa_process_command},
+    {TANWA_TARE_TANK,           tanwa_process_command},
+    {TANWA_SET_CAL_FACTOR_TANK, tanwa_process_command},
+    {TANWA_SET_OFFSET_TANK,     tanwa_process_command},
+    {TANWA_SOFT_ARM,            tanwa_process_command},
+    {TANWA_SOFT_DISARM,         tanwa_process_command},
+    {TANWA_ITF_RCK,            tanwa_process_command},
+    {TANWA_ITF_TANK,         tanwa_process_command},
+};
+
+// DEVICES
 #define SIZE_OF(x) sizeof(x) / sizeof(x[0])
 
 static cmd_device_t devices[] = {
@@ -340,6 +377,7 @@ static cmd_device_t devices[] = {
     {DEVICE_RECOVERY,      recovery_commands,      SIZE_OF(recovery_commands)},
     {DEVICE_MAIN_VALVE,    main_valve_commands,    SIZE_OF(main_valve_commands)},
     {DEVICE_VENT_VALVE,    vent_valve_commands,    SIZE_OF(vent_valve_commands)},
+    {DEVICE_TANWA,         tanwa_commands,         SIZE_OF(tanwa_commands)},
 };
 
 static cmd_t commands = {

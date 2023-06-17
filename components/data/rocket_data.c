@@ -82,6 +82,7 @@ void rocket_data_update_payload(payload_data_t *data) {
         ESP_LOGE(TAG, "Data semaphore errror :C");
         return;
     }
+
     memcpy(&gb.rocket_data.payload, data, sizeof(gb.rocket_data.payload));
     xSemaphoreGive(gb.data_mutex);
 }
