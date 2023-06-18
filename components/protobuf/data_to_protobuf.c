@@ -59,6 +59,8 @@ void create_porotobuf_data_frame(LoRaFrame *frame) {
     frame->mval_battery = data.main_valve.battery_voltage;
 
     frame->mval_byte_data |= data.main_valve.valve_state;
+    frame->mval_byte_data |= (data.vent_valve.thermistor1 << 8);
+    frame->mval_byte_data |= (data.vent_valve.thermistor2 << 16);
 
     // vent valve
     frame->vent_battery = data.vent_valve.battery_voltage;
@@ -118,4 +120,6 @@ void create_protobuf_settings_frame(LoRaSettings *frame) {
     frame->ingition_time = settings.ignitTime;
     frame->lora_freq_khz = settings.loraFreq_KHz;
     frame->lora_transmit_ms = settings.lora_transmit_ms;
+    frame->buzzer_enable = settings.buzzer_on;
+    frame->flash_enable = settings.flash_on;
 }

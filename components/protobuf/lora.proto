@@ -65,4 +65,6 @@ message LoRaSettings {
     required int32 lora_transmit_ms = 2;
     required int32 countdown_time = 3;
     required int32 ingition_time = 4;
+    required uint32 flash_enable = 5;
+    required uint32 buzzer_enable = 6;
 }

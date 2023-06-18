@@ -60,6 +60,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_errors(), "Errors");
     CHECK_RESULT_BOOL(hybrid_mission_timer_init(settings.countdownTime), "Mission timer");
     CHECK_RESULT_BOOL(vbat_init(), "VBAT MEASUREMENT");
+    CHECK_RESULT_BOOL(buzzer_init(), "Buzzer");
 
     CHECK_RESULT_BOOL(i2c_sensors_init(), "i2c sensors");
     CHECK_RESULT_BOOL(i2c_com_init(), "i2c com");
@@ -70,7 +71,6 @@ static void TASK_init(void *arg) {
 
     CHECK_RESULT_BOOL(gpioexp_init(), "GPIO Expander");
     CHECK_RESULT_BOOL(gpioexp_led_set_color(WHITE), "GPIO Expander change color");
-    CHECK_RESULT_BOOL(buzzer_init(), "Buzzer");
 
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
     CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
@@ -97,6 +97,10 @@ static void TASK_init(void *arg) {
     esp_log_level_set("*", ESP_LOG_INFO);
 
     CHECK_RESULT_ESP(SM_change_state(IDLE), "Change state to idle");
+
+    if (settings.buzzer_on != 0) {
+        CHECK_RESULT_BOOL(buzzer_init(), "Buzzer");
+    }
     vTaskDelete(NULL);
 }
 

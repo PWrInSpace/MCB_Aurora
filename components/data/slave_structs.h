@@ -25,11 +25,11 @@ typedef struct {
 typedef struct {
     bool waken_up : 1;
     uint8_t valve_state : 2;
-    uint32_t thermistor1;
-    uint32_t thermistor2;
     uint32_t tank_pressure;
+    int8_t thermistor1;
+    int8_t thermistor2;
     uint32_t battery_voltage;
-} vent_valve_data_t;\
+} vent_valve_data_t;
 
 typedef struct {
     bool isArmed :1;
@@ -63,7 +63,7 @@ typedef struct {
     bool igniterContinouity_1;
     bool igniterContinouity_2;
     uint8_t hxRequest_RCK;
-    uint8_t  hxRequest_TANK;
+    uint8_t hxRequest_TANK;
     float vbat;
     uint8_t motorState_1;
     uint8_t motorState_2;

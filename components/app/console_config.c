@@ -44,7 +44,7 @@ static int reset_device(int argc, char **arg) {
 }
 
 static int flash_start(int argc, char **arg) {
-    FT_erase_and_run_loop();
+    FT_start_loop();
     return 0;
 }
 
@@ -168,19 +168,18 @@ static int esp_now_send_main_valve(int argc, char **argv) {
 
 static int cli_settings_read_all(int argc, char **argv) {
     Settings settings = settings_get_all();
-    ESP_LOGI(TAG, "Lora freq MHZ %d", settings.loraFreq_KHz);
-    ESP_LOGI(TAG, "Lora transmit freq %d", settings.lora_transmit_ms);
-    ESP_LOGI(TAG, "CDWN TIME %d", settings.countdownTime);
-    ESP_LOGI(TAG, "Igni time %d", settings.ignitTime);
+    CONSOLE_WRITE("Lora freq MHZ %d", settings.loraFreq_KHz);
+    CONSOLE_WRITE("Lora transmit freq %d", settings.lora_transmit_ms);
+    CONSOLE_WRITE("CDWN TIME %d", settings.countdownTime);
+    CONSOLE_WRITE("Igni time %d", settings.ignitTime);
+    CONSOLE_WRITE("Buzzer %d", settings.buzzer_on);
+    CONSOLE_WRITE("Flash %d", settings.flash_on);
 
     return 0;
 }
 
 static int cli_settings_init_default(int argc, char **argv) {
-    settings_save(SETTINGS_LORA_FREQ_KHZ, 868000);
-    settings_save(SETTINGS_LORA_TRANSMIT_MS, 2000);
-    settings_save(SETTINGS_COUNTDOWN_TIME, -30000);
-    settings_save(SETTINGS_IGNIT_TIME, -13500);
+    settings_init_default();
     settings_read_all();
 
     return 0;

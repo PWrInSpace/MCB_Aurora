@@ -12,6 +12,7 @@
 #include "settings_mem.h"
 #include "mission_timer_config.h"
 #include "flash_task.h"
+#include "buzzer_pwm.h"
 
 #define TAG "CMD"
 // COMMANDS
@@ -160,7 +161,26 @@ static void mcb_change_ignition_time(uint32_t command, int32_t payload, bool pri
 }
 
 static void mcb_flash_enable(uint32_t command, int32_t payload, bool privilage) {
-    ESP_LOGW(TAG, "Command not implemented");
+    if (payload != 0) {
+        settings_save(SETTINGS_FLASH_ON, 1);
+    } else {
+        settings_save(SETTINGS_FLASH_ON, 0);
+    }
+
+    settings_read_all();
+}
+
+static void mcb_buzzer_enable(uint32_t command, int32_t payload, bool privilage) {
+    if (payload != 0) {
+        settings_save(SETTINGS_BUZZER_ON, 1);
+        sys_timer_start(TIMER_BUZZER, 2000, TIMER_TYPE_PERIODIC);
+    } else {
+        settings_save(SETTINGS_BUZZER_ON, 0);
+        sys_timer_stop(TIMER_BUZZER);
+        buzzer_turn_off();
+    }
+
+    settings_read_all();
 }
 
 static void mcb_settings_frame(uint32_t command, int32_t payload, bool privilage) {
@@ -171,14 +191,14 @@ static void mcb_reset_errors(uint32_t command, int32_t payload, bool privilage) 
     errors_reset_all(1000);
 }
 
-// static void mcb_foramt_flash(uint32_t command, int32_t payload, bool privilage) {
-//     if (SM_get_current_state() > RDY_TO_LAUNCH) {
-//         return;
-//     }
+static void mcb_foramt_flash(uint32_t command, int32_t payload, bool privilage) {
+    if (SM_get_current_state() > RDY_TO_LAUNCH) {
+        return;
+    }
 
-//     FT_erase();
-//     ESP_LOGI(TAG, "FLASH FORMATTED");
-// }
+    FT_format();
+    ESP_LOGI(TAG, "FLASH FORMATTED");
+}
 
 
 static void mcb_reset_dev(uint32_t command, int32_t payload, bool privilage) {
@@ -213,7 +233,8 @@ static cmd_command_t mcb_commands[] = {
     {MCB_FLASH_ENABLE,              mcb_flash_enable},
     {MCB_SETTINGS_FRAME,            mcb_settings_frame},
     {MCB_RESET_ERRORS,              mcb_reset_errors},
-    // {MCB_FORMAT_FLASH,              mcb_foramt_flash},
+    {MCB_FORMAT_FLASH,              mcb_foramt_flash},
+    {MCB_BUZZER_ENABLE,             mcb_buzzer_enable},
     {MCB_RESET_DEV,                 mcb_reset_dev},
     {MCB_RESET_DISCONNECT_TIMER,    mcb_reset_disconnect_timer},
 };
@@ -275,6 +296,15 @@ static void send_command_esp_now(const ENA_device_t *dev, uint32_t command, int3
 }
 
 static void mval_valve_close(uint32_t command, int32_t payload, bool privilage) {
+    if (privilage == false) {
+        return;
+    }
+
+    state_id state = SM_get_current_state();
+    if (state > RDY_TO_LAUNCH && state < HOLD) {
+        return;
+    }
+
     send_command_esp_now(&esp_now_main_valve, command, payload);
 }
 
@@ -296,6 +326,11 @@ static void mval_valve_open_angle(uint32_t command, int32_t payload, bool privil
 
 static void mval_valve_calibrate(uint32_t command, int32_t payload, bool privilage) {
     if (privilage == false) {
+        return;
+    }
+
+    state_id state = SM_get_current_state();
+    if (state > RDY_TO_LAUNCH && state < HOLD) {
         return;
     }
 

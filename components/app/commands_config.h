@@ -49,6 +49,7 @@ typedef enum {
     MCB_SETTINGS_FRAME = 0x15,
     MCB_RESET_ERRORS = 0x16,
     MCB_FORMAT_FLASH = 0x17,
+    MCB_BUZZER_ENABLE = 0x18,
     MCB_RESET_DEV = 0x82,
     MCB_RESET_DISCONNECT_TIMER = 0xFF,
 } mcb_commands_t;

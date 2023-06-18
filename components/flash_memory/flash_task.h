@@ -54,15 +54,29 @@ bool FT_init(flash_task_cfg_t *cfg);
 bool FT_send_data(void *data);
 
 /**
- * @brief Erase flash and run task loop, enable flash writting
- * 
- */
-void FT_erase_and_run_loop(void);
-
-/**
  * @brief Terminate flash task
- * 
+ *
  */
 void FT_terminate_task(void);
+
+/**
+ * @brief start flash task
+ *
+ */
+void FT_start_loop(void);
+
+/**
+ * @brief Format flash
+ *
+ */
+void FT_format();
+
+/**
+ * @brief Check loop is enable
+ *
+ * @return true :D
+ * @return false :C
+ */
+bool FT_is_enable();
 
 #endif

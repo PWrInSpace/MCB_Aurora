@@ -18,7 +18,6 @@ PROTOBUF_C__BEGIN_DECLS
 typedef struct LoRaFrame LoRaFrame;
 typedef struct LoRaCommand LoRaCommand;
 typedef struct LoRaSettings LoRaSettings;
-typedef struct LoRaFrameTanwa LoRaFrameTanwa;
 
 
 /* --- enums --- */
@@ -112,54 +111,12 @@ struct  LoRaSettings
   int32_t lora_transmit_ms;
   int32_t countdown_time;
   int32_t ingition_time;
+  uint32_t flash_enable;
+  uint32_t buzzer_enable;
 };
 #define LO_RA_SETTINGS__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&lo_ra_settings__descriptor) \
-    , 0, 0, 0, 0 }
-
-
-struct  LoRaFrameTanwa
-{
-  ProtobufCMessage base;
-  uint32_t tanwastate;
-  uint32_t pressuresensor;
-  uint32_t solenoid_fill;
-  uint32_t solenoid_depr;
-  protobuf_c_boolean abortbutton;
-  protobuf_c_boolean ignitercontinouity_1;
-  protobuf_c_boolean ignitercontinouity_2;
-  /*
-   * arduino string
-   */
-  uint32_t hxrequest_rck;
-  /*
-   * arduino string
-   */
-  uint32_t hxrequest_tank;
-  float vbat;
-  uint32_t motorstate_1;
-  uint32_t motorstate_2;
-  uint32_t motorstate_3;
-  uint32_t motorstate_4;
-  /*
-   * required uint32 rocketWeight_blink = 15;
-   */
-  float rocketweight_temp;
-  /*
-   * required uint32 tankWeight_blink = 17;
-   */
-  float tankweight_temp;
-  float rocketweight_val;
-  float tankweight_val;
-  uint32_t rocketweightraw_val;
-  uint32_t tankweightraw_val;
-  protobuf_c_boolean interface_rck;
-  protobuf_c_boolean interface_tank;
-  protobuf_c_boolean interface_mcu;
-};
-#define LO_RA_FRAME_TANWA__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&lo_ra_frame_tanwa__descriptor) \
-    , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+    , 0, 0, 0, 0, 0, 0 }
 
 
 /* LoRaFrame methods */
@@ -219,25 +176,6 @@ LoRaSettings *
 void   lo_ra_settings__free_unpacked
                      (LoRaSettings *message,
                       ProtobufCAllocator *allocator);
-/* LoRaFrameTanwa methods */
-void   lo_ra_frame_tanwa__init
-                     (LoRaFrameTanwa         *message);
-size_t lo_ra_frame_tanwa__get_packed_size
-                     (const LoRaFrameTanwa   *message);
-size_t lo_ra_frame_tanwa__pack
-                     (const LoRaFrameTanwa   *message,
-                      uint8_t             *out);
-size_t lo_ra_frame_tanwa__pack_to_buffer
-                     (const LoRaFrameTanwa   *message,
-                      ProtobufCBuffer     *buffer);
-LoRaFrameTanwa *
-       lo_ra_frame_tanwa__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data);
-void   lo_ra_frame_tanwa__free_unpacked
-                     (LoRaFrameTanwa *message,
-                      ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
 typedef void (*LoRaFrame_Closure)
@@ -249,9 +187,6 @@ typedef void (*LoRaCommand_Closure)
 typedef void (*LoRaSettings_Closure)
                  (const LoRaSettings *message,
                   void *closure_data);
-typedef void (*LoRaFrameTanwa_Closure)
-                 (const LoRaFrameTanwa *message,
-                  void *closure_data);
 
 /* --- services --- */
 
@@ -261,7 +196,6 @@ typedef void (*LoRaFrameTanwa_Closure)
 extern const ProtobufCMessageDescriptor lo_ra_frame__descriptor;
 extern const ProtobufCMessageDescriptor lo_ra_command__descriptor;
 extern const ProtobufCMessageDescriptor lo_ra_settings__descriptor;
-extern const ProtobufCMessageDescriptor lo_ra_frame_tanwa__descriptor;
 
 PROTOBUF_C__END_DECLS
 

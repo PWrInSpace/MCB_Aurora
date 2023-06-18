@@ -56,14 +56,18 @@ static void on_fueling(void *arg) {
 static void on_armed_to_launch(void *arg) {
     gpioexp_led_set_color(YELLOW);
     ESP_LOGI(TAG, "ON ARMED TO LAUNCH");
-    FT_erase_and_run_loop();
+    gpioexp_camera_turn_on();
 }
 
 static void on_ready_to_lauch(void *arg) {
     gpioexp_led_set_color(PURPLE);
     ESP_LOGI(TAG, "ON READY_TO_LAUNCH");
-    sys_timer_start(TIMER_FLASH_DATA, 500, TIMER_TYPE_PERIODIC);
-    // turn on camera
+    Settings settings = settings_get_all();
+
+    if (settings.flash_on != 0) {
+        FT_start_loop();
+        sys_timer_start(TIMER_FLASH_DATA, 500, TIMER_TYPE_PERIODIC);
+    }
 }
 
 static void on_countdown(void *arg) {
@@ -187,7 +191,7 @@ static void on_ground(void *arg) {
         ESP_LOGE(TAG, "Unable to delete flash data timer");
     }
 
-
+    gpioexp_camera_turn_off();
     ESP_LOGI(TAG, "ON GROUND");
     gpioexp_led_set_color(CYAN);
 }

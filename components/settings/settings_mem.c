@@ -10,6 +10,17 @@ static nvs_handle_t settings_handle;
 
 // Function definitions:
 
+void settings_init_default() {
+    settings.countdownTime = -30000;
+    settings.ignitTime = -15000;
+    settings.lora_transmit_ms = 1800;
+    settings.loraFreq_KHz = 915000;
+    settings.flash_on = 0;
+    settings.buzzer_on = 0;
+
+    settings_save_all();
+}
+
 esp_err_t settings_init() {
 
     esp_err_t err = nvs_flash_init();
@@ -20,6 +31,14 @@ esp_err_t settings_init() {
 
     if (err != ESP_OK) {
         return err;
+    }
+
+    if (settings_read_all() != ESP_OK) {
+        return false;
+    }
+
+    if (settings.countdownTime == 0) {
+        settings_init_default();
     }
 
     return settings_read_all();
@@ -39,6 +58,12 @@ esp_err_t settings_save_all() {
     err = settings_save(SETTINGS_IGNIT_TIME, settings.ignitTime);
     if (err) ESP_LOGE(SETTINGS_TAG, "%s\n", esp_err_to_name(err));
 
+    err = settings_save(SETTINGS_BUZZER_ON, settings.buzzer_on);
+    if (err) ESP_LOGE(SETTINGS_TAG, "%s\n", esp_err_to_name(err));
+
+    err = settings_save(SETTINGS_FLASH_ON, settings.flash_on);
+    if (err) ESP_LOGE(SETTINGS_TAG, "%s\n", esp_err_to_name(err));
+
     return ESP_OK;
 }
 
@@ -48,6 +73,8 @@ esp_err_t settings_read_all() {
     settings.lora_transmit_ms    = settings_read(SETTINGS_LORA_TRANSMIT_MS);
     settings.countdownTime  = settings_read(SETTINGS_COUNTDOWN_TIME);
     settings.ignitTime      = settings_read(SETTINGS_IGNIT_TIME);
+    settings.buzzer_on = settings_read(SETTINGS_BUZZER_ON);
+    settings.flash_on = settings_read(SETTINGS_FLASH_ON);
 
     return ESP_OK;
 }
