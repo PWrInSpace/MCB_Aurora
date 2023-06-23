@@ -97,6 +97,7 @@ static void transmint_packet(void) {
 
 static void on_lora_transmit() {
     lora_change_state_to_receive();
+    turn_of_receive_window_timer();
     turn_on_receive_window_timer();
 }
 
@@ -106,8 +107,11 @@ static void lora_task(void *arg) {
 
     while (1) {
         if (wait_until_irq() == true) {
+            // on transmit
             if (gb.lora_state == LORA_TRANSMIT) {
+                ESP_LOGI(TAG, "ON transmit");
                 on_lora_transmit();
+            // on receive
             } else {
                 rx_packet_size = on_lora_receive(rx_buffer, sizeof(rx_buffer));
                 if (rx_packet_size > 0 && gb.process_packet_fnc != NULL) {
@@ -116,6 +120,8 @@ static void lora_task(void *arg) {
                 }
                 lora_change_state_to_transmit();
                 transmint_packet();
+                // qucik fix
+                turn_on_receive_window_timer();
             }
         }
         vTaskDelay(pdMS_TO_TICKS(10));

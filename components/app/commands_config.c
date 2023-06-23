@@ -13,6 +13,7 @@
 #include "mission_timer_config.h"
 #include "flash_task.h"
 #include "buzzer_pwm.h"
+#include "gpio_expander.h"
 
 #define TAG "CMD"
 // COMMANDS
@@ -70,23 +71,39 @@ static void mcb_abort(uint32_t command, int32_t payload, bool privilage) {
     ESP_LOGI(TAG, "ABORT");
 }
 
-static void mcb_hold(uint32_t command, int32_t payload, bool privilage) {
+static void mcb_hold_in(uint32_t command, int32_t payload, bool privilage) {
     states_t state = SM_get_current_state();
     if (state == ABORT) {
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 100);
         return;
     }
 
-    if (state == HOLD) {
-        ESP_LOGI(TAG, "Leaving hold state");
-        if (SM_get_previous_state() == COUNTDOWN) {
-            SM_force_change_state(RDY_TO_LAUNCH);
-        } else {
-            SM_change_to_previous_state(true);
-        }
-    } else if (state < FLIGHT) {
-        SM_force_change_state(HOLD);
-        ESP_LOGI(TAG, "HOLD");
+    if (state >= FLIGHT) {
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 100);
+        return;
     }
+
+    ESP_LOGI(TAG, "HOLD");
+    SM_force_change_state(HOLD);
+    gpioexp_camera_turn_off();
+}
+
+static void mcb_hold_out(uint32_t command, int32_t payload, bool privilage) {
+    states_t state = SM_get_current_state();
+
+    if (state != HOLD) {
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 100);
+        return;
+    }
+
+    ESP_LOGI(TAG, "Leaving hold state");
+
+    if (SM_get_previous_state() == COUNTDOWN) {
+        SM_force_change_state(RDY_TO_LAUNCH);
+    } else {
+        SM_change_to_previous_state(true);
+    }
+    sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT);
 }
 
 static void mcb_change_lora_frequency_khz(uint32_t command, int32_t payload, bool privilage) {
@@ -225,7 +242,8 @@ static void mcb_reset_disconnect_timer(uint32_t command, int32_t payload, bool p
 static cmd_command_t mcb_commands[] = {
     {MCB_STATE_CHANGE,              mcb_state_change},
     {MCB_ABORT,                     mcb_abort},
-    {MCB_HOLD,                      mcb_hold},
+    {MCB_HOLD_IN,                   mcb_hold_in},
+    {MCB_HOLD_OUT,                  mcb_hold_out},
     {MCB_CHANGE_LORA_FREQ,          mcb_change_lora_frequency_khz},
     {MCB_CHANGE_TX_PERIOD,          mcb_change_lora_transmiting_period},
     {MCB_CHANGE_COUNTODWN_TIME,     mcb_change_countdown_time},
@@ -356,9 +374,9 @@ static void vval_valve_open(uint32_t command, int32_t payload, bool privilage) {
 }
 
 
-static void vval_valve_open_angle(uint32_t command, int32_t payload, bool privilage) {
-    send_command_esp_now(&esp_now_vent_valve, command, payload);
-}
+// static void vval_valve_open_angle(uint32_t command, int32_t payload, bool privilage) {
+//     send_command_esp_now(&esp_now_vent_valve, command, payload);
+// }
 
 static void vval_autopress_time(uint32_t command, int32_t payload, bool privilage) {
     send_command_esp_now(&esp_now_vent_valve, command, payload);
@@ -372,7 +390,7 @@ static void vval_autopress_limit(uint32_t command, int32_t payload, bool privila
 static cmd_command_t vent_valve_commands[] = {
     {VENT_VALVE_CLOSE,              vval_valve_close        },
     {VENT_VALVE_OPEN,               vval_valve_open         },
-    {VENT_VALVE_OPEN,               vval_valve_open_angle   },
+    // {VENT_VALVE_OPEN,               vval_valve_open_angle   },
     {VENT_VALVE_AUTOPRESS_TIME,     vval_autopress_time     },
     {VENT_VALVE_AUTOPRESS_LIMIT,    vval_autopress_limit    },
 };
@@ -386,6 +404,7 @@ static cmd_command_t tanwa_commands[] = {
     {TANWA_FILL_TIME,           tanwa_process_command},
     {TANWA_DEPR,                tanwa_process_command},
     {TANWA_QD,                  tanwa_process_command},
+    {TANWA_QD_2,                tanwa_process_command},
     {TANWA_RESTART_ESP_RCK,     tanwa_process_command},
     {TANWA_RESTART_ESP_BTL,     tanwa_process_command},
     {TANWA_SOFT_RESTART_ESP,    tanwa_process_command},

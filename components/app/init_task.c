@@ -89,18 +89,19 @@ static void TASK_init(void *arg) {
     // CHECK_RESULT_BOOL(sys_timer_start(TIMER_BUZZER, 2000, TIMER_TYPE_PERIODIC), "BUZZER TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_CONNECTED_DEV, 40000, TIMER_TYPE_PERIODIC),
                       "CONNECTED TIMER");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 30, TIMER_TYPE_PERIODIC), "SD TIMER");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 50, TIMER_TYPE_PERIODIC), "SD TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_DEBUG, 1000, TIMER_TYPE_PERIODIC), "DEBUG TIMER");
 
     CHECK_RESULT_BOOL(initialize_lora(settings.loraFreq_KHz, settings.lora_transmit_ms), "LORA");
     CHECK_RESULT_ESP(init_console(), "CLI");
-    esp_log_level_set("*", ESP_LOG_INFO);
+    // esp_log_level_set("*", ESP_LOG_INFO);
 
     CHECK_RESULT_ESP(SM_change_state(IDLE), "Change state to idle");
 
-    if (settings.buzzer_on != 0) {
-        CHECK_RESULT_BOOL(buzzer_init(), "Buzzer");
-    }
+    // if (settings.buzzer_on != 0) {
+    //     // CHECK_RESULT_BOOL(buzzer_init(), "Buzzer");
+    //     buzzer_turn_on();
+    // }
     vTaskDelete(NULL);
 }
 

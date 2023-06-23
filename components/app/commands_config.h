@@ -40,7 +40,8 @@ typedef enum {
 typedef enum {
     MCB_STATE_CHANGE = 0x00,
     MCB_ABORT = 0x01,
-    MCB_HOLD = 0x02,
+    MCB_HOLD_IN = 0x02,
+    MCB_HOLD_OUT = 0x03,
     MCB_CHANGE_LORA_FREQ = 0x10,
     MCB_CHANGE_TX_PERIOD = 0x11,
     MCB_CHANGE_COUNTODWN_TIME = 0x12,
@@ -68,6 +69,7 @@ typedef enum {
     TANWA_FILL_TIME = 0x15,
     TANWA_DEPR = 0x20,
     TANWA_QD = 0x30,
+    TANWA_QD_2 = 0x31,
     TANWA_RESTART_ESP_RCK = 0x61,
     TANWA_RESTART_ESP_BTL = 0x62,
     TANWA_SOFT_RESTART_ESP = 0x06,
