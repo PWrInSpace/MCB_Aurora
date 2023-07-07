@@ -1,3 +1,3 @@
-FROM espressif/idf:v4.4.4
+FROM espressif/idf:v5.1
 
 RUN echo "source /opt/esp/idf/export.sh" >> /root/.bashrc
