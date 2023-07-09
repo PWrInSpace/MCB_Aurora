@@ -45,6 +45,31 @@ void app_main(void) {
 
 
 // void app_main(void) {
+//     spi_init(VSPI_HOST, CONFIG_SPI_MOSI, CONFIG_SPI_MISO, CONFIG_SPI_SCK);
+//     esp_flash_t *flash;
+//     const esp_flash_spi_device_config_t device_config = {
+//         .host_id = VSPI_HOST,
+//         .cs_id = 0,
+//         .cs_io_num = 4,
+//         .io_mode = SPI_FLASH_FASTRD,
+//         .freq_mhz = 10,
+//     };
+
+//     esp_err_t err = spi_bus_add_flash_device(&flash, &device_config);
+//         if (err != ESP_OK) {
+//         ESP_LOGE(TAG, "Failed to add", esp_err_to_name(err), err);
+//     }
+
+//    err = esp_flash_init(flash);
+//     if (err != ESP_OK) {
+//         ESP_LOGE(TAG, "Failed to initialize external Flash: %s (0x%x)", esp_err_to_name(err), err);
+//     }
+
+//     ESP_LOGI(TAG, "INIT TASK");
+// }
+
+
+// void app_main(void) {
 //     ESP_LOGI(TAG, "INIT TASK");
 //     // run_init_task();
 
@@ -65,12 +90,12 @@ void app_main(void) {
 // void app_main(void) {
 //     ESP_LOGI(TAG, "MAG start :D");
 //     i2c_sensors_init();
-//     if (bmi08_wrapper_init() == false) {
-//         ESP_LOGW(TAG, "DUPA");
-//     }
 
 //     bool res = bmp5_wrapper_init();
 //     ESP_LOGI(TAG, "Result %d", res);
+//     if (bmi08_wrapper_init() == false) {
+//         ESP_LOGW(TAG, "DUPA");
+//     }
 
 //     ESP_LOGI(TAG, "BMI08 initialzied :D");
 //     if (mag_init() == false) {
@@ -90,19 +115,20 @@ void app_main(void) {
 //     mmc5983_mag_t mag_prev = {0};
 //     // mahony_t mahony;
 //     // mahony_init(10, 0.0, &mahony);
-//     Mahony_Init(100);
 //     double temp[3] = {0};
 
-//     // struct mgos_imu_madgwick * test = mgos_imu_madgwick_create();
-//     // mgos_imu_madgwick_set_params(test, 100, 0.01);
-//     // mgos_imu_madgwick_reset(test);
+//     struct mgos_imu_madgwick test; 
+//     mgos_imu_madgwick_create(&test);
+//     mgos_imu_madgwick_set_params(&test, 100, 0.01);
+//     mgos_imu_madgwick_reset(&test);
 
 //     while (true) {
 //         if (bmi08_get_acc_data(&acc) == true && bmi08_get_gyro_data(&gyro) == true && mag_data_ready() == true) {
 //             // mahony_updateIMU(, );
 //             mag_get_data(&mag);
 //             // Mahony_update();
-//             // mgos_imu_madgwick_update(test, gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y, mag.z);
+
+//             mgos_imu_madgwick_update(&test, gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y, mag.z);
 
 //             // acc.x = acc.x * 0.8 + acc_prev.x * 0.2;
 //             // acc.y = acc.y * 0.8 + acc_prev.y * 0.2;
@@ -122,25 +148,27 @@ void app_main(void) {
 
 //             // mahony_update(gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y, mag.z, &mahony);
 //             // fusion_update(gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y, mag.z);
-//             // quaternion_to_euler_ZYX(&mahony.q, test);
+//             // quaternion_to_euler_ZYX(&mahony.q, &test);
 //             // float heading = 360.0 + (atan2(data.y, data.x) * 180 / M_PI);
 //             // ESP_LOGI(TAG, "MAG x: %f\ty: %f\tz: %f\t heading %f", data.x, data.y, data.z, heading);
-//             ESP_LOGI(TAG, "ACC x: %f\ty: %f\tz: %f\t GYRO x: %f\ty: %f\tz: %f", acc.x, acc.y, acc.z, gyro.x, gyro.y, gyro.z);
+//             // ESP_LOGI(TAG, "ACC x: %f\ty: %f\tz: %f\t GYRO x: %f\ty: %f\tz: %f", acc.x, acc.y, acc.z, gyro.x, gyro.y, gyro.z);
 
 //             // ESP_LOGI(TAG, "MAHONY q0: %f\tq1: %f\tq2: %f\tq3: %f\t", mahony.q.q0, mahony.q.q1, mahony.q.q2, mahony.q.q3);
-//             // ESP_LOGI(TAG, "Euelr roll: %f\tpitch: %f\tyaw: %f", test[0], test[1], test[2]);
-//             // temp[0] += test[0];
-//             // temp[1] += test[1];
-//             // temp[2] += test[2];
+//             // ESP_LOGI(TAG, "Euelr roll: %f\tpitch: %f\tyaw: %f", &test[0], &test[1], &test[2]);
+//             // temp[0] += &test[0];
+//             // temp[1] += &test[1];
+//             // temp[2] += &test[2];
 //             // Mahony_computeAngles();
 //             // float roll = getRoll();
 //             // float pitch = getPitch();
 //             // float yaw = getYaw();
 
-//             // printf("y%fyp%fpr%fr\n", roll, pitch, yaw);
 //             // quaternion_t q;
-//             // mgos_imu_madgwick_get_quaternion(test, &q.q0, &q.q1, &q.q2, &q.q3);
+//             // mgos_imu_madgwick_get_quaternion(&test, &q.q0, &q.q1, &q.q2, &q.q3);
 //             // printf("w%fwa%fab%fbc%fc\n", q.q0, q.q1, q.q2, q.q3);
+//             float yaw, pitch, roll;
+//             mgos_imu_madgwick_get_angles(&test, &roll, &pitch, &yaw);
+//             printf("y%fyp%fpr%fr\n", yaw, pitch, roll);
 //         }
 
 //         vTaskDelay(pdMS_TO_TICKS(10));

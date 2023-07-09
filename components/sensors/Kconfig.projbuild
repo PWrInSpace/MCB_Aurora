@@ -18,3 +18,24 @@ menu "Sensors task"
         range 0 10000
         default 10
 endmenu
+
+menu "Recovery task"
+    config RECOVERY_TASK_DEPTH
+        int "Recovery task stack depth"
+        default 4096
+
+    config RECOVERY_TASK_PRIORITY
+        int "Recovery task prioirty"
+        range 0 20
+        default 2
+
+    config RECOVERY_TASK_CPU
+        int "Recovery task cpu number"
+        range 0 1
+        default 1
+
+    config RECOVERY_TASK_PERIOD_MS
+        int "Recovery task loop execution period (ms)"
+        range 0 10000
+        default 500
+endmenu

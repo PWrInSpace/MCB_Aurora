@@ -6,9 +6,9 @@
 
 #include "lora.h"
 
-#define LORA_TASK_PRIORITY 10
-#define LORA_TASK_STACK_DEPTH 8000
-#define LORA_TASK_CPU_NUM 1
+#define LORA_TASK_PRIORITY CONFIG_LORA_TASK_PRIORITY
+#define LORA_TASK_STACK_DEPTH CONFIG_LORA_TASK_STACK_DEPTH
+#define LORA_TASK_CPU_NUM CONFIG_LORA_TASK_CORE_ID
 
 #define LORA_TASK_CRC_ENABLE CONFIG_LORA_CRC_ENABLE
 #define LORA_TASK_FREQUENCY_KHZ CONFIG_LORA_FREQUENCY_KHZ
@@ -34,6 +34,8 @@ typedef struct {
     lora_task_process_rx_packet process_rx_packet_fnc;
     lora_task_get_tx_packet get_tx_packet_fnc;
     lora_struct_t *lora;
+    uint32_t frequency_khz;
+    uint32_t transmiting_period;
 } lora_api_config_t;
 
 /**
@@ -53,5 +55,7 @@ bool lora_task_init(lora_api_config_t *cfg);
 void lora_task_irq_notify(void *arg);
 
 bool lora_change_receive_window_period(uint32_t period_ms);
+
+bool lora_change_frequency(uint32_t frequency_khz);
 
 #endif

@@ -57,4 +57,14 @@ bool sensors_get_data(void *buffer, size_t buffer_size, uint32_t timeout_ms);
  */
 bool sensors_change_process_function(sensors_process fnc, uint32_t timeout_ms);
 
+
+/**
+ * @brief Remove process function
+ * 
+ * @param timeout timeout
+ * @return true :D
+ * @return false :C
+ */
+bool sensors_remove_process_function(uint32_t timeout);
+
 #endif

@@ -46,7 +46,7 @@ static bool write_to_sd(FILE *file, char *data, size_t size) {
     }
 
     xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
-    fputs(data, file);
+    fwrite(data, 1, size, file);
     xSemaphoreGive(mem.spi_mutex);
 
     return true;
@@ -59,7 +59,6 @@ static void get_data_from_queue_and_save(FILE * data_file) {
     } else {
         frame_size = mem.create_sd_frame_fnc(mem.data_buffer, sizeof(mem.data_buffer),
                                              mem.data_from_queue, mem.data_from_queue_size);
-
         if (write_to_sd(data_file, mem.data_buffer, frame_size) == false) {
             xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
             SD_remount(&mem.sd_card);
@@ -218,7 +217,7 @@ static bool initialize_sd_card(sd_task_cfg_t *task_cfg) {
     if (ret == false) {
         ESP_LOGW(TAG, "Unable to initialize SD card");
         report_error(SD_INIT);
-        // return false;    not returning -> user can insert sd card after system init
+        return false;
     }
 
     mem.error_handler_fnc = task_cfg->error_handler_fnc;
@@ -296,7 +295,7 @@ bool SDT_init(sd_task_cfg_t *task_cfg) {
 
     if (initialize_sd_card(task_cfg) == false) {
         ESP_LOGE(TAG, "Unable to initialzie sd card");
-        // return false;
+        return false;
     }
 
     if (initialize_task(task_cfg) == false) {

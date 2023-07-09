@@ -21,7 +21,7 @@ static struct {
     void *data_from_queue;
     size_t data_size;
 
-    bool flash_formated;
+    bool flash_enable;
 
     FT_error_handler error_handler_fnc;
 
@@ -36,7 +36,7 @@ static struct {
     .events = NULL,
     .data_from_queue = NULL,
     .data_size = 0,
-    .flash_formated = false,
+    .flash_enable = false,
     .error_handler_fnc = NULL,
     .flash.wrote_size = 0,
     .flash.max_size = 0,
@@ -74,7 +74,10 @@ static bool init(void) {
     if (FLASH_init(1) != FLASH_OK) {
         report_error(FT_INIT_ERROR);
         ESP_LOGW(TAG, "Formating flash");
-        FLASH_format();
+        if (FLASH_format() != FLASH_OK) {
+            return false;
+        }
+
         if (FLASH_init(1) != FLASH_OK) {
             return false;
         }
@@ -82,15 +85,8 @@ static bool init(void) {
 
     // sometimes above 2/3 used memory, writing to flash take more than 150ms
     gb.flash.max_size = FLASH_get_total_size() * 3 / 5;
-    gb.flash.wrote_size = 0;
+    gb.flash.wrote_size = FLASH_get_used_size();
     return true;
-}
-
-static void format() {
-    if (FLASH_format() != FLASH_OK) {
-        report_error(FT_FORMAT);
-        terminate_task();
-    }
 }
 
 static void open() {
@@ -118,7 +114,7 @@ static void write(void *data, size_t size) {
     }
 }
 
-static void wait_until_erase_condition(void) {
+static void wait_until_start_condition(void) {
     EventBits_t bits = 0x00;
 
     while (!(bits & EVENT_ERASE)) {  // NAND GATE
@@ -134,12 +130,9 @@ static void check_termiate_condition(void) {
 }
 
 static void flash_task(void *arg) {
-    wait_until_erase_condition();  // Blocking till required condition
-    ESP_LOGI(TAG, "Formatting flash");
-    format();
+    wait_until_start_condition();  // Blocking till required condition
     open();
-    ESP_LOGI(TAG, "Flash formatted");
-    gb.flash_formated = true;
+    gb.flash_enable = true;
 
     while (1) {
         if (uxQueueMessagesWaiting(gb.queue) > FLASH_DROP_VALUE) {
@@ -203,7 +196,7 @@ bool FT_init(flash_task_cfg_t *cfg) {
 }
 
 bool FT_send_data(void *data) {
-    if (gb.flash_formated == false) {
+    if (gb.flash_enable == false) {
         return false;
     }
 
@@ -219,7 +212,7 @@ bool FT_send_data(void *data) {
     return true;
 }
 
-void FT_erase_and_run_loop(void) {
+void FT_start_loop(void) {
     if (gb.events == NULL) {
         return;
     }
@@ -227,14 +220,25 @@ void FT_erase_and_run_loop(void) {
     xEventGroupSetBits(gb.events, EVENT_ERASE);
 }
 
+void FT_format() {
+    if (FLASH_format() != FLASH_OK) {
+        report_error(FT_FORMAT);
+        terminate_task();
+    }
+}
+
 void FT_terminate_task(void) {
     if (gb.events == NULL) {
         return;
     }
 
-    if (gb.flash_formated == false) {
+    if (gb.flash_enable == false) {
         terminate_task();
     }
 
     xEventGroupSetBits(gb.events, EVENT_TERMINATE);
+}
+
+bool FT_is_enable(void) {
+    return gb.flash_enable;
 }

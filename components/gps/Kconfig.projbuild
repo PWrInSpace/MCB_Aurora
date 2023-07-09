@@ -16,5 +16,5 @@ menu "GPS task"
     config GPS_TASK_PERIOD_MS
         int "GPS task loop execution period (ms)"
         range 0 60000
-        default 1000
+        default 500
 endmenu

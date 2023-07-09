@@ -17,6 +17,7 @@ PROTOBUF_C__BEGIN_DECLS
 
 typedef struct LoRaFrame LoRaFrame;
 typedef struct LoRaCommand LoRaCommand;
+typedef struct LoRaSettings LoRaSettings;
 
 
 /* --- enums --- */
@@ -78,12 +79,16 @@ struct  LoRaFrame
   float temperature1;
   float temperature2;
   float pressure;
+  /*
+   * payload frame
+   */
+  float payload_battery;
   uint32_t esp_now_byte_data;
   uint32_t errors;
 };
 #define LO_RA_FRAME__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&lo_ra_frame__descriptor) \
-    , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+    , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 
 
 struct  LoRaCommand
@@ -97,6 +102,21 @@ struct  LoRaCommand
 #define LO_RA_COMMAND__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&lo_ra_command__descriptor) \
     , 0, 0, 0, 0 }
+
+
+struct  LoRaSettings
+{
+  ProtobufCMessage base;
+  int32_t lora_freq_khz;
+  int32_t lora_transmit_ms;
+  int32_t countdown_time;
+  int32_t ingition_time;
+  uint32_t flash_enable;
+  uint32_t buzzer_enable;
+};
+#define LO_RA_SETTINGS__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&lo_ra_settings__descriptor) \
+    , 0, 0, 0, 0, 0, 0 }
 
 
 /* LoRaFrame methods */
@@ -137,6 +157,25 @@ LoRaCommand *
 void   lo_ra_command__free_unpacked
                      (LoRaCommand *message,
                       ProtobufCAllocator *allocator);
+/* LoRaSettings methods */
+void   lo_ra_settings__init
+                     (LoRaSettings         *message);
+size_t lo_ra_settings__get_packed_size
+                     (const LoRaSettings   *message);
+size_t lo_ra_settings__pack
+                     (const LoRaSettings   *message,
+                      uint8_t             *out);
+size_t lo_ra_settings__pack_to_buffer
+                     (const LoRaSettings   *message,
+                      ProtobufCBuffer     *buffer);
+LoRaSettings *
+       lo_ra_settings__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   lo_ra_settings__free_unpacked
+                     (LoRaSettings *message,
+                      ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
 typedef void (*LoRaFrame_Closure)
@@ -144,6 +183,9 @@ typedef void (*LoRaFrame_Closure)
                   void *closure_data);
 typedef void (*LoRaCommand_Closure)
                  (const LoRaCommand *message,
+                  void *closure_data);
+typedef void (*LoRaSettings_Closure)
+                 (const LoRaSettings *message,
                   void *closure_data);
 
 /* --- services --- */
@@ -153,6 +195,7 @@ typedef void (*LoRaCommand_Closure)
 
 extern const ProtobufCMessageDescriptor lo_ra_frame__descriptor;
 extern const ProtobufCMessageDescriptor lo_ra_command__descriptor;
+extern const ProtobufCMessageDescriptor lo_ra_settings__descriptor;
 
 PROTOBUF_C__END_DECLS
 

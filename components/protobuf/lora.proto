@@ -47,7 +47,7 @@ message LoRaFrame {
     required float pressure = 33;
 
     // payload frame
-    // required float payload_battery = 34;
+    required float payload_battery = 34;
 
     required fixed32 esp_now_byte_data = 35;
     required fixed32 errors = 36;
@@ -58,4 +58,13 @@ message LoRaCommand {
     required uint32 sys_dev_id = 2;
     required uint32 command = 3;
     required int32 payload = 4;
+}
+
+message LoRaSettings {
+    required int32 lora_freq_khz = 1;
+    required int32 lora_transmit_ms = 2;
+    required int32 countdown_time = 3;
+    required int32 ingition_time = 4;
+    required uint32 flash_enable = 5;
+    required uint32 buzzer_enable = 6;
 }

@@ -97,6 +97,7 @@ static void transmint_packet(void) {
 
 static void on_lora_transmit() {
     lora_change_state_to_receive();
+    turn_of_receive_window_timer();
     turn_on_receive_window_timer();
 }
 
@@ -106,8 +107,11 @@ static void lora_task(void *arg) {
 
     while (1) {
         if (wait_until_irq() == true) {
+            // on transmit
             if (gb.lora_state == LORA_TRANSMIT) {
+                ESP_LOGI(TAG, "ON transmit");
                 on_lora_transmit();
+            // on receive
             } else {
                 rx_packet_size = on_lora_receive(rx_buffer, sizeof(rx_buffer));
                 if (rx_packet_size > 0 && gb.process_packet_fnc != NULL) {
@@ -116,6 +120,8 @@ static void lora_task(void *arg) {
                 }
                 lora_change_state_to_transmit();
                 transmint_packet();
+                // qucik fix
+                turn_on_receive_window_timer();
             }
         }
         vTaskDelay(pdMS_TO_TICKS(10));
@@ -137,7 +143,7 @@ bool lora_task_init(lora_api_config_t *cfg) {
     memcpy(&gb.lora, cfg->lora, sizeof(lora_struct_t));
 
     lora_init(&gb.lora);
-    lora_set_frequency(&gb.lora, LORA_TASK_FREQUENCY_KHZ * 1e3);
+    lora_set_frequency(&gb.lora, cfg->frequency_khz * 1e3);
     lora_set_bandwidth(&gb.lora, LORA_TASK_BANDWIDTH);
     lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_RXDONE);
     if (LORA_TASK_CRC_ENABLE) {
@@ -153,7 +159,7 @@ bool lora_task_init(lora_api_config_t *cfg) {
     }
 
     gb.receive_window_timer =
-        xTimerCreate("Transmit timer", pdMS_TO_TICKS(LORA_TASK_RECEIVE_WINDOW), pdFALSE, NULL,
+        xTimerCreate("Transmit timer", pdMS_TO_TICKS(cfg->transmiting_period), pdFALSE, NULL,
                      on_receive_window_timer);
     ESP_LOGD(TAG, "Starting timer");
     lora_change_state_to_receive();
@@ -173,5 +179,18 @@ bool lora_change_receive_window_period(uint32_t period_ms) {
         return false;
     }
 
+    return true;
+}
+
+bool lora_change_frequency(uint32_t frequency_khz) {
+    if (frequency_khz < 4e5 || frequency_khz > 1e6) {
+        return false;
+    }
+
+    if (lora_set_frequency(&gb.lora, frequency_khz * 1000) != LORA_OK) {
+        return false;
+    }
+
+    // on_lora_transmit();
     return true;
 }

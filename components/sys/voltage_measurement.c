@@ -44,5 +44,6 @@ float voltageMeasureReadVoltage(VoltageMeasure* vMes) {
   if (vRaw == READ_ERROR_RETURN_VAL) {
     return VOLTAGE_READ_ERROR_RETURN_VAL;
   }
-  return vMes->adcCal * (float)vRaw / 4095.0f * 3.3f;
+
+  return vMes->adcCal * (float)vRaw / 4095.0f * 4.76 - 0.82;
 }

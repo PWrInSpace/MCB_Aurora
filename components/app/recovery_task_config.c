@@ -89,10 +89,10 @@ bool initialize_recovery(void) {
 
     basic_task_cfg_t task_cfg = {
         .process_fnc = recovery_process_data,
-        .priority = CONFIG_GPS_TASK_PRIORITY,
-        .core_id = CONFIG_GPS_TASK_CPU,
-        .stack_depth = CONFIG_GPS_TASK_DEPTH,
-        .task_delay = CONFIG_GPS_TASK_PERIOD_MS,
+        .priority = CONFIG_RECOVERY_TASK_PRIORITY,
+        .core_id = CONFIG_RECOVERY_TASK_CPU,
+        .stack_depth = CONFIG_RECOVERY_TASK_DEPTH,
+        .task_delay = CONFIG_RECOVERY_TASK_PERIOD_MS,
     };
 
     if (basic_task_create(&task_cfg, &gb.task) == false) {

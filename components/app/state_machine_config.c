@@ -12,6 +12,8 @@
 #include "rocket_data.h"
 #include "gpio_expander.h"
 #include "recovery_task_config.h"
+#include "settings_mem.h"
+#include "processing_task_config.h"
 
 #define TAG "SMC"
 static void on_init(void *arg) {
@@ -54,14 +56,18 @@ static void on_fueling(void *arg) {
 static void on_armed_to_launch(void *arg) {
     gpioexp_led_set_color(YELLOW);
     ESP_LOGI(TAG, "ON ARMED TO LAUNCH");
-    FT_erase_and_run_loop();
 }
 
 static void on_ready_to_lauch(void *arg) {
     gpioexp_led_set_color(PURPLE);
     ESP_LOGI(TAG, "ON READY_TO_LAUNCH");
-    sys_timer_start(TIMER_FLASH_DATA, 500, TIMER_TYPE_PERIODIC);
-    // turn on camera
+    Settings settings = settings_get_all();
+
+    gpioexp_camera_turn_on();
+    if (settings.flash_on != 0) {
+        FT_start_loop();
+        sys_timer_start(TIMER_FLASH_DATA, 500, TIMER_TYPE_PERIODIC);
+    }
 }
 
 static void on_countdown(void *arg) {
@@ -73,7 +79,9 @@ static void on_countdown(void *arg) {
         goto abort_countdown;
     }
 
-    if (hybrid_mission_timer_start(-30000, -13500) == false) {
+
+    Settings settings = settings_get_all();
+    if (hybrid_mission_timer_start(settings.countdownTime, settings.ignitTime) == false) {
         ESP_LOGE(TAG, "Mission timer error");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_DISCONNECT_TIMER, 100);
         goto abort_countdown;
@@ -92,7 +100,7 @@ static void recovery_first_stage_process(recovery_data_t *data) {
         return;
     }
 
-    if (data->easyMiniFirstStage == true || data->telemetrumFirstStage == true) {
+    if (data->firstStageDone == true) {
         if (SM_change_state(FIRST_STAGE_RECOVERY) != SM_OK) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
         }
@@ -114,7 +122,7 @@ static void recovery_second_stage_process(recovery_data_t *data) {
         return;
     }
 
-    if (data->easyMiniSecondStage == true || data->telemetrumSecondStage == true) {
+    if (data->secondStageDone == true) {
         if (SM_change_state(SECOND_STAGE_RECOVERY) != SM_OK) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
         }
@@ -127,12 +135,18 @@ static void on_first_stage_recovery(void *arg) {
         ESP_LOGE(TAG, "Unable do add process fnc");
     }
 
+    if (recovery_send_cmd(RECOV_FORCE_FIRST_STAGE, 0) == false) {
+        ESP_LOGE(TAG, "Unable to send first stage recov");
+    }
+
     cmd_message_t cmd = cmd_create_message(MAIN_VALVE_CLOSE, 0x00);
     ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 }
 
-static void on_ground_gps_process(gps_positioning_t *data) {
+static void on_ground_sensors_process(void *data_buffer) {
     static uint8_t ground_counter = 0;
+    sensors_data_t *data = (sensors_data_t*) data_buffer;
+
     if (data->altitude < 50) {
         ground_counter += 1;
     } else {
@@ -152,8 +166,12 @@ static void on_second_stage_recovery(void *arg) {
         ESP_LOGE(TAG, "Unable do remove process fnc");
     }
 
-    if (gps_change_process_fnc(on_ground_gps_process) == false) {
-        ESP_LOGE(TAG, "Unable to add gps process function");
+    if (sensors_change_process_function(on_ground_sensors_process, 1000) == false) {
+        ESP_LOGE(TAG, "Unable to add process function");
+    }
+
+    if (recovery_send_cmd(RECOV_FORCE_SECOND_STAGE, 0) == false) {
+        ESP_LOGE(TAG, "Unable to send first stage recov");
     }
 
     cmd_message_t cmd = cmd_create_message(VENT_VALVE_OPEN, 0x00);
@@ -161,8 +179,8 @@ static void on_second_stage_recovery(void *arg) {
 }
 
 static void on_ground(void *arg) {
-    if (gps_remove_process_fnc() == false) {
-        ESP_LOGE(TAG, "Unable to remove gps process fnc");
+    if (sensors_remove_process_function(1000) == false) {
+        ESP_LOGE(TAG, "Unable to remove process fnc");
     }
 
     if (sys_timer_delete(TIMER_SD_DATA) == false) {
@@ -173,7 +191,7 @@ static void on_ground(void *arg) {
         ESP_LOGE(TAG, "Unable to delete flash data timer");
     }
 
-
+    gpioexp_camera_turn_off();
     ESP_LOGI(TAG, "ON GROUND");
     gpioexp_led_set_color(CYAN);
 }

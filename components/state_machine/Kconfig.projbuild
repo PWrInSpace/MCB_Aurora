@@ -13,6 +13,6 @@ menu "State Machine Task"
     config SM_TASK_CORE_ID
         int "task core id"
         range 0 1
-        default 1
+        default 0
 
 endmenu

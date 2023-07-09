@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "protobuf-c.h"
 
 typedef struct {
     bool main_valve : 1;
@@ -24,10 +25,10 @@ typedef struct {
 typedef struct {
     bool waken_up : 1;
     uint8_t valve_state : 2;
-    uint16_t thermistor1;
-    uint16_t thermistor2;
-    float tank_pressure;
-    float battery_voltage;
+    uint32_t tank_pressure;
+    int8_t thermistor1;
+    int8_t thermistor2;
+    uint32_t battery_voltage;
 } vent_valve_data_t;
 
 typedef struct {
@@ -50,24 +51,28 @@ typedef struct {
 
 typedef struct {
     bool waken_up : 1;
-    uint16_t vbat;
+    float vbat;
 } payload_data_t;
 
 typedef struct {
-    uint32_t tanWaState;
-    uint32_t pressureSensor;
-    uint32_t solenoid_fill;
-    uint32_t solenoid_depr;
-    bool abortButton;
+    uint8_t tanWaState;
+    uint16_t pressureSensor;
+    uint16_t solenoid_fill; //pin pa0 10 pin stm adc
+    uint16_t solenoid_depr; // pin pa2 12 pin stm adc
+    bool abortButton : 1;
     bool igniterContinouity_1;
     bool igniterContinouity_2;
-    uint32_t hxRequest_RCK; /* arduino string */
-    uint32_t hxRequest_TANK; /* arduino string */
+    uint8_t hxRequest_RCK;
+    uint8_t hxRequest_TANK;
     float vbat;
-    uint32_t motorState_1;
-    uint32_t motorState_2;
-    uint32_t motorState_3;
-    uint32_t motorState_4;
+    uint8_t motorState_1;
+    uint8_t motorState_2;
+    uint8_t motorState_3;
+    uint8_t motorState_4;
+    int rocketWeight_blink;
+    float rocketWeight_temp;
+    int tankWeight_blink;
+    float tankWeight_temp;
     float rocketWeight_val;
     float tankWeight_val;
     uint32_t rocketWeightRaw_val;

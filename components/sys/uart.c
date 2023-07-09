@@ -43,3 +43,11 @@ int uart_ublox_write(uint8_t *data, uint8_t data_size) {
 int uart_ublox_read(uint8_t *data, uint8_t data_size) {
     return uart_read_bytes(gb.uart_gps_port, data, data_size, pdMS_TO_TICKS(500));
 }
+
+int uart_flush_rx(void) {
+    return uart_flush(gb.uart_gps_port);
+}
+
+int uart_flush_tx(void) {
+    return uart_flush_input(gb.uart_gps_port);
+}

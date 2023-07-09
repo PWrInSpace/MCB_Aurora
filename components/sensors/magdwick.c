@@ -141,7 +141,9 @@ bool mgos_imu_madgwick_update(struct mgos_imu_madgwick *filter, float gx, float 
   float qDot1, qDot2, qDot3, qDot4;
   float hx, hy;
   float _2q0mx, _2q0my, _2q0mz, _2q1mx, _2bx, _2bz, _4bx, _4bz, _2q0, _2q1, _2q2, _2q3, _2q0q2, _2q2q3, q0q0, q0q1, q0q2, q0q3, q1q1, q1q2, q1q3, q2q2, q2q3, q3q3;
-
+  // gx = gx * 0.0174532925;
+  // gy = gy * 0.0174532925;
+  // gz = gz * 0.0174532925;
   if (!filter) {
     return false;
   }
@@ -260,15 +262,23 @@ bool mgos_imu_madgwick_get_angles(struct mgos_imu_madgwick *filter, float *roll,
   if (!filter) {
     return false;
   }
-  if (roll) {
-    *roll = asinf(-2.0f * (filter->q1 * filter->q3 - filter->q0 * filter->q2));
-  }
-  if (pitch) {
-    *pitch = atan2f(filter->q0 * filter->q1 + filter->q2 * filter->q3, 0.5f - filter->q1 * filter->q1 - filter->q2 * filter->q2);
-  }
-  if (yaw) {
-    *yaw = atan2f(filter->q1 * filter->q2 + filter->q0 * filter->q3, 0.5f - filter->q2 * filter->q2 - filter->q3 * filter->q3);
-  }
+  // if (roll) {
+  //   *roll = asinf(-2.0f * (filter->q1 * filter->q3 - filter->q0 * filter->q2));
+  // }
+  // if (pitch) {
+  //   *pitch = atan2f(filter->q0 * filter->q1 + filter->q2 * filter->q3, 0.5f - filter->q1 * filter->q1 - filter->q2 * filter->q2);
+  // }
+  // if (yaw) {
+  //   *yaw = atan2f(filter->q1 * filter->q2 + filter->q0 * filter->q3, 0.5f - filter->q2 * filter->q2 - filter->q3 * filter->q3);
+  // }
+
+  *yaw   = atan2(2.0 * (filter->q1 * filter->q2 + filter->q0 * filter->q3), filter->q0 * filter->q0 + filter->q1 * filter->q1 - filter->q2 * filter->q2 - filter->q3 * filter->q3);
+  *pitch = -asin(2.0 * (filter->q1 * filter->q3 - filter->q0 * filter->q2));
+  *roll  = atan2(2.0 * (filter->q0 * filter->q1 + filter->q2 * filter->q3), filter->q0 * filter->q0 - filter->q1 * filter->q1 - filter->q2 * filter->q2 + filter->q3 * filter->q3);
+
+  *roll *= 180.0 / M_PI;
+  *yaw *= 180.0 / M_PI;
+  *pitch *= 180.0 / M_PI;
   return true;
 }
 

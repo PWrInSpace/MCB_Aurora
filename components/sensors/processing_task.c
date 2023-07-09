@@ -40,7 +40,7 @@ bool sensors_get_data(void *buffer, size_t buffer_size, uint32_t timeout_ms) {
     }
 
     if (xSemaphoreTake(gb.data_mutex, pdMS_TO_TICKS(timeout_ms)) == pdFAIL) { // TODO: check return value
-        ESP_LOGE(TAG, "Semaphore error");
+        ESP_LOGE(TAG, "Semaphore get data error");
         return false;
     }
     memcpy(buffer, gb.data_buffer, buffer_size);
@@ -66,6 +66,22 @@ bool sensors_change_process_function(sensors_process fnc, uint32_t timeout_ms) {
     xSemaphoreGive(gb.data_mutex);
 
     return true;
+}
+
+bool sensors_remove_process_function(uint32_t timeout) {
+    if (gb.data_mutex == NULL) {
+        return false;
+    }
+
+    if (xSemaphoreTake(gb.data_mutex, pdMS_TO_TICKS(timeout)) == pdFAIL) {
+        return false;
+    }
+
+    gb.sensors_process_fnc = NULL;
+    xSemaphoreGive(gb.data_mutex);
+
+    return true;
+
 }
 
 
