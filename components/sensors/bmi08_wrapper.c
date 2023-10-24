@@ -2,8 +2,11 @@
 #include <math.h>
 #include "bmi08.h"
 #include "bmi088_mm.h"
+#include "bmi08x.h"
 #include "i2c.h"
+#include "esp_log.h"
 
+#define TAG "IMU"
 
 #define GRAVITY_EARTH  (9.80665f)
 
@@ -46,9 +49,11 @@ static float lsb_to_dps(int16_t val, float dps, uint8_t bit_width)
 {
     double power = 2;
 
-    float half_scale = (float)((pow((double)power, (double)bit_width) / 2.0f));
+    // float half_scale = (float)((pow((double)power, (double)bit_width) / 2.0f));
+    // return (dps / (half_scale)) * (val);
+    float half_scale = 32767;
 
-    return (dps / (half_scale)) * (val);
+    return 250.0f / half_scale * val;
 }
 
 bool bmi08_wrapper_init(void) {
@@ -58,46 +63,89 @@ bool bmi08_wrapper_init(void) {
     gb.dev.write = bmi08_i2c_write;
     gb.dev.read = bmi08_i2c_read;
     gb.dev.delay_us = bmi08_delay;
+    gb.dev.variant = BMI088_VARIANT;
 
     gb.dev.intf = BMI08_I2C_INTF;
     gb.dev.intf_ptr_accel = &gb.acc_addr;
     gb.dev.intf_ptr_gyro = &gb.gyro_addr;
     gb.dev.read_write_len = 32;
 
-    if (bmi088_mma_init(&gb.dev) != BMI08_OK || bmi08g_init(&gb.dev) != BMI08_OK) {
-        return false;
-    }
-
-    /* Reset the accelerometer */
-    if(bmi08a_soft_reset(&gb.dev) != BMI08_OK) {
-        return false;
-    }
-
-    gb.dev.accel_cfg.power = BMI08_ACCEL_PM_ACTIVE;
-    if (bmi08a_set_power_mode(&gb.dev) != BMI08_OK) {
-        return false;
-    }
-
-    gb.dev.gyro_cfg.power = BMI08_GYRO_PM_NORMAL;
-    if (bmi08g_set_power_mode(&gb.dev) != BMI08_OK) {
+    if (bmi08xa_init(&gb.dev) != BMI08_OK || bmi08g_init(&gb.dev) != BMI08_OK) {
+        ESP_LOGE(TAG, "Init");
         return false;
     }
 
     if (bmi08a_load_config_file(&gb.dev) != BMI08_OK) {
+        ESP_LOGE(TAG, "Load config");
         return false;
     }
 
+    gb.dev.accel_cfg.odr = BMI08_ACCEL_ODR_200_HZ;
+    gb.dev.accel_cfg.range = BMI088_ACCEL_RANGE_24G;
+    gb.dev.accel_cfg.power = BMI08_ACCEL_PM_ACTIVE;
+    gb.dev.accel_cfg.bw = BMI08_ACCEL_BW_NORMAL; 
 
-    gb.dev.accel_cfg.range = BMI088_MM_ACCEL_RANGE_24G;
-    gb.dev.accel_cfg.odr = BMI08_ACCEL_ODR_100_HZ;
-    gb.dev.accel_cfg.bw = BMI08_ACCEL_BW_NORMAL;
-    gb.dev.gyro_cfg.range = BMI08_GYRO_RANGE_125_DPS;
-    gb.dev.gyro_cfg.odr = BMI08_GYRO_BW_32_ODR_100_HZ;
-    gb.dev.gyro_cfg.bw = BMI08_GYRO_BW_32_ODR_100_HZ;
+    if (bmi08a_set_power_mode(&gb.dev) != BMI08_OK) {
+        ESP_LOGE(TAG, "Set accel power mode");
+        return false;
+    }
+
+    if (bmi08xa_set_meas_conf(&gb.dev) != BMI08_OK) {
+        ESP_LOGE(TAG, "Set accel meas conf");
+        return false;
+    }
+
+    gb.dev.gyro_cfg.odr = BMI08_GYRO_BW_47_ODR_400_HZ ;
+    gb.dev.gyro_cfg.range = BMI08_GYRO_RANGE_250_DPS;
+    gb.dev.gyro_cfg.bw = BMI08_GYRO_BW_47_ODR_400_HZ ;
     gb.dev.gyro_cfg.power = BMI08_GYRO_PM_NORMAL;
-    if (bmi088_mma_set_meas_conf(&gb.dev) != BMI08_OK) {
+    if (bmi08g_set_power_mode(&gb.dev) != BMI08_OK) {
+        ESP_LOGE(TAG, "Set gyro power mode");
         return false;
     }
+
+    if (bmi08g_set_meas_conf(&gb.dev) != BMI08_OK) {
+        ESP_LOGE(TAG, "Set gyro meas conf");
+        return false;
+    }
+
+
+    /* Reset the accelerometer */
+    // if(bmi08a_soft_reset(&gb.dev) != BMI08_OK) {
+    //     ESP_LOGE(TAG, "Soft reset");
+    //     return false;
+    // }
+
+    // gb.dev.delay_us(100, NULL);
+
+    // gb.dev.accel_cfg.power = BMI08_ACCEL_PM_ACTIVE;
+    // if (bmi08a_set_power_mode(&gb.dev) != BMI08_OK) {
+    //     ESP_LOGE(TAG, "Power mode");
+    //     return false;
+    // }
+
+    // gb.dev.gyro_cfg.power = BMI08_GYRO_PM_NORMAL;
+    // if (bmi08g_set_power_mode(&gb.dev) != BMI08_OK) {
+    //     ESP_LOGE(TAG, "Power mode gyro");
+    //     return false;
+    // }
+
+    // if (bmi08a_load_config_file(&gb.dev) != BMI08_OK) {
+    //     ESP_LOGE(TAG, "Config file");
+    //     return false;
+    // }
+
+
+    // gb.dev.accel_cfg.range = BMI088_MM_ACCEL_RANGE_24G;
+    // gb.dev.accel_cfg.odr = BMI08_ACCEL_ODR_100_HZ;
+    // gb.dev.accel_cfg.bw = BMI08_ACCEL_BW_NORMAL;
+    // gb.dev.gyro_cfg.range = BMI08_GYRO_RANGE_2000_DPS;
+    // gb.dev.gyro_cfg.odr = BMI08_GYRO_BW_23_ODR_200_HZ;
+    // gb.dev.gyro_cfg.bw = BMI08_GYRO_BW_23_ODR_200_HZ;
+    // gb.dev.gyro_cfg.power = BMI08_GYRO_PM_NORMAL;
+    // if (bmi088_mma_set_meas_conf(&gb.dev) != BMI08_OK) {
+    //     return false;
+    // }
 
     return true;
 }
@@ -131,7 +179,7 @@ bool bmi08_gyro_data_ready(void) {
 
 bool bmi08_get_acc_data(struct bmi08_sensor_data_f *acc) {
     struct bmi08_sensor_data data;
-    if (bmi088_mma_get_data(&data, &gb.dev) != BMI08_OK) {
+    if (bmi08a_get_data(&data, &gb.dev) != BMI08_OK) {
         return false;
     }
 
@@ -142,15 +190,28 @@ bool bmi08_get_acc_data(struct bmi08_sensor_data_f *acc) {
     return true;
 }
 
+bool bmi08_get_raw_gyro_data(int16_t *x, int16_t *y, int16_t *z) {
+    struct bmi08_sensor_data data;
+    if (bmi08g_get_data(&data, &gb.dev) != BMI08_OK) {
+        return false;
+    }
+
+    *x = data.x;
+    *y = data.y;
+    *z = data.z;
+
+    return true;
+}
+
 bool bmi08_get_gyro_data(struct bmi08_sensor_data_f *gyro) {
     struct bmi08_sensor_data data;
     if (bmi08g_get_data(&data, &gb.dev) != BMI08_OK) {
         return false;
     }
 
-    gyro->x = lsb_to_dps(data.x, (float)125, 16);
-    gyro->y = lsb_to_dps(data.y, (float)125, 16);
-    gyro->z = lsb_to_dps(data.z, (float)125, 16);
+    gyro->x = lsb_to_dps(data.x, (float)250, 16);
+    gyro->y = lsb_to_dps(data.y, (float)250, 16);
+    gyro->z = lsb_to_dps(data.z, (float)250, 16);
 
     return true;
 }

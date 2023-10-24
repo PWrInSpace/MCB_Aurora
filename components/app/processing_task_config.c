@@ -8,10 +8,10 @@
 #include "mag_wrapper.h"
 #include "magdwick.h"
 #include "rocket_data.h"
-
+#include <stdio.h>
 #define TAG "SENSORS_CFG"
 
-#define FILTER_CONST 0.95
+#define FILTER_CONST 0.75
 
 static struct bmi08_sensor_data_f acc;
 static struct bmi08_sensor_data_f gyro;
@@ -36,12 +36,15 @@ static void sensors_read_data(void *data_buffer) {
         errors_add(ERROR_TYPE_SENSORS, ERROR_SENSOR_IMU, 100);
     }
 
+    int16_t raw[3];
+    bmi08_get_raw_gyro_data(&raw[0], &raw[1], &raw[2]);
+
     if (bmp5_wrapper_get_data(&bar) == false) {
         errors_add(ERROR_TYPE_SENSORS, ERROR_SENSOR_BAR, 100);
     }
 
-    mgos_imu_madgwick_update(&madgwick, gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y,
-                             mag.z);
+    // mgos_imu_madgwick_update(&madgwick, gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y,
+    //                          mag.z);
 
     data->acc_x = acc.x;
     data->acc_y = acc.y;
@@ -52,7 +55,7 @@ static void sensors_read_data(void *data_buffer) {
     data->gyr_z = gyro.z;
 
     data->mag_x = mag.x;
-    data->mag_y = mag.y;
+    data->mag_y = -mag.y;
     data->mag_z = mag.z;
 
     data->pressure = BMP5_Pa_TO_hPa(bar.pressure);
@@ -60,8 +63,7 @@ static void sensors_read_data(void *data_buffer) {
     float prev_altitude = data->altitude;
     data->altitude = bmp5_wrapper_altitude(data->pressure) * FILTER_CONST + (1 - FILTER_CONST) * data->altitude;
     data->velocity = (data->altitude - prev_altitude) / CONFIG_SENSORS_TASK_PERIOD_MS;
-
-    mgos_imu_madgwick_get_angles(&madgwick, &data->roll, &data->pitch, &data->yaw);
+    printf("%f;%f;%f;%f;%f;%f;%f;%f;%f\n", acc.x, acc.y, acc.z, gyro.x, gyro.y, gyro.z, mag.x, data->mag_y, mag.z);
 }
 
 
@@ -96,7 +98,7 @@ bool initialize_processing_task(void) {
         return false;
     }
 
-    if (mgos_imu_madgwick_set_params(&madgwick, 100, 0.01) == false) {
+    if (mgos_imu_madgwick_set_params(&madgwick, 20, 0.01) == false) {
         ESP_LOGE(TAG, "MADGWICK 2");
         return false;
     }
