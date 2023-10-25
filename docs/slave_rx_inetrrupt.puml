@@ -1,0 +1,22 @@
+@startuml
+title Rx interrupt
+start
+
+if (broadcast message) then (yes)
+    :save current state;
+    if (stateInWakenUp) then (yes)
+        :set wake up flag to true;
+    else (no)
+        :set wake up flag to false;
+    endif 
+else (no)
+    :parse message;
+    if (valid commnad) then (yes)
+        :execute command;
+    else (no)
+    endif
+endif
+
+stop
+
+@enduml

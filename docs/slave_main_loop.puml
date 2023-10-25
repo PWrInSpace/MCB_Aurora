@@ -1,0 +1,57 @@
+@startuml
+
+' participant "On-board computer" as obc
+' participant "Module" as slave
+' participant "Software template" as template
+
+' == Tx Loop == 
+' autonumber
+' obc -> slave : mission state  
+' template -> obc: send data
+' slave -> template: stateInWakenUp()
+
+' alt True
+' template -> slave: turn off sleep mode
+' else False
+' template -> slave: go to sleep
+' end group
+
+' == Main Loop ==
+
+' group initialization
+
+' end group
+title main loop
+start
+
+partition Initialization {
+
+:init module hardware and software;
+
+:take measurements;
+
+:init esp-now;
+
+:set loop_time to default value;
+}
+
+start
+repeat
+:delayUntil(loop_time);
+
+:take measurements;
+
+:send data to OBC;
+
+' if (wakenUp) then (no)
+'     :go to sleep;
+'     stop
+'     else (yes)
+' endif
+(-> true) backward :update loop_time;
+repeatwhile (wakenUp)
+->false;
+:go to sleep;
+stop
+
+@enduml

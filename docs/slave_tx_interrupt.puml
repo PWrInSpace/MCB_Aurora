@@ -1,0 +1,14 @@
+@startuml
+title tx interrupt
+start
+
+if (data not received) then (true)
+    :increment tx_fail counter;
+    if (tx_fail counter > max_tx_fails) then (yes)
+        :set wakenUp to false;
+else (no)
+endif
+
+stop
+
+@enduml
