@@ -1,4 +1,6 @@
 @startuml
+scale 1920 width
+scale 1080 height 
 
 ' participant "On-board computer" as obc
 ' participant "Module" as slave
@@ -24,32 +26,22 @@
 title main loop
 start
 
-partition Initialization {
+:initialization;
 
-:init module hardware and software;
+:init_delay;
 
-:take measurements;
-
-:init esp-now;
-
-:set loop_time to default value;
-}
-
-start
 repeat
-:delayUntil(loop_time);
-
 :take measurements;
 
-:send data to OBC;
+:execute command from command queue;
 
-' if (wakenUp) then (no)
-'     :go to sleep;
-'     stop
-'     else (yes)
-' endif
-(-> true) backward :update loop_time;
-repeatwhile (wakenUp)
+:run function defined for module;
+
+if (time_to_send_data) then (true)
+    :send data to OBC;
+    else (false)
+endif
+repeatwhile (wakenUp) ->true
 ->false;
 :go to sleep;
 stop

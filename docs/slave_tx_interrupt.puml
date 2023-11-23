@@ -1,14 +1,25 @@
 @startuml
+scale 1920 width
+scale 1080 height 
 title tx interrupt
 start
 
-if (data not received) then (true)
-    :increment tx_fail counter;
-    if (tx_fail counter > max_tx_fails) then (yes)
-        :set wakenUp to false;
-else (no)
-endif
+if (ack received) then (false)
+    if (tx_nack timer not running) then (true)
+        :start tx_nack timer;
+    else (false)
+    endif
 
+    if (tx_nack timer expired) then (true)
+        :set wakenUp to false;
+    else (false)
+    endif
+else (true)
+    if (tx_nack timer running) then (true)
+        :disable tx_nack timer;
+    else (false)
+    endif
+endif
 stop
 
 @enduml

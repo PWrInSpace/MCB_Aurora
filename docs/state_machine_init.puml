@@ -1,0 +1,21 @@
+@startuml
+scale 1920 width
+scale 1080 height 
+title state machine set states
+start
+
+if (states_quantity == 0) then (true)
+    if (states_ids == position_in_array) then (true)
+        :return = SM_OK;
+        stop
+    else (false)
+        :return = SM_ID_NOT_EQUAL_ARRAY_POSITION;
+        stop
+    endif
+else  (false)
+    :return = SM_STATES_NUMBER_ERROR;
+    stop
+endif
+
+
+@enduml
