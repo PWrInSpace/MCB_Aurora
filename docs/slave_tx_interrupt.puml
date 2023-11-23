@@ -4,11 +4,22 @@ scale 1080 height
 title tx interrupt
 start
 
+<<<<<<< HEAD
 if (ack received) then (false)
     if (tx_nack timer not running) then (true)
         :start tx_nack timer;
     else (false)
     endif
+=======
+if (transmition nack) then (true)
+    :increment tx_fail counter;
+    if (tx_fail counter > max_tx_fails) then (yes)
+        :set wakenUp to false;
+    endif
+else (false)
+    :reset tx_fail counter;
+endif
+>>>>>>> adb91a3 (esp_now)
 
     if (tx_nack timer expired) then (true)
         :set wakenUp to false;

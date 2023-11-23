@@ -1,0 +1,36 @@
+@startuml
+
+title main loop
+start
+
+partition Initialization {
+:TBD;
+}
+
+start
+repeat
+
+if (irq receive queue not empty) then (true)
+    :on_receive;
+    else (false)
+endif
+
+
+if (irq transmit queue not empty) then (true)
+    :on_transmit;
+    else (false)
+endif
+
+
+if (is transmiting) then (false)
+    if (data to send queue not empty) then (true)
+        :on_send;
+    else (false)
+    endif
+else (false)
+endif
+
+:vTaskDelay;
+
+
+@enduml
