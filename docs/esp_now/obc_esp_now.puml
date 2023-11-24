@@ -12,7 +12,7 @@ participant esp_now as "esp_now"
 == Transmit ==
 group Send data request
 program -> ena_api: ENA_send()
-ena_api -> ena_main: add_to_send_queue
+ena_api -> ena_main: add_to_send_queue()
 group return
 program <- ena_main: ESP_OK
 else
@@ -20,33 +20,33 @@ program <- ena_main: ESP_FAIL
 end
 end
 
-... Waiting for end of previous transmition ...
+... Waiting for end of previous transmission ...
 rnote over ena_main
 acquitre tranmition lock
 end rnote
 
-group loop
-ena_main -> esp_now: esp_now_send()
-alt true
-ena_main <- ena_tx: status OK
-rnote over ena_main
-relase  transmition lock
-end rnote
-rnote over ena_main
-brake loop
-end rnote
-else false
-ena_main <- ena_tx: status_fail
 
-group return [send_retakes <= send_counter]
+
+group while [retakes_number > send_counter]
+ena_main -> esp_now: esp_now_send()
+... Waiting for transmition status ...
+ena_api <-- ena_tx: transmission status
+ena_api -> ena_main: add_to_transmit_status_queue()
+alt status OK
 rnote over ena_main
-relase  transmition lock
+relase  transmission lock
 end rnote
 rnote over ena_main
-brake loop
+return
 end rnote
-program <- ena_main: raise transmition error
 end
 end
+
+rnote over ena_main
+relase  transmission lock
+end rnote
+
+program <- ena_main: raise transmission error
+
 
 @enduml
