@@ -26,8 +26,7 @@ bool SD_mount(sd_card_t *sd_card) {
     if (res != ESP_OK) {
         if (res == ESP_FAIL) {
             ESP_LOGE(TAG, "Failed to mount filesystem. "
-                     "If you want the card to be formatted, set the"
-                     "CONFIG_EXAMPLE_FORMAT_IF_MOUNT_FAILED menuconfig option.");
+                     "If you want the card to be formatted, set the");
         } else {
             ESP_LOGE(TAG, "Failed to initialize the card (%s). "
                      "Make sure SD card lines have pull-up resistors in place.",

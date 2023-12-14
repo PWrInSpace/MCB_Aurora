@@ -11,7 +11,6 @@ static struct {
 
 FlashResult FLASH_init(uint8_t max_files) {
   esp_err_t err;
-
   if (fl.initialized == true) {
     return FLASH_ALREADY_INITIALIZED;
   }
@@ -23,6 +22,7 @@ FlashResult FLASH_init(uint8_t max_files) {
   fl.conf.format_if_mount_failed = false;
 
   err = esp_vfs_spiffs_register(&fl.conf);
+  
   // FLASH_format();
   // assert(err == ESP_OK);
   if (err != ESP_OK) {
@@ -140,7 +140,7 @@ FlashResult FLASH_format(void) {
   //   ESP_LOGW(TAG, "FLASH IS NOT INITIALIZED");
   //   return FLASH_IS_NOT_INITIALIZED;
   // }
-
+  ESP_LOGI(TAG, "Formatting");
   err = esp_spiffs_format(fl.conf.partition_label);
   if (err != ESP_OK) {
     return FLASH_FORMAT_ERROR;

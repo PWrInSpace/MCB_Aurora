@@ -36,7 +36,10 @@ void IRAM_ATTR lora_task_irq_notify(void *arg) {
     }
 }
 
-static void notify_end_of_rx_window(void) { xTaskNotifyGive(gb.task); }
+static void notify_end_of_rx_window(void) { 
+    xTaskNotifyGive(gb.task);
+    ESP_LOGI(TAG, "END OF WINDOW");
+}
 
 static void on_receive_window_timer(TimerHandle_t timer) { notify_end_of_rx_window(); }
 
@@ -62,6 +65,7 @@ static void lora_change_state_to_transmit() {
 
 void turn_on_receive_window_timer(void) {
     if (xTimerIsTimerActive(gb.receive_window_timer) == pdTRUE) {
+        xTimerReset(gb.receive_window_timer, portMAX_DELAY);
         ESP_LOGE(TAG, "TIMER IS ACTIVE");
         return;
     }
