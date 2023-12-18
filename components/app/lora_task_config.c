@@ -12,8 +12,11 @@
 
 #define TAG "LORA_C"
 
+static uint8_t recieved_counter = 0;
+static uint8_t missrecieved_counter = 0;
 static bool settings_frame = false;
-
+static int16_t SNR = 0;
+static int16_t RSSI = 0;
 void lora_send_settings_frame(void) { settings_frame = true; }
 
 static bool check_prefix(uint8_t* packet, size_t packet_size) {
@@ -40,47 +43,62 @@ static uint8_t calculate_checksum(uint8_t* buffer, size_t size) {
     return sum;
 }
 
-static void lora_process(uint8_t* packet, size_t packet_size) {
-    if (packet_size > 40) {
-        ESP_LOGI(TAG, "Recevied packet is too big");
-        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 100);
+// static void lora_process(uint8_t* packet, size_t packet_size) {
+//     if (packet_size > 40) {
+//         ESP_LOGI(TAG, "Recevied packet is too big");
+//         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 100);
+//         return;
+//     }
+
+//     if (check_prefix(packet, packet_size) == false) {
+//         ESP_LOGE(TAG, "LoRa invalid prefix");
+//         return;
+//     }
+
+
+//     uint8_t prefix_size = sizeof(PACKET_PREFIX) - 1;
+//     if (calculate_checksum(packet + prefix_size, packet_size - prefix_size - 1) != packet[packet_size - 1]) {
+//       ESP_LOGE(TAG, "Invalid checksum");
+//         return;
+//     }
+
+//     LoRaCommand* received =
+//         lo_ra_command__unpack(NULL, packet_size - prefix_size - 1, packet + prefix_size);
+//     if (received != NULL) {
+//         ESP_LOGI(TAG, "Received LORA_ID %d, DEV_ID %d, COMMAND %d, PLD %d", received->lora_dev_id,
+//                  received->sys_dev_id, received->command, received->payload);
+
+//         cmd_message_t received_command = cmd_create_message(received->command, received->payload);
+//         lo_ra_command__free_unpacked(received, NULL);
+//         if (lora_cmd_process_command(received->lora_dev_id, received->sys_dev_id,
+//                                      &received_command) == false) {
+//             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_COMMAND_NOT_FOUND, 200);
+//             ESP_LOGE(TAG, "Unable to prcess command :C");
+//             return;
+//         }
+
+//         if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
+//             ESP_LOGE(TAG, "Unable to restart timer");
+//         }
+//     } else {
+//         errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 200);
+//         ESP_LOGE(TAG, "Unable to decode received package");
+//     }
+// }
+
+static void lora_process(uint8_t* packet, size_t packet_size) 
+{
+    if(!calculate_checksum(&pocket, pocket_size))
+    {
+        missrecieved_counter++;
+        SNR = lora_packet_snr(&gb.lora)
+        RSSI =  = lora_packet_rssi(&gb.lora);
         return;
     }
-
-    if (check_prefix(packet, packet_size) == false) {
-        ESP_LOGE(TAG, "LoRa invalid prefix");
-        return;
-    }
-
-
-    uint8_t prefix_size = sizeof(PACKET_PREFIX) - 1;
-    if (calculate_checksum(packet + prefix_size, packet_size - prefix_size - 1) != packet[packet_size - 1]) {
-        ESP_LOGE(TAG, "Invalid checksum");
-        return;
-    }
-
-    LoRaCommand* received =
-        lo_ra_command__unpack(NULL, packet_size - prefix_size - 1, packet + prefix_size);
-    if (received != NULL) {
-        ESP_LOGI(TAG, "Received LORA_ID %d, DEV_ID %d, COMMAND %d, PLD %d", received->lora_dev_id,
-                 received->sys_dev_id, received->command, received->payload);
-
-        cmd_message_t received_command = cmd_create_message(received->command, received->payload);
-        lo_ra_command__free_unpacked(received, NULL);
-        if (lora_cmd_process_command(received->lora_dev_id, received->sys_dev_id,
-                                     &received_command) == false) {
-            errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_COMMAND_NOT_FOUND, 200);
-            ESP_LOGE(TAG, "Unable to prcess command :C");
-            return;
-        }
-
-        if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
-            ESP_LOGE(TAG, "Unable to restart timer");
-        }
-    } else {
-        errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 200);
-        ESP_LOGE(TAG, "Unable to decode received package");
-    }
+    recieved_counter++;
+    SNR = lora_packet_snr(&gb.lora)
+    RSSI =  = lora_packet_rssi(&gb.lora);
+    return;
 }
 
 static size_t add_prefix(uint8_t* buffer, size_t size) {
@@ -117,21 +135,45 @@ static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
     return prefix_size + data_size;
 }
 
-static size_t lora_packet(uint8_t* buffer, size_t buffer_size) {
-    size_t size = 0;
-
-    if (settings_frame == true) {
-        size = lora_create_settings_packet(buffer, buffer_size);
-        settings_frame = false;
-        ESP_LOGI(TAG, "Transmiting settings frame");
-    } else {
-        size = lora_create_data_packet(buffer, buffer_size);
-    }
-
-    ESP_LOGI(TAG, "Sending LoRa frame -> size: %d", size);
-
-    return size;
+static size_t lora_packet(uint8_t* buffer, size_t buffer_size) 
+{
+size_t size_payload = 3*sizeof(float)+sizeof(uint8_t)+2*sizeof(int16_t);
+if(buffer_size<size_payload)
+{
+return 0;
 }
+memcpy(buffer, &mcb.latitude, sizeof(float));
+memcpy(buffer+sizeof(float), &mcb.longitude, sizeof(float));
+memcpy(buffer+2*sizeof(float), &mcb.gps_altitude, sizeof(float));
+buffer[3*sizeof(float)] = recieved_counter;
+memcpy(buffer+3*sizeof(float)+sizeof(uint8_t), &RSSI, sizeof(int16_t));
+memcpy(buffer+3*sizeof(float)+sizeof(uint8_t)+sizeof(int16_t), &SNR, sizeof(int16_t));
+memcpy(buffer+3*sizeof(float)+sizeof(uint8_t)+2*sizeof(int16_t), &RSSI, sizeof(int16_t));
+// buffer[13] = lora_packet_rssi(&gb.lora)
+// buffer[15] = lora_packet_snr(&gb.lora);
+
+return size_payload;
+
+
+}
+
+// static size_t lora_packet(uint8_t* buffer, size_t buffer_size) {
+//     size_t size = 0;
+
+//     if (settings_frame == true) {
+//         size = lora_create_settings_packet(buffer, buffer_size);
+//         settings_frame = false;
+//         ESP_LOGI(TAG, "Transmiting settings frame");
+//     } else {
+//         size = lora_create_data_packet(buffer, buffer_size);
+//     }
+
+//     ESP_LOGI(TAG, "Sending LoRa frame -> size: %d", size);
+
+//     return size;
+// }
+
+
 
 bool initialize_lora(uint32_t frequency_khz, uint32_t transmiting_period) {
     RETURN_ON_FALSE(lora_hw_spi_add_device(VSPI_HOST));

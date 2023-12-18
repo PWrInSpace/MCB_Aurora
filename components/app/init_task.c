@@ -83,9 +83,9 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_timers(), "TIMERS");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_ESP_NOW_BROADCAST, 500, TIMER_TYPE_PERIODIC),
                       "ESP_NOW_TIMER");
-    CHECK_RESULT_BOOL(
-        sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT),
-        "DC TIMER");
+    // CHECK_RESULT_BOOL(
+    //     sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT),
+    //     "DC TIMER");
     // CHECK_RESULT_BOOL(sys_timer_start(TIMER_BUZZER, 2000, TIMER_TYPE_PERIODIC), "BUZZER TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_CONNECTED_DEV, 40000, TIMER_TYPE_PERIODIC),
                       "CONNECTED TIMER");
