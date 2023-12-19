@@ -9,14 +9,11 @@
 #include "sdkconfig.h"
 #include "system_timer_config.h"
 #include "utils.h"
+#include "rocket_data.h"
 
 #define TAG "LORA_C"
 
-static uint8_t recieved_counter = 0;
-static uint8_t missrecieved_counter = 0;
 static bool settings_frame = false;
-static int16_t SNR = 0;
-static int16_t RSSI = 0;
 void lora_send_settings_frame(void) { settings_frame = true; }
 
 static bool check_prefix(uint8_t* packet, size_t packet_size) {
@@ -43,62 +40,101 @@ static uint8_t calculate_checksum(uint8_t* buffer, size_t size) {
     return sum;
 }
 
-// static void lora_process(uint8_t* packet, size_t packet_size) {
-//     if (packet_size > 40) {
-//         ESP_LOGI(TAG, "Recevied packet is too big");
-//         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 100);
-//         return;
-//     }
+#define POLYNOMIAL 0x31 
 
-//     if (check_prefix(packet, packet_size) == false) {
-//         ESP_LOGE(TAG, "LoRa invalid prefix");
-//         return;
-//     }
+uint8_t calculate_crc(const uint8_t *data, size_t size) {
+    uint8_t crc = 0;
 
+    for (size_t i = 0; i < size; i++) {
+        crc ^= data[i];
+        for (int j = 0; j < 8; j++) {
+            crc = (crc & 0x80) ? (crc << 1) ^ POLYNOMIAL : (crc << 1);
+        }
+    }
+    return crc;
+}
 
-//     uint8_t prefix_size = sizeof(PACKET_PREFIX) - 1;
-//     if (calculate_checksum(packet + prefix_size, packet_size - prefix_size - 1) != packet[packet_size - 1]) {
-//       ESP_LOGE(TAG, "Invalid checksum");
-//         return;
-//     }
+int check_crc(const uint8_t *buffer, size_t size_buffer) {
+    if (size_buffer < 1) {
+        return 1;
+    }
+    uint8_t received_crc = buffer[size_buffer - 1];
 
-//     LoRaCommand* received =
-//         lo_ra_command__unpack(NULL, packet_size - prefix_size - 1, packet + prefix_size);
-//     if (received != NULL) {
-//         ESP_LOGI(TAG, "Received LORA_ID %d, DEV_ID %d, COMMAND %d, PLD %d", received->lora_dev_id,
-//                  received->sys_dev_id, received->command, received->payload);
+    uint8_t calculated_crc = calculate_crc(buffer, size_buffer - 1);
 
-//         cmd_message_t received_command = cmd_create_message(received->command, received->payload);
-//         lo_ra_command__free_unpacked(received, NULL);
-//         if (lora_cmd_process_command(received->lora_dev_id, received->sys_dev_id,
-//                                      &received_command) == false) {
-//             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_COMMAND_NOT_FOUND, 200);
-//             ESP_LOGE(TAG, "Unable to prcess command :C");
-//             return;
-//         }
-
-//         if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
-//             ESP_LOGE(TAG, "Unable to restart timer");
-//         }
-//     } else {
-//         errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 200);
-//         ESP_LOGE(TAG, "Unable to decode received package");
-//     }
-// }
-
-static void lora_process(uint8_t* packet, size_t packet_size) 
-{
-    if(!calculate_checksum(&pocket, pocket_size))
+    if (calculated_crc == received_crc) 
     {
-        missrecieved_counter++;
-        SNR = lora_packet_snr(&gb.lora)
-        RSSI =  = lora_packet_rssi(&gb.lora);
+       return 0;
+    } 
+    else 
+    {
+        return 1;
+    }
+}
+
+
+
+struct Packet {
+    float latitude;
+    float longitude;
+    float gps_altitude;
+    uint8_t received_counter;
+    uint8_t missrecieved_counter;
+    int16_t RSSI;
+    int16_t SNR;
+}packet;
+
+static struct Packet packet_data = {
+.latitude = 0,
+.longitude = 0,
+.gps_altitude = 0,
+.received_counter = 0,
+.missrecieved_counter = 0,
+.RSSI=0,
+.SNR=0
+};
+static void lora_process(uint8_t* packet, size_t packet_size) {
+    //if(!calculate_checksum(packet_data, packet_size))
+    if(!check_crc(packet, packet_size)) {
+        packet_data.missrecieved_counter++;
+        //JAK DOBRAC SIE DO LORY
+        packet_data.SNR = lora_packet_snr(&gb.lora);
+        packet_data.RSSI = lora_packet_rssi(&gb.lora);
         return;
     }
-    recieved_counter++;
-    SNR = lora_packet_snr(&gb.lora)
-    RSSI =  = lora_packet_rssi(&gb.lora);
+    packet_data.received_counter++;
+    packet_data.SNR = lora_packet_snr(&gb.lora);
+    packet_data.RSSI = lora_packet_rssi(&gb.lora);
     return;
+}
+
+
+//LITLE ENDIAN IN ESP32
+
+static size_t lora_packet(uint8_t* buffer, size_t buffer_size) 
+{
+
+mcb_data_t data = rocket_data_get_mcb();
+packet_data.latitude = data.latitude;
+packet_data.longitude = data.longitude;
+packet_data.gps_altitude = data.gps_altitude;
+
+    size_t size_payload = sizeof(struct Packet);
+    if (buffer_size < size_payload) {
+        return 0;
+    }
+memcpy(buffer, &packet_data.latitude, sizeof(packet_data.latitude));
+memcpy(buffer+sizeof(packet_data.longitude), &packet_data.longitude, sizeof(packet_data.longitude));
+memcpy(buffer+sizeof(packet_data.latitude)+sizeof(packet_data.longitude), &packet_data.gps_altitude, sizeof(packet_data.gps_altitude));
+buffer[buffer+sizeof(packet_data.latitude)+sizeof(packet_data.longitude)+sizeof(packet_data.gps_altitude)] = packet_data.received_counter;
+memcpy(buffer+sizeof(packet_data.latitude)+sizeof(packet_data.longitude)+sizeof(packet_data.gps_altitude)+sizeof(packet_data.received_counter), &packet_data.RSSI, sizeof(packet_data.RSSI));
+memcpy(buffer+sizeof(packet_data.latitude)+sizeof(packet_data.longitude)+sizeof(packet_data.gps_altitude)+sizeof(packet_data.received_counter)+sizeof(packet_data.RSSI), &packet_data.SNR, sizeof(packet_data.SNR));
+// buffer[13] = lora_packet_rssi(&gb.lora)
+// buffer[15] = lora_packet_snr(&gb.lora);
+
+return size_payload;
+
+
 }
 
 static size_t add_prefix(uint8_t* buffer, size_t size) {
@@ -135,27 +171,7 @@ static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
     return prefix_size + data_size;
 }
 
-static size_t lora_packet(uint8_t* buffer, size_t buffer_size) 
-{
-size_t size_payload = 3*sizeof(float)+sizeof(uint8_t)+2*sizeof(int16_t);
-if(buffer_size<size_payload)
-{
-return 0;
-}
-memcpy(buffer, &mcb.latitude, sizeof(float));
-memcpy(buffer+sizeof(float), &mcb.longitude, sizeof(float));
-memcpy(buffer+2*sizeof(float), &mcb.gps_altitude, sizeof(float));
-buffer[3*sizeof(float)] = recieved_counter;
-memcpy(buffer+3*sizeof(float)+sizeof(uint8_t), &RSSI, sizeof(int16_t));
-memcpy(buffer+3*sizeof(float)+sizeof(uint8_t)+sizeof(int16_t), &SNR, sizeof(int16_t));
-memcpy(buffer+3*sizeof(float)+sizeof(uint8_t)+2*sizeof(int16_t), &RSSI, sizeof(int16_t));
-// buffer[13] = lora_packet_rssi(&gb.lora)
-// buffer[15] = lora_packet_snr(&gb.lora);
 
-return size_payload;
-
-
-}
 
 // static size_t lora_packet(uint8_t* buffer, size_t buffer_size) {
 //     size_t size = 0;

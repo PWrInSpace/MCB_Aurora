@@ -1,6 +1,6 @@
 [submodule "pySD"]
 	path = pySD
-	url = git@github.com:PWrInSpace/pySD.git
+	url = https://github.com/PWrInSpace/pySD.git
 	branch = refactor
 [submodule "components/sensors/BMP5-Sensor-API"]
 	path = components/sensors/BMP5-Sensor-API
