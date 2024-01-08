@@ -71,6 +71,10 @@ static void get_data_from_queue_and_save(FILE * data_file) {
 static void prepare_data_file_and_save(void) {
     xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
     FILE *data_file = fopen(mem.data_path, "a");
+     if (data_file == NULL) {
+        ESP_LOGE(TAG, "Can not open the file %s", mem.data_path);
+        // return;
+    }
     xSemaphoreGive(mem.spi_mutex);
 
     int received_data_counter = 0;

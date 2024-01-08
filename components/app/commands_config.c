@@ -62,7 +62,7 @@ static void mcb_abort(uint32_t command, int32_t payload, bool privilage) {
         return;
     }
 
-    if (state > FLIGHT) {
+    if (state > FLIGHT && state != HOLD) {
         return;
     }
 
