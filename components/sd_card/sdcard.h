@@ -10,7 +10,7 @@
 #include "esp_vfs_fat.h"
 #include "sdmmc_cmd.h"
 
-#define SDCARD_MOUNT_POINT "/test"
+#define SDCARD_MOUNT_POINT CONFIG_SD_MOUNT_POINT
 #define SD_CREATE_FILE_PREFIX(usr_path) SDCARD_MOUNT_POINT "/" usr_path
 // 8 is a placeholder for _number_.txt
 #define PATH_FLIE_SIZE(usr_path) sizeof(SD_CREATE_FILE_PREFIX(usr_path)) + 8
