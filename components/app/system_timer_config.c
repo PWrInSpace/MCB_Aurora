@@ -9,6 +9,7 @@
 #include "flash_task.h"
 #include "esp_log.h"
 #include "errors_config.h"
+#include "gpio_expander.h"
 #include "gen_pysd.h"
 #include "buzzer_pwm.h"
 
@@ -44,6 +45,11 @@ static void on_liftoff_timer(void *arg) {
 
 static void on_disconnect_timer(void *arg) {
     SM_force_change_state(ABORT);
+}
+
+static void on_camera_timer(void *arg) {
+    gpioexp_led_set_color(PURPLE);
+    gpioexp_camera_turn_off();
 }
 
 #define TAG "TIM"
@@ -84,6 +90,7 @@ bool initialize_timers(void) {
     {.timer_id = TIMER_DEBUG,               .timer_callback_fnc = debug_data,               .timer_arg = NULL},
     {.timer_id = TIMER_BUZZER,              .timer_callback_fnc = buzzer_timer,             .timer_arg = NULL},
     {.timer_id = TIMER_CONNECTED_DEV,       .timer_callback_fnc = connected_dev,            .timer_arg = NULL},
+    {.timer_id = TIMER_CAMERA,              .timer_callback_fnc = on_camera_timer,          .timer_arg = NULL},
 };
     return sys_timer_init(timers, sizeof(timers) / sizeof(timers[0]));
 }

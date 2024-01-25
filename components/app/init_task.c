@@ -81,16 +81,19 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_recovery(), "Recovery task");
 
     CHECK_RESULT_BOOL(initialize_timers(), "TIMERS");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_ESP_NOW_BROADCAST, 500, TIMER_TYPE_PERIODIC),
-                      "ESP_NOW_TIMER");
+    CHECK_RESULT_BOOL(gpioexp_camera_turn_on(), "Camera turn on");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_CAMERA, CAMERA_RECORD_TIME_MS, TIMER_TYPE_ONE_SHOT),
+                      "Camera timer");
+    // CHECK_RESULT_BOOL(sys_timer_start(TIMER_ESP_NOW_BROADCAST, 500, TIMER_TYPE_PERIODIC),
+    //                   "ESP_NOW_TIMER");
     // CHECK_RESULT_BOOL(
     //     sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT),
     //     "DC TIMER");
     // CHECK_RESULT_BOOL(sys_timer_start(TIMER_BUZZER, 2000, TIMER_TYPE_PERIODIC), "BUZZER TIMER");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_CONNECTED_DEV, 40000, TIMER_TYPE_PERIODIC),
-                      "CONNECTED TIMER");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 50, TIMER_TYPE_PERIODIC), "SD TIMER");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_DEBUG, 1000, TIMER_TYPE_PERIODIC), "DEBUG TIMER");
+    // CHECK_RESULT_BOOL(sys_timer_start(TIMER_CONNECTED_DEV, 40000, TIMER_TYPE_PERIODIC),
+    //                   "CONNECTED TIMER");
+    // CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 50, TIMER_TYPE_PERIODIC), "SD TIMER");
+    // CHECK_RESULT_BOOL(sys_timer_start(TIMER_DEBUG, 1000, TIMER_TYPE_PERIODIC), "DEBUG TIMER");
 
     CHECK_RESULT_BOOL(initialize_lora(settings.loraFreq_KHz, settings.lora_transmit_ms), "LORA");
     CHECK_RESULT_ESP(init_console(), "CLI");

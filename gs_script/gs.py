@@ -1,5 +1,6 @@
 import struct
 import logging
+import time
 import argparse
 from serial import Serial
 from datetime import datetime
@@ -9,6 +10,7 @@ from dataclasses import dataclass
 #               lat    long   alt    rcnt   mrcnt  rssi      snr
 message_format = "<fffBBhh"
 message_prefix = "B"
+uplink_period_s = 60
 
 @dataclass
 class Downlink:
@@ -35,7 +37,6 @@ class Downlink:
 
         return message[:-1] + '\n'
 
-
 def parse_message(message: bytes) -> Downlink:
     if bytes([message[0]]) != b'B':
         logging.error("Invalid prefix :C")
@@ -60,18 +61,34 @@ def append_to_file(file_path: str, text: str) -> None:
         file.write(text)
 
 
+def get_next_uplink_time() -> int:
+    return time.time() + uplink_period_s
+
+
 def generate_file_path() -> str:
     now = datetime.now()
-    date_time = now.strftime("%m:%d:%Y_%H:%M:%S")
+    date_time = now.strftime("%d%m%Y_%H:%M:%S")
     return f"baloon_{date_time}.csv"
 
+
+def add_checksum(message: bytes) -> int:
+    checksum = 0
+    for i in message:
+        checksum += int(i)
+
+    checksum = checksum % 255
+
+    return message + checksum.to_bytes()
 
 if __name__ == "__main__":
     args = script_args()
     ser = Serial(args.port, args.baudrate, timeout=0.05)
 
     file_path = generate_file_path()
-    append_to_file(file_path, Downlink.getArgsNamesCSV())
+    append_to_file(file_path, Downlink.getArgsNamesCSV()[:-1] + ";nb_of_uplinks\n")
+
+    next_uplink_time = get_next_uplink_time()
+    nb_of_uplinks = 0
 
     while True:
         message = ser.read(20)
@@ -82,6 +99,13 @@ if __name__ == "__main__":
     
             if decoded_data:
                 logging.info(f"Saving to file: {file_path}")
-                append_to_file(file_path, decoded_data.getArgsValuesCSV())
+                append_to_file(file_path, decoded_data.getArgsValuesCSV()[-1] + f";{nb_of_uplinks}\n")
                 logging.info("Done")
             
+        if time.time() > next_uplink_time:
+            next_uplink_time = get_next_uplink_time()
+            uplink_message = add_checksum(b"Hello balloon")
+            nb_of_uplinks += 1
+            print(f"Uplink nb {nb_of_uplinks}: {uplink_message}")
+
+            ser.write(uplink_message)

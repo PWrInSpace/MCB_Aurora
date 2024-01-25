@@ -103,7 +103,6 @@ static void lora_process(uint8_t* packet, size_t packet_size) {
     packet_data.RSSI = lora_packet_rssi(&lora);
     if (!calculate_checksum(packet, packet_size)) {
         packet_data.missrecieved_counter++;
-        // JAK DOBRAC SIE DO LORY
         return;
     }
     packet_data.received_counter++;

@@ -14,6 +14,7 @@ typedef enum {
     TIMER_DISCONNECT,
     TIMER_BUZZER,
     TIMER_CONNECTED_DEV,
+    TIMER_CAMERA,
     TIMER_DEBUG,
 } timers_id_def;
 
