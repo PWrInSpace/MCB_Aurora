@@ -8,6 +8,74 @@ static struct {
   bool initialized;
 } nvs;
 
+uint8_t * data_uint8t;
+  int8_t *data_int8t;
+  uint16_t * data_uint16t;
+  int16_t * data_int16t;
+  uint32_t *data_uint32t;
+  int32_t *data_int32t;
+  uint64_t *data_uint64t;
+  int64_t *data_int64t;
+  NVSDataType datatype;
+
+
+NVS_write_struct_array(NVSData * array, uint8_t array_length)
+{
+  for(int i =0; i<array_length;i++)
+  {
+    NVS_write_data(array[i]);
+  }
+}
+
+
+
+NVSResult NVS_write_data(NVSData data_nvs);
+{
+  switch(data_nvs.datatypee)
+  {
+    case data_nvs.datatype = uint8_t;
+    {
+      NVS_write_uint8(data_nvs.key,data_nvs.data_uint8t);
+    }
+
+    case sdata_nvs.datatype= int8_t;
+    {
+      NVS_write_int8(data_nvs.key,data_nvs.data_int8t);
+    }
+
+     case data_nvs.datatype = uint16_t;
+    {
+      NVS_write_uint16(data_nvs.key,data_nvs.data_uint16t);
+    }
+
+    case data_nvs.datatype = int16_t;
+    {
+      NVS_write_int16(data_nvs.key,data_nvs.data_int16t);
+    }
+
+    case data_nvs.datatype = uint32_t;
+    {
+      NVS_write_uint32(data_nvs.key,data.data_uint32t);
+    }
+
+    case data_nvs.datatype = int32_t;
+    {
+      NVS_write_int32(data_nvs.key,data.data_int32t);
+    }
+    case data_nvs.datatype = uint64_t;
+    {
+      NVS_write_uint64(data_nvs.key,data.data_uint64t);
+    }
+    case data_nvs.datatype = int64_t;
+    {
+      NVS_write_int64(data_nvs.key,data.data_int64t);
+    }
+    break;
+
+  }
+}
+
+
 NVSResult NVS_init(void) {
   esp_err_t res;
 
