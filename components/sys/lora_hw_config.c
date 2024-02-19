@@ -18,10 +18,12 @@ bool lora_hw_spi_add_device(spi_host_device_t host) {
 
     spi_device_interface_config_t dev = {.clock_speed_hz = 400000,
                                          .mode = 0,
-                                         .spics_io_num = -1,
+                                         .spics_io_num = CONFIG_LORA_CS,
                                          .queue_size = 1,
-                                         .flags = 0,
-                                         .pre_cb = NULL};
+                                         .cs_ena_pretrans = 16,
+                                         .cs_ena_posttrans = 16,
+                                         .flags = 0
+                                        };
     ret = spi_bus_add_device(host, &dev, &__spi);
     ESP_ERROR_CHECK(ret);
 
@@ -29,7 +31,7 @@ bool lora_hw_spi_add_device(spi_host_device_t host) {
 }
 bool lora_hw_set_gpio() {
     RETURN_FALSE_ON_ERROR(gpio_set_direction(CONFIG_LORA_RS, GPIO_MODE_OUTPUT));
-    RETURN_FALSE_ON_ERROR(gpio_set_direction(CONFIG_LORA_CS, GPIO_MODE_OUTPUT));
+    // RETURN_FALSE_ON_ERROR(gpio_set_direction(CONFIG_LORA_CS, GPIO_MODE_OUTPUT));
     RETURN_FALSE_ON_ERROR(gpio_set_direction(CONFIG_LORA_D0, GPIO_MODE_INPUT));
     return true;
 }
@@ -47,9 +49,9 @@ bool lora_hw_spi_transmit(uint8_t _in[2], uint8_t _out[2]) {
     spi_transaction_t t = {
         .flags = 0, .length = 8 * sizeof(uint8_t) * 2, .tx_buffer = _out, .rx_buffer = _in};
     xSemaphoreTake(mutex_spi, portMAX_DELAY);
-    gpio_set_level(CONFIG_LORA_CS, 0);
+    // gpio_set_level(CONFIG_LORA_CS, 0);
     spi_device_transmit(__spi, &t);
-    gpio_set_level(CONFIG_LORA_CS, 1);
+    // gpio_set_level(CONFIG_LORA_CS, 1);
     xSemaphoreGive(mutex_spi);
     return true;
 }

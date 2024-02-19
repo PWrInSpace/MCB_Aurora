@@ -46,7 +46,7 @@ static bool write_to_sd(FILE *file, char *data, size_t size) {
     }
 
     xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
-    fwrite(data, 1, size, file);
+    fwrite(data, 1, size, file); 
     xSemaphoreGive(mem.spi_mutex);
 
     return true;
@@ -71,6 +71,10 @@ static void get_data_from_queue_and_save(FILE * data_file) {
 static void prepare_data_file_and_save(void) {
     xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
     FILE *data_file = fopen(mem.data_path, "a");
+    if (data_file == NULL) {
+        ESP_LOGE(TAG, "Can not open the file %s", mem.data_path);
+        // return;
+    }
     xSemaphoreGive(mem.spi_mutex);
 
     int received_data_counter = 0;
@@ -193,7 +197,7 @@ static bool create_unique_path(char *path, size_t size) {
     char temp_path[SD_PATH_SIZE] = {0};
     int ret = 0;
     for (int i = 0; i < 1000; ++i) {
-        ret = snprintf(temp_path, sizeof(temp_path), SD_MOUNT_POINT "/%s%d.txt", path, i);
+        ret = snprintf(temp_path, sizeof(temp_path), SD_MOUNT_POINT"/%s%d.txt", path, i);
         if (ret == SD_PATH_SIZE) {
             return false;
         }
