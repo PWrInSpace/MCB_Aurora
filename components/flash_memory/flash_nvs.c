@@ -33,45 +33,51 @@ NVSResult NVS_write_data(NVSData data_nvs);
 {
   switch(data_nvs.datatypee)
   {
-    case data_nvs.datatype = uint8_t;
+    case data_nvs.datatype = uint8_t:
     {
       NVS_write_uint8(data_nvs.key,data_nvs.data_uint8t);
-    }
+    }break;
 
-    case sdata_nvs.datatype= int8_t;
+    case data_nvs.datatype= int8_t:
     {
       NVS_write_int8(data_nvs.key,data_nvs.data_int8t);
-    }
+    }break;
 
-     case data_nvs.datatype = uint16_t;
+     case data_nvs.datatype = uint16_t:
     {
       NVS_write_uint16(data_nvs.key,data_nvs.data_uint16t);
-    }
+    }break;
 
-    case data_nvs.datatype = int16_t;
+    case data_nvs.datatype = int16_t:
     {
       NVS_write_int16(data_nvs.key,data_nvs.data_int16t);
-    }
+    }break;
 
-    case data_nvs.datatype = uint32_t;
+    case data_nvs.datatype = uint32_t:
     {
       NVS_write_uint32(data_nvs.key,data.data_uint32t);
-    }
+    }break;
 
-    case data_nvs.datatype = int32_t;
+    case data_nvs.datatype = int32_t:
     {
       NVS_write_int32(data_nvs.key,data.data_int32t);
-    }
-    case data_nvs.datatype = uint64_t;
+    }break;
+
+    case data_nvs.datatype = uint64_t:
     {
       NVS_write_uint64(data_nvs.key,data.data_uint64t);
-    }
-    case data_nvs.datatype = int64_t;
+    }break;
+
+    case data_nvs.datatype = int64_t:
     {
       NVS_write_int64(data_nvs.key,data.data_int64t);
     }
     break;
-
+    default:
+    {
+      nvs_close(nvs.handle);
+      return NVS_INVALID_DATATYPE;
+    }
   }
 }
 
