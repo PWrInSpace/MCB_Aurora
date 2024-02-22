@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include "esp_vfs_fat.h"
 #include "sdmmc_cmd.h"
+#include "sdkconfig.h"
 
 #define SDCARD_MOUNT_POINT CONFIG_SD_MOUNT_POINT
 #define SD_CREATE_FILE_PREFIX(usr_path) SDCARD_MOUNT_POINT "/" usr_path
