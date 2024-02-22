@@ -1,0 +1,43 @@
+@startuml
+scale 1920 width
+scale 1080 height 
+participant "Stacja naziemna" as gs
+participant "Moduł obsługujący" as mcb
+participant "System tankowania \ni ważenia" as TanWa
+participant "System obsługujący \ngłówny zawór" as mainValve
+...
+gs -> mcb: zmień stan na countdown
+alt wszystkie parametry są poprawne
+rnote over mcb #WhiteSmoke
+zmiana stanu na countdown
+endrnote
+rnote over mcb #WhiteSmoke
+uruchomienie zegara misji
+endrnote
+rnote over mcb #WhiteSmoke
+uruchomienie zegara włączenia
+systemu rozpalania
+endrnote
+rnote over mcb #WhiteSmoke
+uruchomienie zegara otwarcia
+zaworu głównego
+endrnote
+... oczekiwanie na sygnał zegara włączajacego system rozpalania ...
+
+mcb -> TanWa: uruchom system rozpalania
+
+... oczekiwanie na sygnał zegara otwierającego zawór główny ...
+
+rnote over mcb #WhiteSmoke
+zmiana stanu na flight
+endrnote
+mcb -> mainValve: otwóz zawór główny
+else wykryto nieprawidłowość
+mcb -> gs: kod błedu
+end
+
+
+
+
+...
+@enduml
