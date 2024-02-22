@@ -51,7 +51,7 @@ NVSResult NVS_init(NVSData *data_array, uint8_t length)
 
   nvs.handle = 0;
   
-  length = sizeof(data_array)/sizeof(data_array[0])
+  length = sizeof(*data_array)/sizeof(data_array[0]);
   if(sizeof(data_array = 0))
   {
     length = 0;
@@ -62,7 +62,7 @@ NVSResult NVS_init(NVSData *data_array, uint8_t length)
 uint32_t tmp_Val;
 for(int i=0; i<length; i++)
 {
-  NVSResultresult = NVS_read_uint32t(data_array[i].key, &tmp_Val);
+  NVSResult result = NVS_read_uint32t(data_array[i].key, &tmp_Val);
   if( result == NVS_OK)
   {
     ESP_LOGI(TAG, "Key %s already exists in NVS, skipping", data_array[i].key);
@@ -71,7 +71,7 @@ for(int i=0; i<length; i++)
   else if (result == NVS_READ_ERROR)
   {
      ESP_LOGI(TAG, "Key %s doesnt exist in NVS, saving", data_array[i].key);
-     NVS_write_uint32(data.array[i].key,data_array[i].value)
+     NVS_write_uint32(data_array[i].key,data_array[i].value);
   }
   else
   {

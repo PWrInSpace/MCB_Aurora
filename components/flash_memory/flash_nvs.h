@@ -58,7 +58,6 @@ typedef enum {
  * @param array 
  * @param array_length 
  */
-NVS_write_struct_array(NVSData * array, uint8_t array_length);
 
 
 /**
@@ -68,13 +67,17 @@ NVS_write_struct_array(NVSData * array, uint8_t array_length);
  * @return NVSResult 
  */
 
+NVSResult NVS_write_uint32(const char* key, uint32_t val);
+
+NVSResult NVS_read_uint32t(const char* key, uint32_t* val);
+
 NVSResult NVS_write_data(NVSData  struct_data);
 /**
  * @brief Initialize nvs flash
  *
  * @return NVSResult nvs_status
  */
-NVSResult NVS_init(void);
+NVSResult NVS_init(NVSData *data_array, uint8_t length);
 
 /**
  * @brief Write uint8 to nvs memory
