@@ -1,4 +1,5 @@
 // Copyright 2022 PWr in Space, Krzysztof Gliwiński
+//Edited Mateusz Kłosiński 21.02.2024
 #include "flash_nvs.h"
 
 #define TAG "NVS"
@@ -8,81 +9,122 @@ static struct {
   bool initialized;
 } nvs;
 
-uint8_t * data_uint8t;
-  int8_t *data_int8t;
-  uint16_t * data_uint16t;
-  int16_t * data_int16t;
-  uint32_t *data_uint32t;
-  int32_t *data_int32t;
-  uint64_t *data_uint64t;
-  int64_t *data_int64t;
-  NVSDataType datatype;
+nvs_handle_t handle;
+/**
+ * #include "biblioteka_nvs.h"
 
+#define KEY_1 "1"
+#define KEY_1_VALUE 1
+#define KEY_2 "2"
+#define KEY_2_VALUE 2
+#define KEY_3 "3"
+#define KEY_3_VALUE 3
 
-NVS_write_struct_array(NVSData * array, uint8_t array_length)
+void app_main(void) {
+    ESP_LOGI(TAG, "INIT TASK");
+
+    nvs_mem_t key_val_pairs[] = {
+        {KEY_1, KEY_1_VALUE},
+        {KEY_2, KEY_2_VALUE},
+        {KEY_3, KEY_3_VALUE}
+    };
+
+    nvs_init(key_val_pairs, sizeof(key_val_pairs) / sizeof(key_val_pairs[0]));
+    nvs_write(KEY_1, 321);
+
+    uint32_t value;
+    nvs_read(KEY_2, &value);
+}
+ * 
+ */
+
+NVSResult NVS_init(NVSData *data_array, uint8_t length)
 {
-  for(int i =0; i<array_length;i++)
-  {
-    NVS_write_data(array[i]);
+
+  esp_err_t res;
+
+  res = nvs_flash_init();
+  if (res != ESP_OK) {
+    ESP_LOGE(TAG, "NVS error init %s", esp_err_to_name(res));
+    return NVS_INIT_ERROR;
   }
+
+  nvs.handle = 0;
+  
+  length = sizeof(data_array)/sizeof(data_array[0])
+  if(sizeof(data_array = 0))
+  {
+    length = 0;
+    ESP_LOGE(TAG, "data array is length 0 %s", esp_err_to_name(res));
+    return NVS_INIT_ERROR;
+  }
+
+uint32_t tmp_Val;
+for(int i=0; i<length; i++)
+{
+  NVSResultresult = NVS_read_uint32t(data_array[i].key, &tmp_Val);
+  if( result == NVS_OK)
+  {
+    ESP_LOGI(TAG, "Key %s already exists in NVS, skipping", data_array[i].key);
+  }
+  
+  else if (result == NVS_READ_ERROR)
+  {
+     ESP_LOGI(TAG, "Key %s doesnt exist in NVS, saving", data_array[i].key);
+     NVS_write_uint32(data.array[i].key,data_array[i].value)
+  }
+  else
+  {
+    ESP_LOGI(TAG, "NVS read encountered error");
+    return NVS_READ_ERROR;
+  }
+
+  nvs_close(nvs.handle);
+  return NVS_OK;
+  
+}
+  
 }
 
-
-
-NVSResult NVS_write_data(NVSData data_nvs);
-{
-  switch(data_nvs.datatypee)
-  {
-    case data_nvs.datatype = uint8_t:
-    {
-      NVS_write_uint8(data_nvs.key,data_nvs.data_uint8t);
-    }break;
-
-    case data_nvs.datatype= int8_t:
-    {
-      NVS_write_int8(data_nvs.key,data_nvs.data_int8t);
-    }break;
-
-     case data_nvs.datatype = uint16_t:
-    {
-      NVS_write_uint16(data_nvs.key,data_nvs.data_uint16t);
-    }break;
-
-    case data_nvs.datatype = int16_t:
-    {
-      NVS_write_int16(data_nvs.key,data_nvs.data_int16t);
-    }break;
-
-    case data_nvs.datatype = uint32_t:
-    {
-      NVS_write_uint32(data_nvs.key,data.data_uint32t);
-    }break;
-
-    case data_nvs.datatype = int32_t:
-    {
-      NVS_write_int32(data_nvs.key,data.data_int32t);
-    }break;
-
-    case data_nvs.datatype = uint64_t:
-    {
-      NVS_write_uint64(data_nvs.key,data.data_uint64t);
-    }break;
-
-    case data_nvs.datatype = int64_t:
-    {
-      NVS_write_int64(data_nvs.key,data.data_int64t);
-    }
-    break;
-    default:
-    {
-      nvs_close(nvs.handle);
-      return NVS_INVALID_DATATYPE;
-    }
+NVSResult NVS_write_uint32(const char* key, uint32_t val) {
+  esp_err_t res;
+  res = nvs_open("storage", NVS_READWRITE, &nvs.handle);
+  if (res != ESP_OK) {
+    ESP_LOGE(TAG, "NVS open error %s", esp_err_to_name(res));
+    return NVS_OPEN_ERROR;
   }
+
+  res = nvs_set_u32(nvs.handle, key, val);
+  if (res != ESP_OK) {
+    nvs_close(nvs.handle);
+    ESP_LOGE(TAG, "NVS write error %s", esp_err_to_name(res));
+    return NVS_READ_ERROR;
+  }
+
+  nvs_close(nvs.handle);
+  return NVS_OK;
 }
 
+NVSResult NVS_read_uint32t(const char* key, uint32_t* val) {
+  esp_err_t res;
+  res = nvs_open("storage", NVS_READONLY, &nvs.handle);
+  if (res != ESP_OK) {
+    ESP_LOGE(TAG, "NVS open error %s", esp_err_to_name(res));
+    return NVS_OPEN_ERROR;
+  }
 
-NVSResult NVS_init(void) {
+  res = nvs_get_u32(nvs.handle, key, val);
+  if (res != ESP_OK) {
+    nvs_close(nvs.handle);
+    ESP_LOGE(TAG, "NVS read error %s", esp_err_to_name(res));
+    return NVS_READ_ERROR;
+  }
+
+  nvs_close(nvs.handle);
+  return NVS_OK;
+}
+
+/*NVSResult NVS_init(void) {
   esp_err_t res;
 
   res = nvs_flash_init();
@@ -94,6 +136,10 @@ NVSResult NVS_init(void) {
   nvs.handle = 0;
   return NVS_OK;
 }
+*/
+
+
+
 
 NVSResult NVS_write_uint8(const char* key, uint8_t val) {
   esp_err_t res;
@@ -113,6 +159,7 @@ NVSResult NVS_write_uint8(const char* key, uint8_t val) {
   nvs_close(nvs.handle);
   return NVS_OK;
 }
+
 
 NVSResult NVS_read_uint8(const char* key, uint8_t* val) {
   esp_err_t res;

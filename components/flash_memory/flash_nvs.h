@@ -7,7 +7,33 @@
 #include "nvs_flash.h"
 #include "esp_log.h"
 
+/**
+ * #include "biblioteka_nvs.h"
 
+#define KEY_1 "1"
+#define KEY_1_VALUE 1
+#define KEY_2 "2"
+#define KEY_2_VALUE 2
+#define KEY_3 "3"
+#define KEY_3_VALUE 3
+
+void app_main(void) {
+    ESP_LOGI(TAG, "INIT TASK");
+
+    nvs_mem_t key_val_pairs[] = {
+        {KEY_1, KEY_1_VALUE},
+        {KEY_2, KEY_2_VALUE},
+        {KEY_3, KEY_3_VALUE}
+    };
+
+    nvs_init(key_val_pairs, sizeof(key_val_pairs) / sizeof(key_val_pairs[0]));
+    nvs_write(KEY_1, 321);
+
+    uint32_t value;
+    nvs_read(KEY_2, &value);
+}
+ * 
+ */
 
 #define MAX_KEY_LENGTH 14
 
@@ -15,15 +41,8 @@
 typedef struct Data
 {
   char key[MAX_KEY_LENGTH];
-  uint8_t * data_uint8t;
-  int8_t *data_int8t;
-  uint16_t * data_uint16t;
-  int16_t * data_int16t;
-  uint32_t *data_uint32t;
-  int32_t *data_int32t;
-  uint64_t *data_uint64t;
-  int64_t *data_int64t;
-  NVSDataType datatype;
+  uint32_t value;
+
 }NVSData;
 
 typedef enum {
@@ -32,17 +51,6 @@ typedef enum {
   NVS_OPEN_ERROR,
   NVS_READ_ERROR,
 } NVSResult;
-
-typedef enum {
-  uint8_t,
-  int8_t,
-  uint16_t,
-  int16_t,
-  uint32_t, 
-  int32_t, s
-  uint64_t,
-  int64_t
-} NVSDataType;
 
 /**
  * @brief Construct a new nvs write struct array object
