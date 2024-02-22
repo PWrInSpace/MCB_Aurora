@@ -14,6 +14,14 @@ NVSData key_value[] =
 
 };
 
-NVSResult res = NVS_init(&key_value,DATA_LENGTH);
+bool initialize_nvs(void)
+{
+   NVSResult res =  NVS_init(key_value, DATA_LENGTH);
+    if(res==NVS_OK)
+    {
+        return true;
+    }
+    return false;
+}
 
 #endif

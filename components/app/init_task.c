@@ -30,6 +30,7 @@
 #include "uart.h"
 #include "utils.h"
 #include "vbat_wrapper.h"
+#include "nvs_config.h"
 
 #define TAG "INIT"
 
@@ -76,6 +77,8 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
     CHECK_RESULT_BOOL(initialize_esp_now(), "ESP_NOW");
     CHECK_RESULT_BOOL(initialize_flash_memory(), "FLASH");
+    CHECK_RESULT_BOOL(initialize_nvs(), "NVS_MEMORY");
+    CHECK_RESULT_BOOL(initialize_recovery(), "Recovery task");
     CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
     CHECK_RESULT_BOOL(initialize_gps(), "Gps task");
     CHECK_RESULT_BOOL(initialize_recovery(), "Recovery task");
