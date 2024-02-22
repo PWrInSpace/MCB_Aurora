@@ -1,83 +1,52 @@
 // Copyright 2022 PWr in Space, Krzysztof Gliwiński
-//02.2024 edited by Mateusz Kłosiński
+// 02.2024 edited by Mateusz Kłosiński
 #pragma once
 
 #include <stdint.h>
 
-#include "nvs_flash.h"
 #include "esp_log.h"
-
-/**
- * #include "biblioteka_nvs.h"
-
-#define KEY_1 "1"
-#define KEY_1_VALUE 1
-#define KEY_2 "2"
-#define KEY_2_VALUE 2
-#define KEY_3 "3"
-#define KEY_3_VALUE 3
-
-void app_main(void) {
-    ESP_LOGI(TAG, "INIT TASK");
-
-    nvs_mem_t key_val_pairs[] = {
-        {KEY_1, KEY_1_VALUE},
-        {KEY_2, KEY_2_VALUE},
-        {KEY_3, KEY_3_VALUE}
-    };
-
-    nvs_init(key_val_pairs, sizeof(key_val_pairs) / sizeof(key_val_pairs[0]));
-    nvs_write(KEY_1, 321);
-
-    uint32_t value;
-    nvs_read(KEY_2, &value);
-}
- * 
- */
+#include "nvs_flash.h"
 
 #define MAX_KEY_LENGTH 14
 
+typedef struct Data {
+    char key[MAX_KEY_LENGTH];
+    uint32_t value;
 
-typedef struct Data
-{
-  char key[MAX_KEY_LENGTH];
-  uint32_t value;
-
-}NVSData;
+} NVSData;
 
 typedef enum {
-  NVS_OK,
-  NVS_INIT_ERROR,
-  NVS_OPEN_ERROR,
-  NVS_READ_ERROR,
+    NVS_OK,
+    NVS_INIT_ERROR,
+    NVS_OPEN_ERROR,
+    NVS_READ_ERROR,
 } NVSResult;
 
 /**
  * @brief Construct a new nvs write struct array object
- * 
- * @param array 
- * @param array_length 
+ *
+ * @param array
+ * @param array_length
  */
 
-
 /**
- * @brief 
- * 
- * @param struct_data 
- * @return NVSResult 
+ * @brief
+ *
+ * @param struct_data
+ * @return NVSResult
  */
 
 NVSResult NVS_write_uint32(const char* key, uint32_t val);
 
 NVSResult NVS_read_uint32t(const char* key, uint32_t* val);
 
-NVSResult NVS_write_data(NVSData  struct_data);
+NVSResult NVS_write_data(NVSData struct_data);
 /**
  * @brief Initialize nvs flash
  *
  * @return NVSResult nvs_status
  */
-NVSResult NVS_init(NVSData *data_array, uint8_t length);
+NVSResult NVS_init(NVSData* data_array, uint8_t length);
 
 /**
  * @brief Write uint8 to nvs memory
@@ -90,7 +59,7 @@ NVSResult NVS_write_uint8(const char* key, uint8_t val);
 
 /**
  * @brief Read uint8 connected to key
- * 
+ *
  * @param key key
  * @param val value
  * @return NVSResult nvs_status
