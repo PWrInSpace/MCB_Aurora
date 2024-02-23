@@ -58,10 +58,13 @@ NVSResult NVS_init(NVSData* data_array, uint8_t length) {
     uint32_t tmp_Val;
     for (int i = 0; i < length; i++) {
         NVSResult result = NVS_read_uint32t(data_array[i].key, &tmp_Val);
-        if (result == NVS_OK) {
+        if (result == NVS_OK && tmp_Val==data_array[i].value) {
             ESP_LOGI(TAG, "Key %s already exists in NVS, skipping", data_array[i].key);
         }
-
+        else if (result == NVS_OK && tmp_Val!=data_array[i].value) {
+            ESP_LOGI(TAG, "Key %s exists in NVS but we are saving different value, saving", data_array[i].key);
+            NVS_write_uint32(data_array[i].key, data_array[i].value);
+        }
         else if (result == NVS_READ_ERROR) {
             ESP_LOGI(TAG, "Key %s doesnt exist in NVS, saving", data_array[i].key);
             NVS_write_uint32(data_array[i].key, data_array[i].value);
@@ -76,6 +79,7 @@ NVSResult NVS_init(NVSData* data_array, uint8_t length) {
 
 NVSResult NVS_write_uint32(const char* key, uint32_t val) {
     esp_err_t res;
+    
     res = nvs_open("storage", NVS_READWRITE, &nvs.handle);
     if (res != ESP_OK) {
         ESP_LOGE(TAG, "NVS open error %s", esp_err_to_name(res));
