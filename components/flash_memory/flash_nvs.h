@@ -11,7 +11,7 @@
 
 typedef struct Data {
     char key[MAX_KEY_LENGTH];
-    uint32_t value;
+    int32_t value;
 
 } NVSData;
 
@@ -22,64 +22,36 @@ typedef enum {
     NVS_READ_ERROR,
 } NVSResult;
 
-/**
- * @brief Construct a new nvs write struct array object
- *
- * @param array
- * @param array_length
- */
+
 
 /**
- * @brief
- *
- * @param struct_data
- * @return NVSResult
+ * @brief 
+ * 
+ * @param key 
+ * @param val 
+ * @return NVSResult 
  */
-
-NVSResult NVS_write_uint32(const char* key, uint32_t val);
-
-NVSResult NVS_read_uint32t(const char* key, uint32_t* val);
-
+NVSResult NVS_write_int32(const char* key, int32_t val);
+/**
+ * @brief 
+ * 
+ * @param key 
+ * @param val 
+ * @return NVSResult 
+ */
+NVSResult NVS_read_int32t(const char* key, int32_t* val);
+/**
+ * @brief 
+ * 
+ * @param struct_data 
+ * @return NVSResult 
+ */
 NVSResult NVS_write_data(NVSData struct_data);
 /**
- * @brief Initialize nvs flash
- *
- * @return NVSResult nvs_status
+ * @brief 
+ * 
+ * @param data_array 
+ * @param length 
+ * @return NVSResult 
  */
-NVSResult NVS_init(NVSData* data_array, uint8_t length);
-
-/**
- * @brief Write uint8 to nvs memory
- *
- * @param key key connected with value
- * @param val value
- * @return NVSResult nvs_status
- */
-NVSResult NVS_write_uint8(const char* key, uint8_t val);
-
-/**
- * @brief Read uint8 connected to key
- *
- * @param key key
- * @param val value
- * @return NVSResult nvs_status
- */
-NVSResult NVS_read_uint8(const char* key, uint8_t* val);
-
-/**
- * @brief Write uint16 to nvs memory
- *
- * @param key key connected with value
- * @param val value
- * @return NVSResult nvs_status
- */
-NVSResult NVS_write_uint16(const char* key, uint16_t val);
-
-/**
- * @brief Read uint16 connected to key
- *
- * @param key key
- * @param val value
- * @return NVSResult nvs_status
- */
-NVSResult NVS_read_uint16(const char* key, uint16_t* val);
+NVSResult NVS_init(NVSData* data_array, size_t length);
