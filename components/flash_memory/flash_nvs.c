@@ -23,17 +23,12 @@ NVSResult NVS_init(NVSData* data_array, size_t length) {
         ESP_LOGE(TAG, "data array is length 0 %s", esp_err_to_name(res));
         return NVS_INIT_ERROR;
     }
-
-    int32_t tmp_Val;
+int32_t tmp_Val;
     for (int i = 0; i < length; i++) {
         NVSResult result = NVS_read_int32t(data_array[i].key, &tmp_Val);
-        if (result == NVS_OK && tmp_Val == data_array[i].value) {
+        if (result == NVS_OK) {
             ESP_LOGI(TAG, "Key %s already exists in NVS, skipping", data_array[i].key);
-        } else if (result == NVS_OK && tmp_Val != data_array[i].value) {
-            ESP_LOGI(TAG, "Key %s exists in NVS but we are saving different value, saving",
-                     data_array[i].key);
-            NVS_write_int32(data_array[i].key, data_array[i].value);
-        } else if (result == NVS_READ_ERROR) {
+        } else if (result == NVS_NO_MATCHING_KEY) {
             ESP_LOGI(TAG, "Key %s doesnt exist in NVS, saving", data_array[i].key);
             NVS_write_int32(data_array[i].key, data_array[i].value);
         } else {
@@ -43,7 +38,7 @@ NVSResult NVS_init(NVSData* data_array, size_t length) {
     }
     nvs_commit(nvs.handle);
     nvs_close(nvs.handle);
-    
+
     return NVS_OK;
 }
 
@@ -76,6 +71,14 @@ NVSResult NVS_read_int32t(const char* key, int32_t* val) {
     }
 
     res = nvs_get_i32(nvs.handle, key, val);
+
+    if(res == ESP_ERR_NVS_NOT_FOUND)
+    {
+        nvs_close(nvs.handle);
+        ESP_LOGE(TAG, "NVS no matching key %s", esp_err_to_name(res));
+        return NVS_NO_MATCHING_KEY;
+    }
+
     if (res != ESP_OK) {
         nvs_close(nvs.handle);
         ESP_LOGE(TAG, "NVS read error %s", esp_err_to_name(res));
@@ -84,7 +87,4 @@ NVSResult NVS_read_int32t(const char* key, int32_t* val) {
 
     nvs_close(nvs.handle);
     return NVS_OK;
-    
 }
-
-    

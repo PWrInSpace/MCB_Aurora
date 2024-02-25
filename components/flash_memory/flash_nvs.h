@@ -20,38 +20,31 @@ typedef enum {
     NVS_INIT_ERROR,
     NVS_OPEN_ERROR,
     NVS_READ_ERROR,
+    NVS_NO_MATCHING_KEY,
 } NVSResult;
 
-
-
 /**
- * @brief 
- * 
- * @param key 
- * @param val 
- * @return NVSResult 
+ * @brief
+ *
+ * @param key
+ * @param val
+ * @return NVSResult
  */
 NVSResult NVS_write_int32(const char* key, int32_t val);
 /**
- * @brief 
- * 
- * @param key 
- * @param val 
- * @return NVSResult 
+ * @brief
+ *
+ * @param key
+ * @param val
+ * @return NVSResult
  */
 NVSResult NVS_read_int32t(const char* key, int32_t* val);
+
 /**
- * @brief 
- * 
- * @param struct_data 
- * @return NVSResult 
- */
-NVSResult NVS_write_data(NVSData struct_data);
-/**
- * @brief 
- * 
- * @param data_array 
- * @param length 
- * @return NVSResult 
+ * @brief
+ *
+ * @param data_array
+ * @param length
+ * @return NVSResult
  */
 NVSResult NVS_init(NVSData* data_array, size_t length);
