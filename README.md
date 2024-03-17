@@ -1,5 +1,8 @@
 # MCB_Aurora
-
+Clone repository with submodules
+```
+git clone --recursive https://github.com/PWrInSpace/MCB_Aurora.git
+```
 
 ## Protobuf install
 
@@ -28,4 +31,16 @@ Run porotobuf code generator xDDDDDDDDDDDDDDDDDDDD
 Nie wiem jak to podpiąc pod tego cmake
 ```
 cd components/protobuf/ && protoc --c_out=. lora.proto && cd .. && cd ..
+```
+
+## pySD
+
+Go to generator directory
+```
+cd pySD
+```
+
+Generate snprintf files for sd card
+```
+python3 main.py -s rocket_data_t
 ```
