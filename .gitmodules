@@ -1,6 +1,6 @@
 [submodule "pySD"]
 	path = pySD
-	url = https://github.com/PWrInSpace/MCB_Aurora
+	url = git@github.com:PWrInSpace/pySD.git
 	branch = refactor
 [submodule "components/sensors/BMP5-Sensor-API"]
 	path = components/sensors/BMP5-Sensor-API
