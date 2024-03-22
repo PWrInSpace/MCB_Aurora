@@ -1,5 +1,6 @@
 // Copyright 2022 PWr in Space, Krzysztof Gliwiński
 // Edited Mateusz Kłosiński 21.02.2024
+
 #include "flash_nvs.h"
 
 #define TAG "NVS"
@@ -57,7 +58,7 @@ NVSResult NVS_write_int32(const char* key, int32_t val) {
         ESP_LOGE(TAG, "NVS write error %s", esp_err_to_name(res));
         return NVS_READ_ERROR;
     }
-
+    nvs_commit(nvs.handle);
     nvs_close(nvs.handle);
     return NVS_OK;
 }

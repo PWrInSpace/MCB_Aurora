@@ -9,7 +9,7 @@
 #include "rocket_data.h"
 #include "recovery_task_config.h"
 #include "system_timer_config.h"
-#include "settings_mem.h"
+#include "nvs_config.h"
 #include "mission_timer_config.h"
 #include "flash_task.h"
 #include "buzzer_pwm.h"
@@ -119,8 +119,8 @@ static void mcb_change_lora_frequency_khz(uint32_t command, int32_t payload, boo
         return;
     }
 
-    settings_save(SETTINGS_LORA_FREQ_KHZ, payload);
-    settings_read_all();
+    NVS_write_int32(SETTINGS_LORA_FREQ_KHZ,payload);
+   // settings_read_all();
 
     ESP_LOGI(TAG, "Change frequency");
 }
@@ -139,65 +139,66 @@ static void mcb_change_lora_transmiting_period(uint32_t command, int32_t payload
         return;
     }
 
-    settings_save(SETTINGS_LORA_TRANSMIT_MS, payload);
-    settings_read_all();
+    NVS_write_int32(SETTINGS_LORA_TRANSMIT_MS,payload);
+    //settings_save(SETTINGS_LORA_TRANSMIT_MS, payload);
+    //settings_read_all();
 
     ESP_LOGI(TAG, "Tranismiting period change to %d ms", payload);
 }
 
 static void mcb_change_countdown_time(uint32_t command, int32_t payload, bool privilage) {
-    Settings settings = settings_get_all();
-    if (payload > settings.ignitTime || payload > -10000) {
+    int32_t igniteTime;
+    NVS_read_int32t(SETTINGS_IGNITE_TIME,&igniteTime);
+
+    //sSettings settings = settings_get_all();
+    if (payload > igniteTime || payload > -10000) {
         ESP_LOGE(TAG, "Unable to set coundown time");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
     }
 
-    if (settings_save(SETTINGS_COUNTDOWN_TIME, payload) != ESP_OK) {
+    if (NVS_write_int32(SETTINGS_COUNTDOWN_TIME, payload) != NVS_OK) {
         ESP_LOGE(TAG, "Unable to set coundown time");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
     }
-    settings_read_all();
-    settings = settings_get_all();
-
-    hybrid_mission_timer_set_disable_val(settings.countdownTime);
+    int32_t countdownTime;
+    NVS_read_int32t(SETTINGS_COUNTDOWN_TIME,&countdownTime);
+    hybrid_mission_timer_set_disable_val(countdownTime);
 }
 
 static void mcb_change_ignition_time(uint32_t command, int32_t payload, bool privilage) {
-    Settings settings = settings_get_all();
-    if (payload < settings.countdownTime || payload > 0) {
+    int32_t countdownTime;
+    NVS_read_int32t(SETTINGS_COUNTDOWN_TIME,&countdownTime);
+    if (payload < countdownTime || payload > 0) {
         ESP_LOGE(TAG, "Unable to set ignition time");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
     }
 
-    if (settings_save(SETTINGS_IGNIT_TIME, payload) != ESP_OK) {
+    if (NVS_write_int32(SETTINGS_IGNITE_TIME, payload) != NVS_OK) {
         ESP_LOGE(TAG, "Unable to set ignition time");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
     }
 
-    settings_read_all();
 }
 
 static void mcb_flash_enable(uint32_t command, int32_t payload, bool privilage) {
     if (payload != 0) {
-        settings_save(SETTINGS_FLASH_ON, 1);
+        NVS_write_int32(SETTINGS_FLASH_ON, 1);
     } else {
-        settings_save(SETTINGS_FLASH_ON, 0);
+        NVS_write_int32(SETTINGS_FLASH_ON, 0);
     }
 
-    settings_read_all();
 }
 
 static void mcb_buzzer_enable(uint32_t command, int32_t payload, bool privilage) {
     if (payload != 0) {
-        settings_save(SETTINGS_BUZZER_ON, 1);
+        NVS_write_int32(SETTINGS_BUZZER_ON, 1);
         sys_timer_start(TIMER_BUZZER, 2000, TIMER_TYPE_PERIODIC);
     } else {
-        settings_save(SETTINGS_BUZZER_ON, 0);
+        NVS_write_int32(SETTINGS_BUZZER_ON, 0);
         sys_timer_stop(TIMER_BUZZER);
         buzzer_turn_off();
     }
 
-    settings_read_all();
 }
 
 static void mcb_settings_frame(uint32_t command, int32_t payload, bool privilage) {

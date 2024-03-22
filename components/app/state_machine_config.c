@@ -12,7 +12,7 @@
 #include "rocket_data.h"
 #include "gpio_expander.h"
 #include "recovery_task_config.h"
-#include "settings_mem.h"
+#include "nvs_config.h"
 #include "processing_task_config.h"
 
 #define TAG "SMC"
@@ -61,10 +61,10 @@ static void on_armed_to_launch(void *arg) {
 static void on_ready_to_lauch(void *arg) {
     gpioexp_led_set_color(PURPLE);
     ESP_LOGI(TAG, "ON READY_TO_LAUNCH");
-    Settings settings = settings_get_all();
-
+    int32_t flash_on;
+    NVS_read_int32t(SETTINGS_FLASH_ON, &flash_on);
     gpioexp_camera_turn_on();
-    if (settings.flash_on != 0) {
+    if (flash_on != 0) {
         FT_start_loop();
         sys_timer_start(TIMER_FLASH_DATA, 500, TIMER_TYPE_PERIODIC);
     }
@@ -79,9 +79,11 @@ static void on_countdown(void *arg) {
         goto abort_countdown;
     }
 
-
-    Settings settings = settings_get_all();
-    if (hybrid_mission_timer_start(settings.countdownTime, settings.ignitTime) == false) {
+    int32_t countdownTime;
+    int32_t igniteTime;
+    NVS_read_int32t(SETTINGS_COUNTDOWN_TIME, &countdownTime);
+    NVS_read_int32t(SETTINGS_IGNITE_TIME,&igniteTime);    
+    if (hybrid_mission_timer_start(countdownTime,igniteTime) == false) {
         ESP_LOGE(TAG, "Mission timer error");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_DISCONNECT_TIMER, 100);
         goto abort_countdown;

@@ -23,7 +23,7 @@
 #include "recovery_task_config.h"
 #include "rocket_data.h"
 #include "sd_card_config.h"
-#include "settings_mem.h"
+#include "flash_nvs.h"
 #include "spi.h"
 #include "state_machine_config.h"
 #include "system_timer_config.h"
@@ -54,12 +54,16 @@ inline static void CHECK_RESULT_BOOL(esp_err_t res, char *message) {
 }
 
 static void TASK_init(void *arg) {
-    CHECK_RESULT_ESP(settings_init(), "Change state");
-    Settings settings = settings_get_all();
-
+    CHECK_RESULT_ESP(initialize_nvs(), "Change state");
+    int32_t countdownTime;
+    NVS_read_int32t(SETTINGS_COUNTDOWN_TIME,&countdownTime);
+    int32_t loraFreq_KHz;
+    NVS_read_int32t(SETTINGS_LORA_FREQ_KHZ,&loraFreq_KHz);
+    int32_t lora_transmit_ms;
+    NVS_read_int32t(SETTINGS_LORA_TRANSMIT_MS,&lora_transmit_ms);
     CHECK_RESULT_BOOL(rocket_data_init(), "data");
     CHECK_RESULT_BOOL(initialize_errors(), "Errors");
-    CHECK_RESULT_BOOL(hybrid_mission_timer_init(settings.countdownTime), "Mission timer");
+    CHECK_RESULT_BOOL(hybrid_mission_timer_init(countdownTime), "Mission timer");
     CHECK_RESULT_BOOL(vbat_init(), "VBAT MEASUREMENT");
     CHECK_RESULT_BOOL(buzzer_init(), "Buzzer");
 
@@ -94,7 +98,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 50, TIMER_TYPE_PERIODIC), "SD TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_DEBUG, 1000, TIMER_TYPE_PERIODIC), "DEBUG TIMER");
 
-    CHECK_RESULT_BOOL(initialize_lora(settings.loraFreq_KHz, settings.lora_transmit_ms), "LORA");
+    CHECK_RESULT_BOOL(initialize_lora(loraFreq_KHz, lora_transmit_ms), "LORA");
     CHECK_RESULT_ESP(init_console(), "CLI");
     // esp_log_level_set("*", ESP_LOG_INFO);
 

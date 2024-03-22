@@ -11,7 +11,7 @@
 #include "flash_task.h"
 #include "gen_pysd.h"
 #include "mission_timer_config.h"
-#include "settings_mem.h"
+#include "nvs_config.h"
 #include "state_machine_config.h"
 #include "system_timer_config.h"
 #define TAG "CONSOLE_CONFIG"
@@ -167,21 +167,30 @@ static int esp_now_send_main_valve(int argc, char **argv) {
 }
 
 static int cli_settings_read_all(int argc, char **argv) {
-    Settings settings = settings_get_all();
-    CONSOLE_WRITE("Lora freq MHZ %d", settings.loraFreq_KHz);
-    CONSOLE_WRITE("Lora transmit freq %d", settings.lora_transmit_ms);
-    CONSOLE_WRITE("CDWN TIME %d", settings.countdownTime);
-    CONSOLE_WRITE("Igni time %d", settings.ignitTime);
-    CONSOLE_WRITE("Buzzer %d", settings.buzzer_on);
-    CONSOLE_WRITE("Flash %d", settings.flash_on);
+    int32_t lora_Freq_KHz;
+    int32_t lora_transmit_ms;
+    int32_t  countdownTime;
+    int32_t igniteTime;
+    int32_t buzzer_on;
+    int32_t flash_on;
+    NVS_read_int32t(SETTINGS_LORA_FREQ_KHZ,&lora_Freq_KHz);
+    NVS_read_int32t(SETTINGS_LORA_TRANSMIT_MS,&lora_transmit_ms);
+    NVS_read_int32t(SETTINGS_COUNTDOWN_TIME,&countdownTime);
+    NVS_read_int32t(SETTINGS_IGNITE_TIME,&igniteTime);
+    NVS_read_int32t(SETTINGS_BUZZER_ON,&buzzer_on);
+    NVS_read_int32t(SETTINGS_FLASH_ON,&flash_on);
+    CONSOLE_WRITE("Lora freq MHZ %d", lora_Freq_KHz);
+    CONSOLE_WRITE("Lora transmit freq %d", lora_transmit_ms);
+    CONSOLE_WRITE("CDWN TIME %d", countdownTime);
+    CONSOLE_WRITE("Igni time %d", igniteTime);
+    CONSOLE_WRITE("Buzzer %d", buzzer_on);
+    CONSOLE_WRITE("Flash %d", flash_on);
 
     return 0;
 }
 
 static int cli_settings_init_default(int argc, char **argv) {
-    settings_init_default();
-    settings_read_all();
-
+    default_nvs();
     return 0;
 }
 
