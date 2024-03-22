@@ -3,8 +3,7 @@
 #include "rocket_data.h"
 #include "errors_config.h"
 #include "esp_log.h"
-#include "settings_mem.h"
-
+#include "nvs_config.h"
 #define TAG "PBF"
 
 void create_porotobuf_data_frame(LoRaFrame *frame) {
@@ -115,11 +114,11 @@ void create_porotobuf_data_frame(LoRaFrame *frame) {
 }
 
 void create_protobuf_settings_frame(LoRaSettings *frame) {
-    Settings settings = settings_get_all();
-    frame->countdown_time = settings.countdownTime;
-    frame->ingition_time = settings.ignitTime;
-    frame->lora_freq_khz = settings.loraFreq_KHz;
-    frame->lora_transmit_ms = settings.lora_transmit_ms;
-    frame->buzzer_enable = settings.buzzer_on;
-    frame->flash_enable = settings.flash_on;
+    NVS_read_int32t(SETTINGS_COUNTDOWN_TIME,&frame->countdown_time);
+    NVS_read_int32t(SETTINGS_IGNITE_TIME,&frame->ingition_time);
+    NVS_read_int32t(SETTINGS_LORA_FREQ_KHZ,&frame->lora_freq_khz);
+    NVS_read_int32t(SETTINGS_LORA_TRANSMIT_MS,&frame->lora_transmit_ms);
+    NVS_read_int32t(SETTINGS_BUZZER_ON, (int32_t *)&frame->buzzer_enable);
+    NVS_read_int32t(SETTINGS_FLASH_ON, (int32_t *)&frame->flash_enable);
+
 }

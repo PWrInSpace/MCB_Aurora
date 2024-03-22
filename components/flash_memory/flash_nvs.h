@@ -1,57 +1,50 @@
 // Copyright 2022 PWr in Space, Krzysztof Gliwiński
+// 02.2024 edited by Mateusz Kłosiński
 #pragma once
 
 #include <stdint.h>
-
-#include "nvs_flash.h"
 #include "esp_log.h"
+#include "nvs_flash.h"
+#define MAX_KEY_LENGTH 14
+
+typedef struct Data {
+    char key[MAX_KEY_LENGTH];
+    int32_t value;
+
+} NVSData;
 
 typedef enum {
-  NVS_OK,
-  NVS_INIT_ERROR,
-  NVS_OPEN_ERROR,
-  NVS_READ_ERROR,
+    NVS_OK,
+    NVS_INIT_ERROR,
+    NVS_OPEN_ERROR,
+    NVS_READ_ERROR,
+    NVS_NO_MATCHING_KEY,
 } NVSResult;
 
 /**
- * @brief Initialize nvs flash
+ * @brief
  *
- * @return NVSResult nvs_status
+ * @param key
+ * @param val
+ * @return NVSResult
  */
-NVSResult NVS_init(void);
+NVSResult NVS_write_int32(const char* key, int32_t val);
+/**
+ * @brief
+ *
+ * @param key
+ * @param val
+ * @return NVSResult
+ */
+NVSResult NVS_read_int32t(const char* key, int32_t* val);
 
 /**
- * @brief Write uint8 to nvs memory
+ * @brief
  *
- * @param key key connected with value
- * @param val value
- * @return NVSResult nvs_status
+ * @param data_array
+ * @param length
+ * @return NVSResult
  */
-NVSResult NVS_write_uint8(const char* key, uint8_t val);
+NVSResult NVS_init(NVSData* data_array, size_t length);
 
-/**
- * @brief Read uint8 connected to key
- * 
- * @param key key
- * @param val value
- * @return NVSResult nvs_status
- */
-NVSResult NVS_read_uint8(const char* key, uint8_t* val);
-
-/**
- * @brief Write uint16 to nvs memory
- *
- * @param key key connected with value
- * @param val value
- * @return NVSResult nvs_status
- */
-NVSResult NVS_write_uint16(const char* key, uint16_t val);
-
-/**
- * @brief Read uint16 connected to key
- *
- * @param key key
- * @param val value
- * @return NVSResult nvs_status
- */
-NVSResult NVS_read_uint16(const char* key, uint16_t* val);
+NVSResult read_all();
