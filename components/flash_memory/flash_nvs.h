@@ -3,10 +3,8 @@
 #pragma once
 
 #include <stdint.h>
-
 #include "esp_log.h"
 #include "nvs_flash.h"
-
 #define MAX_KEY_LENGTH 14
 
 typedef struct Data {
@@ -48,3 +46,5 @@ NVSResult NVS_read_int32t(const char* key, int32_t* val);
  * @return NVSResult
  */
 NVSResult NVS_init(NVSData* data_array, size_t length);
+
+NVSResult read_all();
