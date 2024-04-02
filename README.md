@@ -29,3 +29,7 @@ Nie wiem jak to podpiąc pod tego cmake
 ```
 cd components/protobuf/ && protoc --c_out=. lora.proto && cd .. && cd ..
 ```
+
+TEST
+
+![example-uml](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/PWrInSpace/MCB_Aurora/main/docs/lora_timing_diagram.puml)
