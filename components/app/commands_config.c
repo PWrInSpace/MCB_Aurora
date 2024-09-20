@@ -268,6 +268,9 @@ static void send_command_recovery(uint32_t command, int32_t payload, bool privil
         errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
         ESP_LOGE(TAG, "Recovery send error :C");
     }
+    else{
+        ESP_LOGE(TAG, "Recovery send success :D");
+    }
 }
 
 static void recov_easymini_arm(uint32_t command, int32_t payload, bool privilage) {

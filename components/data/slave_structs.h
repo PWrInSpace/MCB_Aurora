@@ -7,7 +7,7 @@
 #include "protobuf-c.h"
 
 typedef struct {
-    bool main_valve : 1;
+    bool main_valve : 1;    
     bool vent_valve : 1;
     bool pitot : 1;
     bool payload : 1;
@@ -32,8 +32,8 @@ typedef struct {
 } vent_valve_data_t;
 
 typedef struct {
-    bool isArmed :1;
-    bool isTeleActive :1;
+    bool isArmed :1; // Easymini arming signall
+    bool isTeleActive :1; 
     bool easyMiniFirstStage :1;
     bool easyMiniSecondStage :1;
     bool telemetrumFirstStage :1;

@@ -213,7 +213,7 @@ static void disable_timers_and_close_valves(void) {
     cmd = cmd_create_message(MAIN_VALVE_CLOSE, 0x00);
     ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 
-    // send valves close commands to tanwa
+    
 }
 
 static void on_hold(void *arg) {
