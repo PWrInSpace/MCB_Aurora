@@ -31,6 +31,7 @@
 #include "mahony.h"
 #include "mag_wrapper.h"
 #include "magdwick.h"
+#include "w25q64.h"
 
 
 #include "sdkconfig.h"
@@ -39,9 +40,16 @@
 
 void app_main(void) {
     ESP_LOGI(TAG, "INIT TASK");
-    run_init_task();
-    vTaskDelete(NULL);
+    W25Q64_t w25q64;
+
+    W25Q64_init(&w25q64);
 }
+
+// void app_main(void) {
+//     ESP_LOGI(TAG, "INIT TASK");
+//     run_init_task();
+//     vTaskDelete(NULL);
+// }
 
 
 // void app_main(void) {
