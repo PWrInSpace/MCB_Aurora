@@ -111,8 +111,8 @@ void rocket_data_update_tanwa(tanwa_data_t *data) {
     ESP_LOGD(TAG, "Tanwa:");
     ESP_LOGD(TAG, "state %d", gb.rocket_data.tanwa.tanWaState);
     ESP_LOGD(TAG, "vbat %f", gb.rocket_data.tanwa.vbat);
-    ESP_LOGD(TAG, "solenoid fill %d", gb.rocket_data.tanwa.solenoid_fill);
-    ESP_LOGD(TAG, "solenoid depr %d", gb.rocket_data.tanwa.solenoid_depr);
+    ESP_LOGD(TAG, "solenoid fill %d", gb.rocket_data.tanwa.fillState);
+    ESP_LOGD(TAG, "solenoid depr %d", gb.rocket_data.tanwa.deprState);
     xSemaphoreGive(gb.data_mutex);
 }
 

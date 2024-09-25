@@ -54,33 +54,60 @@ typedef struct {
     float vbat;
 } payload_data_t;
 
-typedef struct {
-    uint8_t tanWaState;
-    uint16_t pressureSensor;
-    uint16_t solenoid_fill; //pin pa0 10 pin stm adc
-    uint16_t solenoid_depr; // pin pa2 12 pin stm adc
-    bool abortButton : 1;
-    bool igniterContinouity_1;
-    bool igniterContinouity_2;
-    uint8_t hxRequest_RCK;
-    uint8_t hxRequest_TANK;
+// typedef struct {
+//     uint8_t tanWaState;
+//     uint16_t pressureSensor;
+//     uint16_t solenoid_fill; 
+//     uint16_t solenoid_depr; 
+//     bool abortButton : 1;
+//     bool igniterContinouity_1;
+//     bool igniterContinouity_2;
+//     uint8_t hxRequest_RCK;
+//     uint8_t hxRequest_TANK;
+//     float vbat;
+//     uint8_t motorState_1;
+//     uint8_t motorState_2;
+//     uint8_t motorState_3;
+//     uint8_t motorState_4;
+//     int rocketWeight_blink;
+//     float rocketWeight_temp;
+//     int tankWeight_blink;
+//     float tankWeight_temp;
+//     float rocketWeight_val;
+//     float tankWeight_val;
+//     uint32_t rocketWeightRaw_val;
+//     uint32_t tankWeightRaw_val;
+//     bool interface_rck;
+//     bool interface_tank;
+//     bool interface_mcu;
+// } tanwa_data_t_old;
+
+typedef struct{
     float vbat;
-    uint8_t motorState_1;
-    uint8_t motorState_2;
-    uint8_t motorState_3;
-    uint8_t motorState_4;
-    int rocketWeight_blink;
-    float rocketWeight_temp;
-    int tankWeight_blink;
-    float tankWeight_temp;
+    uint8_t tanWaState;
     float rocketWeight_val;
     float tankWeight_val;
-    uint32_t rocketWeightRaw_val;
-    uint32_t tankWeightRaw_val;
-    bool interface_rck;
-    bool interface_tank;
-    bool interface_mcu;
-} tanwa_data_t;
+    float fill_temp;
+    float preFill_pres;
+    float postFill_pres;
+    float tank_pres;
+    bool canHxBtl_con : 1;
+    bool canHxRck_con : 1;
+    bool canFac_con : 1;
+    bool canFlc_con : 1;
+    bool canTermo_con : 1;
+    bool igniterContinouity_1 : 1;
+    bool igniterContinouity_2 : 1;
+    bool limitSwitch_1 : 1;
+    bool limitSwitch_2 : 1;
+    bool fillState : 1;
+    bool deprState : 1;
+    uint8_t facMotorState_1;
+    uint8_t facMotorState_2;
+    bool coolingState : 1;
+    bool heatingState : 1;
+    bool abortButton : 1;
+}tanwa_data_t;
 
 typedef struct {
     bool waken_up;

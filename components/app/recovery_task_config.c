@@ -51,6 +51,7 @@ static bool recovery_read_data(recovery_data_t* message, size_t len) {
     memset(&rightRecoveryData,0,sizeof(rightRecoveryData));
     rightStatus = false;
     }
+    
     gb.recovery_data.isArmed = leftRecoveryData.isArmed | rightRecoveryData.isArmed;
     gb.recovery_data.isTeleActive = leftRecoveryData.isTeleActive | rightRecoveryData.isTeleActive;
     gb.recovery_data.easyMiniFirstStage = leftRecoveryData.easyMiniFirstStage | rightRecoveryData.easyMiniFirstStage;

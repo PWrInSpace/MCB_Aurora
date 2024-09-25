@@ -142,7 +142,7 @@ void   lo_ra_settings__free_unpacked
   assert(message->base.descriptor == &lo_ra_settings__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[36] =
+static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[37] =
 {
   {
     "obc_state",
@@ -505,36 +505,48 @@ static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[36] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "temperature1",
+    "fill_temperature",
     31,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_FLOAT,
     0,   /* quantifier_offset */
-    offsetof(LoRaFrame, temperature1),
+    offsetof(LoRaFrame, fill_temperature),
     NULL,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "temperature2",
+    "pre_fill_pressure",
     32,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_FLOAT,
     0,   /* quantifier_offset */
-    offsetof(LoRaFrame, temperature2),
+    offsetof(LoRaFrame, pre_fill_pressure),
     NULL,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "pressure",
+    "post_fill_pressure",
     33,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_FLOAT,
     0,   /* quantifier_offset */
-    offsetof(LoRaFrame, pressure),
+    offsetof(LoRaFrame, post_fill_pressure),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "tanwa_tank_pressure",
+    34,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_FLOAT,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrame, tanwa_tank_pressure),
     NULL,
     NULL,
     0,             /* flags */
@@ -542,7 +554,7 @@ static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[36] =
   },
   {
     "payload_battery",
-    34,
+    35,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_FLOAT,
     0,   /* quantifier_offset */
@@ -554,7 +566,7 @@ static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[36] =
   },
   {
     "esp_now_byte_data",
-    35,
+    36,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_FIXED32,
     0,   /* quantifier_offset */
@@ -566,7 +578,7 @@ static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[36] =
   },
   {
     "errors",
-    36,
+    37,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_FIXED32,
     0,   /* quantifier_offset */
@@ -579,11 +591,12 @@ static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[36] =
 };
 static const unsigned lo_ra_frame__field_indices_by_name[] = {
   1,   /* field[1] = dc_time */
-  35,   /* field[35] = errors */
-  34,   /* field[34] = esp_now_byte_data */
+  36,   /* field[36] = errors */
+  35,   /* field[35] = esp_now_byte_data */
   10,   /* field[10] = euler_fi */
   11,   /* field[11] = euler_psi */
   12,   /* field[12] = euler_theta */
+  30,   /* field[30] = fill_temperature */
   2,   /* field[2] = flight_time */
   4,   /* field[4] = gps_lat */
   5,   /* field[5] = gps_long */
@@ -595,12 +608,13 @@ static const unsigned lo_ra_frame__field_indices_by_name[] = {
   20,   /* field[20] = mval_battery */
   21,   /* field[21] = mval_byte_data */
   0,   /* field[0] = obc_state */
-  33,   /* field[33] = payload_battery */
+  34,   /* field[34] = payload_battery */
   17,   /* field[17] = pitot_altitude */
   16,   /* field[16] = pitot_battery */
   19,   /* field[19] = pitot_temperature */
   18,   /* field[18] = pitot_velocity */
-  32,   /* field[32] = pressure */
+  32,   /* field[32] = post_fill_pressure */
+  31,   /* field[31] = pre_fill_pressure */
   15,   /* field[15] = recov_byte_data */
   13,   /* field[13] = recov_pressure_1 */
   14,   /* field[14] = recov_pressure_2 */
@@ -610,15 +624,14 @@ static const unsigned lo_ra_frame__field_indices_by_name[] = {
   25,   /* field[25] = tanwa_battery */
   26,   /* field[26] = tanwa_byte_data */
   27,   /* field[27] = tanwa_state */
-  30,   /* field[30] = temperature1 */
-  31,   /* field[31] = temperature2 */
+  33,   /* field[33] = tanwa_tank_pressure */
   22,   /* field[22] = vent_battery */
   24,   /* field[24] = vent_byte_data */
 };
 static const ProtobufCIntRange lo_ra_frame__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 36 }
+  { 0, 37 }
 };
 const ProtobufCMessageDescriptor lo_ra_frame__descriptor =
 {
@@ -628,7 +641,7 @@ const ProtobufCMessageDescriptor lo_ra_frame__descriptor =
   "LoRaFrame",
   "",
   sizeof(LoRaFrame),
-  36,
+  37,
   lo_ra_frame__field_descriptors,
   lo_ra_frame__field_indices_by_name,
   1,  lo_ra_frame__number_ranges,

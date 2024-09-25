@@ -73,22 +73,28 @@ void create_porotobuf_data_frame(LoRaFrame *frame) {
     frame->tanwa_state = data.tanwa.tanWaState;
     frame->rocket_weight = data.tanwa.rocketWeight_val;
     frame->tank_weight = data.tanwa.tankWeight_val;
-    frame->temperature1 = data.tanwa.rocketWeight_temp;
-    frame->temperature2 = data.tanwa.tankWeight_temp;
-    frame->pressure = data.tanwa.pressureSensor;
+    frame->fill_temperature = data.tanwa.fill_temp;
+    frame->pre_fill_pressure = data.tanwa.preFill_pres;
+    frame->post_fill_pressure = data.tanwa.postFill_pres;
+    frame->tanwa_tank_pressure = data.tanwa.tank_pres;
 
-    frame->tanwa_byte_data |= data.tanwa.motorState_1;
-    frame->tanwa_byte_data |= (data.tanwa.motorState_2 << 3);
-    frame->tanwa_byte_data |= (data.tanwa.motorState_3 << 6);
-    frame->tanwa_byte_data |= (data.tanwa.motorState_4 << 9);
-    frame->tanwa_byte_data |= (data.tanwa.hxRequest_RCK << 20);
-    frame->tanwa_byte_data |= (data.tanwa.hxRequest_TANK << 22);
-
-    frame->tanwa_byte_data |= (data.tanwa.tankWeight_blink << 28);
-    frame->tanwa_byte_data |= (data.tanwa.rocketWeight_blink << 29);
-    frame->tanwa_byte_data |= (data.tanwa.igniterContinouity_1 << 30);
-    frame->tanwa_byte_data |= (data.tanwa.igniterContinouity_2 << 31);
-
+    frame->tanwa_byte_data |= data.tanwa.canHxRck_con;
+    frame->tanwa_byte_data |= (data.tanwa.canHxBtl_con << 1);
+    frame->tanwa_byte_data |= (data.tanwa.canFac_con << 2);
+    frame->tanwa_byte_data |= (data.tanwa.canFlc_con << 3);
+    frame->tanwa_byte_data |= (data.tanwa.canTermo_con << 4);
+    frame->tanwa_byte_data |= (data.tanwa.igniterContinouity_1 << 8);
+    frame->tanwa_byte_data |= (data.tanwa.igniterContinouity_2 << 9);
+    frame->tanwa_byte_data |= (data.tanwa.limitSwitch_1 << 10);
+    frame->tanwa_byte_data |= (data.tanwa.limitSwitch_2 << 11);
+    frame->tanwa_byte_data |= (data.tanwa.fillState << 16);
+    frame->tanwa_byte_data |= (data.tanwa.deprState << 17);
+    frame->tanwa_byte_data |= (data.tanwa.facMotorState_1 << 18);
+    frame->tanwa_byte_data |= (data.tanwa.facMotorState_2 << 20);
+    frame->tanwa_byte_data |= (data.tanwa.heatingState << 22);
+    frame->tanwa_byte_data |= (data.tanwa.coolingState << 23);
+    frame->tanwa_byte_data |= (data.tanwa.abortButton << 24);
+    
     // payload
     frame->payload_battery = data.payload.vbat;
 

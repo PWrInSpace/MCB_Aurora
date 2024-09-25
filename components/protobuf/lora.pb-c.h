@@ -76,9 +76,10 @@ struct  LoRaFrame
   uint32_t tanwa_state;
   float rocket_weight;
   float tank_weight;
-  float temperature1;
-  float temperature2;
-  float pressure;
+  float fill_temperature;
+  float pre_fill_pressure;
+  float post_fill_pressure;
+  float tanwa_tank_pressure;
   /*
    * payload frame
    */
@@ -88,7 +89,7 @@ struct  LoRaFrame
 };
 #define LO_RA_FRAME__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&lo_ra_frame__descriptor) \
-    , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+    , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 
 
 struct  LoRaCommand
