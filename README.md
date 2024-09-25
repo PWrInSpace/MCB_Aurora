@@ -32,5 +32,6 @@ cd components/protobuf/ && protoc --c_out=. lora.proto && cd .. && cd ..
 ```
 
 ## Run pySD
+```
 cd pySD && python3 main.py -s rocket_data_t
 ```
