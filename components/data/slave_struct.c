@@ -6,12 +6,15 @@
 #include "freertos/semphr.h"
 
 static struct {
-    main_valve_data_t main_valve;
-    vent_valve_data_t vent_valve;
+    servo_eth_n2_data_t servo_eth_n2;
+    servo_n2o_data_t servo_n2o;
+    sol_n2o_n2_data_t sol_n2o_n2;
+    sol_eth_data_t sol_eth;
     recovery_data_t recovery;
     payload_data_t payload;
     SemaphoreHandle_t data_mutex;
 } gb;
+
 
 bool rocket_data_init(void) {
     memset(&gb, 0, sizeof(gb));
@@ -26,19 +29,29 @@ bool rocket_data_init(void) {
 
 
 
-void rocket_data_update_main_valve(main_valve_data_t *data) {
+void rocket_data_update_servo_eth_n2(servo_eth_n2_data_t *data) {
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
-    memcpy(&gb.main_valve, data, sizeof(gb.main_valve));
+    memcpy(&gb.servo_eth_n2, data, sizeof(gb.servo_eth_n2));
     xSemaphoreGive(gb.data_mutex);
 }
 
-
-void rocket_data_update_vent_valve(vent_valve_data_t *data) {
+void rocket_data_update_servo_n2o(servo_n2o_data_t *data) {
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
-    memcpy(&gb.vent_valve, data, sizeof(gb.vent_valve));
+    memcpy(&gb.servo_n2o, data, sizeof(gb.servo_n2o));
     xSemaphoreGive(gb.data_mutex);
 }
 
+void rocket_data_update_sol_n2o_n2(sol_n2o_n2_data_t *data) {
+    xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
+    memcpy(&gb.sol_n2o_n2, data, sizeof(gb.sol_n2o_n2));
+    xSemaphoreGive(gb.data_mutex);
+}
+
+void rocket_data_update_sol_eth(sol_eth_data_t *data) {
+    xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
+    memcpy(&gb.sol_eth, data, sizeof(gb.sol_eth));
+    xSemaphoreGive(gb.data_mutex);
+}
 
 void rocket_data_update_recovery(recovery_data_t *data) {
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
@@ -46,19 +59,34 @@ void rocket_data_update_recovery(recovery_data_t *data) {
     xSemaphoreGive(gb.data_mutex);
 }
 
-
-main_valve_data_t rocket_data_get_main_valve(void) {
-    main_valve_data_t tmp;
+servo_eth_n2_data_t rocket_data_get_servo_eth_n2(void) {
+    servo_eth_n2_data_t tmp;
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
-    tmp = gb.main_valve;
+    tmp = gb.servo_eth_n2;
     xSemaphoreGive(gb.data_mutex);
     return tmp;
 }
 
-vent_valve_data_t rocket_data_get_vent_valve(void) {
-    vent_valve_data_t tmp;
+servo_n2o_data_t rocket_data_get_servo_n2o(void) {
+    servo_n2o_data_t tmp;
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
-    tmp = gb.vent_valve;
+    tmp = gb.servo_n2o;
+    xSemaphoreGive(gb.data_mutex);
+    return tmp;
+}
+
+sol_n2o_n2_data_t rocket_data_get_sol_n2o_n2(void) {
+    sol_n2o_n2_data_t tmp;
+    xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
+    tmp = gb.sol_n2o_n2;
+    xSemaphoreGive(gb.data_mutex);
+    return tmp;
+}
+
+sol_eth_data_t rocket_data_get_sol_eth(void) {
+    sol_eth_data_t tmp;
+    xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
+    tmp = gb.sol_eth;
     xSemaphoreGive(gb.data_mutex);
     return tmp;
 }

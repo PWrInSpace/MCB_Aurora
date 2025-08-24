@@ -20,7 +20,15 @@ typedef struct {
     uint32_t thermocouple1;
     uint32_t thermocouple2;
     uint32_t battery_voltage;
-} main_valve_data_t;
+} servo_eth_n2_data_t;
+
+typedef struct {
+    bool waken_up :1;
+    uint8_t valve_state : 2;
+    uint32_t thermocouple1;
+    uint32_t thermocouple2;
+    uint32_t battery_voltage;
+} servo_n2o_data_t;
 
 typedef struct {
     bool waken_up : 1;
@@ -29,7 +37,16 @@ typedef struct {
     int8_t thermistor1;
     int8_t thermistor2;
     uint32_t battery_voltage;
-} vent_valve_data_t;
+} sol_n2o_n2_data_t;
+
+typedef struct {
+    bool waken_up : 1;
+    uint8_t valve_state : 2;
+    uint32_t tank_pressure;
+    int8_t thermistor1;
+    int8_t thermistor2;
+    uint32_t battery_voltage;
+} sol_eth_data_t;
 
 typedef struct {
     bool isArmed :1;
