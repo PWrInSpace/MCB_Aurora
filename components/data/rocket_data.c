@@ -49,7 +49,7 @@ void rocket_data_update_servo_eth_n2(servo_eth_n2_data_t *data) {
     xSemaphoreGive(gb.data_mutex);
 }
 
-void rocket_data_update_servo_eth_n2(servo_eth_n2_data_t *data) {
+void rocket_data_update_servo_n2o(servo_n2o_data_t *data) {
     if (xSemaphoreTake(gb.data_mutex, 1000) != pdTRUE) {
         ESP_LOGE(TAG, "Data semaphore errror :C");
         return;
@@ -267,8 +267,10 @@ bool rocket_data_woken_up(void) {
         ESP_LOGE(TAG, "Data semaphore errror :C");
         return false;
     }
-    if (gb.rocket_data.main_valve.waken_up == false ||
-        gb.rocket_data.vent_valve.waken_up == false) {
+    if (gb.rocket_data.servo_eth_n2.waken_up == false ||
+        gb.rocket_data.servo_n2o_data.waken_up == false ||
+        gb.rocket_data.sol_n2o_n2_data.waken_up == false ||
+        gb.rocket_data.sol_eth_data.waken_up == false) {
             result = false;
     } else {
         result = true;
