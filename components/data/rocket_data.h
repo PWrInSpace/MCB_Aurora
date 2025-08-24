@@ -7,8 +7,10 @@
 
 typedef struct {
     mcb_data_t mcb;
-    vent_valve_data_t vent_valve;
-    main_valve_data_t main_valve;
+    servo_eth_n2_data_t servo_eth_n2;
+    servo_n2o_data_t servo_n2o;
+    sol_n2o_n2_data_t sol_n2o_n2;
+    sol_eth_data_t sol_eth;
     recovery_data_t recovery;
     payload_data_t payload;
     tanwa_data_t tanwa;
@@ -26,9 +28,13 @@ bool rocket_data_init(void);
 
 void rocket_data_update_connected_dev(esp_now_connected_devices_t *data);
 
-void rocket_data_update_main_valve(main_valve_data_t *data);
+void rocket_data_update_servo_n2o(servo_n2o_data_t *data);
 
-void rocket_data_update_vent_valve(vent_valve_data_t *data);
+void rocket_data_update_servo_eth_n2(servo_eth_n2_data_t *data);
+
+void rocket_data_update_sol_n2o_n2(sol_n2o_n2_data_t *data);
+
+void rocket_data_update_sol_eth(sol_eth_data_t *data);
 
 void rocket_data_update_recovery(recovery_data_t *data);
 

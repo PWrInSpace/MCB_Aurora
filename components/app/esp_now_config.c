@@ -91,7 +91,7 @@ static void callback_sol_n2o_n2(uint8_t *data, size_t size) {
     ESP_LOGI(TAG, "Solenoid N2O and N2 receive, size %d", size);
     connected.sol_n2o = true;
     if (size == sizeof(sol_n2o_n2_data_t)) {
-        rocket_data_update_sol_n2o((sol_n2o_n2_data_t *) data);
+        rocket_data_update_sol_n2o_n2((sol_n2o_n2_data_t *) data);
     }
 }
 
