@@ -50,9 +50,13 @@ rocket_data_t rocket_data_get(void);
 
 mcb_data_t rocket_data_get_mcb(void);
 
-main_valve_data_t rocket_data_get_main_valve(void);
+servo_eth_n2_data_t rocket_data_get_servo_eth_n2(void);
 
-vent_valve_data_t rocket_data_get_vent_valve(void);
+servo_n2o_data_t rocket_data_get_servo_n2o(void);
+
+sol_n2o_n2_data_t rocket_data_get_sol_n2o_n2(void);
+
+sol_eth_data_t rocket_data_get_sol_eth(void);
 
 recovery_data_t rocket_data_get_recovery(void);
 
