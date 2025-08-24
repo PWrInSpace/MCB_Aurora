@@ -268,9 +268,9 @@ bool rocket_data_woken_up(void) {
         return false;
     }
     if (gb.rocket_data.servo_eth_n2.waken_up == false ||
-        gb.rocket_data.servo_n2o_data.waken_up == false ||
-        gb.rocket_data.sol_n2o_n2_data.waken_up == false ||
-        gb.rocket_data.sol_eth_data.waken_up == false) {
+        gb.rocket_data.servo_n2o.waken_up == false ||
+        gb.rocket_data.sol_n2o_n2.waken_up == false ||
+        gb.rocket_data.sol_eth.waken_up == false) {
             result = false;
     } else {
         result = true;
