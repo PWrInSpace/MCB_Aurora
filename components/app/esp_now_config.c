@@ -14,8 +14,10 @@
 static esp_now_connected_devices_t connected;
 
 static void callback_pitot(uint8_t *data, size_t size);
-static void callback_vent_valve(uint8_t *data, size_t size);
-static void callback_main_valve(uint8_t *data, size_t size);
+static void callback_servo_n2o (uint8_t *data, size_t size);
+static void callback_servo_eth_n2(uint8_t *data, size_t size);
+static void callback_sol_n2o_n2(uint8_t *data, size_t size);
+static void callback_sol_eth(uint8_t *data, size_t size);
 static void callback_tanwa(uint8_t *data, size_t size);
 static void callback_payload(uint8_t *data, size_t size);
 
@@ -29,14 +31,25 @@ const ENA_device_t esp_now_pitot = {
     .on_receive = callback_pitot,
 };
 
-const ENA_device_t esp_now_vent_valve = {
-    .peer = {.peer_addr = VENT_VALVE_MAC, .channel = ESP_NOW_CHANNEL},
-    .on_receive = callback_vent_valve,
+
+const ENA_device_t esp_now_servo_n2o = {
+    .peer = {.peer_addr = SERVO_N2O_MAC, .channel = ESP_NOW_CHANNEL},
+    .on_receive = callback_servo_n2o,
 };
 
-const ENA_device_t esp_now_main_valve = {
-    .peer = {.peer_addr = MAIN_VALVE_MAC, .channel = ESP_NOW_CHANNEL},
-    .on_receive = callback_main_valve,
+const ENA_device_t esp_now_servo_eth_n2 = {
+    .peer = {.peer_addr = SERVO_ETH_N2_MAC, .channel = ESP_NOW_CHANNEL},
+    .on_receive = callback_servo_eth_n2,
+};
+
+const ENA_device_t esp_now_sol_n2o_n2 = {
+    .peer = {.peer_addr = SOL_N2O_N2_MAC .channel = ESP_NOW_CHANNEL},
+    .on_receive = callback_sol_n2o_n2,
+};
+
+const ENA_device_t esp_now_sol_eth = {
+    .peer = {.peer_addr = SOL_ETH_MAC .channel = ESP_NOW_CHANNEL},
+    .on_receive = callback_sol_eth,
 };
 
 const ENA_device_t esp_now_tanwa = {
@@ -57,19 +70,36 @@ static void callback_pitot(uint8_t *data, size_t size) {
     }
 }
 
-static void callback_vent_valve(uint8_t *data, size_t size) {
-    ESP_LOGI(TAG, "Vent receive, size %d", size);
-    connected.vent_valve = true;
-    if (size == sizeof(vent_valve_data_t)) {
-        rocket_data_update_vent_valve((vent_valve_data_t *) data);
+
+static void callback_servo_n2o(uint8_t *data, size_t size) {
+    ESP_LOGI(TAG, "Servo N2O receive, size %d", size);
+    connected.servo_n2o = true;
+    if (size == sizeof(servo_n2o_data_t)) {
+        rocket_data_update_servo_n2o((servo_n2o_data_t *) data);
     }
 }
 
-static void callback_main_valve(uint8_t *data, size_t size) {
-    connected.main_valve = true;
-    ESP_LOGI(TAG, "Main receive, size %d", size);
-    if (size == sizeof(main_valve_data_t)) {
-        rocket_data_update_main_valve((main_valve_data_t *) data);
+static void callback_servo_eth_n2(uint8_t *data, size_t size) {
+    ESP_LOGI(TAG, "Servo Ethanol and N2 receive, size %d", size);
+    connected.servo_eth_n2 = true;
+    if (size == sizeof(servo_eth_n2_data_t)) {
+        rocket_data_update_servo_eth_n2((servo_eth_n2_data_t *) data);
+    }
+}
+
+static void callback_sol_n2o_n2(uint8_t *data, size_t size) {
+    ESP_LOGI(TAG, "Solenoid N2O and N2 receive, size %d", size);
+    connected.sol_n2o = true;
+    if (size == sizeof(sol_n2o_n2_data_t)) {
+        rocket_data_update_sol_n2o((sol_n2o_n2_data_t *) data);
+    }
+}
+
+static void callback_sol_eth(uint8_t *data, size_t size) {
+    ESP_LOGI(TAG, "Solenoid Ethanol receive, size %d", size);
+    connected.sol_eth = true;
+    if (size == sizeof(sol_eth_data_t)) {
+        rocket_data_update_sol_eth((sol_eth_data_t *) data);
     }
 }
 
@@ -129,8 +159,10 @@ bool initialize_esp_now(void) {
     status |= ENA_register_device(&esp_now_broadcast);
     status |= ENA_register_device(&esp_now_pitot);
     status |= ENA_register_device(&esp_now_payload);
-    status |= ENA_register_device(&esp_now_vent_valve);
-    status |= ENA_register_device(&esp_now_main_valve);
+    status |= ENA_register_device(&esp_now_servo_eth_n2);
+    status |= ENA_register_device(&esp_now_servo_n2o);
+    status |= ENA_register_device(&esp_now_sol_n2o_n2);
+    status |= ENA_register_device(&esp_now_sol_eth);
     status |= ENA_register_device(&esp_now_tanwa);
     status |= ENA_register_error_handler(temp_on_error);
     status |= ENA_run(&cfg);

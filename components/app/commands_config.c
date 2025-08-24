@@ -304,7 +304,7 @@ static cmd_command_t recovery_commands[] = {
 };
 
 
-// MAIN VALVE
+// SERVO ETHANOL N2
 static void send_command_esp_now(const ENA_device_t *dev, uint32_t command, int32_t payload) {
     cmd_message_t mess = cmd_create_message(command, payload);
     if (ENA_send(dev, mess.raw, sizeof(mess), 3) != ESP_OK) {
@@ -313,7 +313,7 @@ static void send_command_esp_now(const ENA_device_t *dev, uint32_t command, int3
     }
 }
 
-static void mval_valve_close(uint32_t command, int32_t payload, bool privilage) {
+static void servo_eth_n2_close(uint32_t command, int32_t payload, bool privilage) {
     if (privilage == false) {
         return;
     }
@@ -323,26 +323,26 @@ static void mval_valve_close(uint32_t command, int32_t payload, bool privilage) 
         return;
     }
 
-    send_command_esp_now(&esp_now_main_valve, command, payload);
+    send_command_esp_now(&esp_servo_eth_n2, command, payload);
 }
 
-static void mval_valve_open(uint32_t command, int32_t payload, bool privilage) {
+static void servo_eth_n2(uint32_t command, int32_t payload, bool privilage) {
     if (privilage == false) {
         return;
     }
 
-    send_command_esp_now(&esp_now_main_valve, command, payload);
+    send_command_esp_now(&esp_now_servo_eth_n2, command, payload);
 }
 
-static void mval_valve_open_angle(uint32_t command, int32_t payload, bool privilage) {
+static void servo_eth_n2_open_angle(uint32_t command, int32_t payload, bool privilage) {
     if (privilage == false) {
         return;
     }
 
-    send_command_esp_now(&esp_now_main_valve, command, payload);
+    send_command_esp_now(&esp_now_servo_eth_n2, command, payload);
 }
 
-static void mval_valve_calibrate(uint32_t command, int32_t payload, bool privilage) {
+static void servo_eth_n2_calibrate(uint32_t command, int32_t payload, bool privilage) {
     if (privilage == false) {
         return;
     }
@@ -352,47 +352,124 @@ static void mval_valve_calibrate(uint32_t command, int32_t payload, bool privila
         return;
     }
 
-    send_command_esp_now(&esp_now_main_valve, command, payload);
+    send_command_esp_now(&esp_now_servo_eth_n2, command, payload);
 }
 
-static cmd_command_t main_valve_commands[] = {
-    {MAIN_VALVE_CLOSE,          mval_valve_close        },
-    {MAIN_VALVE_OPEN,           mval_valve_open         },
-    {MAIN_VALVE_OPEN_ANGLE,     mval_valve_open_angle   },
-    {MAIN_VALVE_CALIBRATE,      mval_valve_calibrate    },
+static cmd_command_t servo_eth_n2_commands[] = {
+    {SERVO_ETH_N2_CLOSE,          servo_eth_n2_close        },
+    {SERVO_ETH_N2_OPEN            servo_eth_n2              },
+    {SERVO_ETH_N2_OPEN_ANGLE      servo_eth_n2_open_angle  },
+    {SERVO_ETH_N2_CALIBRATE,      servo_eth_n2_calibrate   },
+};
+
+//SERVO N2O
+
+static void servo_n2o_close(uint32_t command, int32_t payload, bool privilage) {
+    if (privilage == false) {
+        return;
+    }
+
+    state_id state = SM_get_current_state();
+    if (state > RDY_TO_LAUNCH && state < HOLD) {
+        return;
+    }
+
+    send_command_esp_now(&esp_now_servo_n2o, command, payload);
+}
+
+static void servo_n2o(uint32_t command, int32_t payload, bool privilage) {
+    if (privilage == false) {
+        return;
+    }
+
+    send_command_esp_now(&esp_now_servo_n2o, command, payload);
+}
+
+static void servo_n2o_open_angle(uint32_t command, int32_t payload, bool privilage) {
+    if (privilage == false) {
+        return;
+    }
+
+    send_command_esp_now(&esp_now_servo_n2o, command, payload);
+}
+
+static void servo_n2o_calibrate(uint32_t command, int32_t payload, bool privilage) {
+    if (privilage == false) {
+        return;
+    }
+
+    state_id state = SM_get_current_state();
+    if (state > RDY_TO_LAUNCH && state < HOLD) {
+        return;
+    }
+
+    send_command_esp_now(&esp_now_servo_n2o, command, payload);
+}
+
+static cmd_command_t servo_n2o_commands[] = {
+    {SERVO_N2O_CLOSE,          servo_n2o_close        },
+    {SERVO_N2O_OPEN            servo_n2o_open         },
+    {SERVO_N2O_OPEN_ANGLE      servo_n2o_open_angle   },
+    {SERVO_N2O_CALIBRATE,      servo_n2o_calibrate    },
 };
 
 
-// VENT VALVE
+// SOLENOID ETHANOL
 
-static void vval_valve_close(uint32_t command, int32_t payload, bool privilage) {
-    send_command_esp_now(&esp_now_vent_valve, command, payload);
+static void sol_eth_close(uint32_t command, int32_t payload, bool privilage) {
+    send_command_esp_now(&esp_now_sol_eth, command, payload);
 }
 
-static void vval_valve_open(uint32_t command, int32_t payload, bool privilage) {
-    send_command_esp_now(&esp_now_vent_valve, command, payload);
+static void sol_eth_open(uint32_t command, int32_t payload, bool privilage) {
+    send_command_esp_now(&esp_now_sol_eth, command, payload);
 }
 
 
-// static void vval_valve_open_angle(uint32_t command, int32_t payload, bool privilage) {
-//     send_command_esp_now(&esp_now_vent_valve, command, payload);
+// static void sol_eth_open_angle(uint32_t command, int32_t payload, bool privilage) {
+//     send_command_esp_now(&esp_now_sol_eth, command, payload);
 // }
 
-static void vval_autopress_time(uint32_t command, int32_t payload, bool privilage) {
-    send_command_esp_now(&esp_now_vent_valve, command, payload);
+static void sol_eth_autopress_time(uint32_t command, int32_t payload, bool privilage) {
+    send_command_esp_now(&esp_now_sol_eth, command, payload);
 }
 
 
-static void vval_autopress_limit(uint32_t command, int32_t payload, bool privilage) {
-    send_command_esp_now(&esp_now_vent_valve, command, payload);
+static void sol_eth_autopress_limit(uint32_t command, int32_t payload, bool privilage) {
+    send_command_esp_now(&esp_now_sol_eth, command, payload);
 }
 
-static cmd_command_t vent_valve_commands[] = {
-    {VENT_VALVE_CLOSE,              vval_valve_close        },
-    {VENT_VALVE_OPEN,               vval_valve_open         },
-    // {VENT_VALVE_OPEN,               vval_valve_open_angle   },
-    {VENT_VALVE_AUTOPRESS_TIME,     vval_autopress_time     },
-    {VENT_VALVE_AUTOPRESS_LIMIT,    vval_autopress_limit    },
+static cmd_command_t sol_eth_commands[] = {
+    {SOL_ETH_CLOSE,              sol_eth_close        },
+    {SOL_ETH_OPEN,               sol_eth_open         },
+    {SOL_ETH_AUTOPRESS_TIME,     sol_eth_autopress_time     },
+    {SOL_ETH_AUTOPRESS_LIMIT,    sol_eth_autopress_limit    },
+};
+
+// SOLENOID N2O N2
+
+static void sol_n2o_n2_close(uint32_t command, int32_t payload, bool privilage) {
+    send_command_esp_now(&esp_now_sol_n2o_n2, command, payload);
+}
+
+static void sol_n2o_n2_open(uint32_t command, int32_t payload, bool privilage) {
+    send_command_esp_now(&esp_now_sol_n2o_n2, command, payload);
+}
+
+
+static void sol_n2o_n2_autopress_time(uint32_t command, int32_t payload, bool privilage) {
+    send_command_esp_now(&esp_now_sol_n2o_n2, command, payload);
+}
+
+
+static void sol_n2o_n2_autopress_limit(uint32_t command, int32_t payload, bool privilage) {
+    send_command_esp_now(&esp_now_sol_n2o_n2, command, payload);
+}
+
+static cmd_command_t sol_n2o_n2_commands[] = {
+    {SOL_N2O_N2_CLOSE,              sol_n2o_n2_close        },
+    {SOL_N2O_N2_OPEN,               sol_n2o_n2_open         },
+    {SOL_N2O_N2_AUTOPRESS_TIME,     sol_n2o_n2_autopress_time     },
+    {SOL_N2O_N2_AUTOPRESS_LIMIT,    sol_n2o_n2_autopress_limit    },
 };
 
 static void tanwa_process_command(uint32_t command, int32_t payload, bool privilage) {
@@ -429,8 +506,10 @@ static cmd_command_t tanwa_commands[] = {
 static cmd_device_t devices[] = {
     {DEVICE_MCB,           mcb_commands,           SIZE_OF(mcb_commands)},
     {DEVICE_RECOVERY,      recovery_commands,      SIZE_OF(recovery_commands)},
-    {DEVICE_MAIN_VALVE,    main_valve_commands,    SIZE_OF(main_valve_commands)},
-    {DEVICE_VENT_VALVE,    vent_valve_commands,    SIZE_OF(vent_valve_commands)},
+    {DEVICE_SERVO_ETH_N2,  servo_eth_n2_commands,  SIZE_OF(servo_eth_n2_commands)},
+    {DEVICE_SERVO_N2O,     servo_n2o_commands,     SIZE_OF(servo_n2o_commands)},
+    {DEVICE_SOL_N2O_N2,    sol_n2o_n2_commands,    SIZE_OF(sol_n2o_n2_commands)},
+    {DEVICE_SOL_ETH,       sol_eth_commands,       SIZE_OF(sol_eth_commands)},
     {DEVICE_TANWA,         tanwa_commands,         SIZE_OF(tanwa_commands)},
 };
 

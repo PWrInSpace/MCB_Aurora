@@ -32,9 +32,11 @@ typedef enum {
     DEVICE_MCB = 0x01,
     DEVICE_RECOVERY = 0x02,
     DEVICE_TANWA = 0x03,
-    DEVICE_MAIN_VALVE = 0x04,
-    DEVICE_VENT_VALVE = 0x05,
+    DEVICE_SERVO_ETH_N2 = 0x04,
+    DEVICE_SERVO_N2O = 0x05,
     PITOT = 0x06,
+    DEVICE_SOL_N2O_N2 = 0x07,
+    DEVICE_SOL_ETH = 0x08,
 } device_t;
 
 typedef enum {
@@ -89,18 +91,34 @@ typedef enum {
 } tanwa_commands_t;
 
 typedef enum {
-    MAIN_VALVE_CLOSE = 0x00,
-    MAIN_VALVE_OPEN = 0x01,
-    MAIN_VALVE_OPEN_ANGLE = 0x03,
-    MAIN_VALVE_CALIBRATE = 0x04
-} main_valve_commands_t;
+    SERVO_ETH_N2_CLOSE = 0x00,
+    SERVO_ETH_N2_OPEN = 0x01,
+    SERVO_ETH_N2_OPEN_ANGLE = 0x03,
+    SERVO_ETH_N2_CALIBRATE = 0x04
+} servo_eth_n2_commands_t;
 
 typedef enum {
-    VENT_VALVE_CLOSE = 0x00,
-    VENT_VALVE_OPEN = 0x01,
-    VENT_VALVE_OPEN_ANGLE = 0x03,
-    VENT_VALVE_AUTOPRESS_TIME = 0x13,
-    VENT_VALVE_AUTOPRESS_LIMIT = 0x14,
-} vent_valve_commands_t;
+    SERVO_N2O_CLOSE = 0x00,
+    SERVO_N2O_OPEN = 0x01,
+    SERVO_N2O_OPEN_ANGLE = 0x03,
+    SERVO_N2O_CALIBRATE = 0x04
+} servo_n20_commands_t;
+
+
+typedef enum {
+    SOL_N2O_N2_CLOSE = 0x00,
+    SOL_N2O_N2_OPEN = 0x01,
+    SOL_N2O_N2_OPEN_ANGLE = 0x03,
+    SOL_N2O_N2_AUTOPRESS_TIME = 0x13,
+    SOL_N2O_N2_AUTOPRESS_LIMIT = 0x14,
+} sol_n2o_n2_commands_t;
+
+typedef enum {
+    SOL_ETH_CLOSE = 0x00,
+    SOL_ETH_OPEN = 0x01,
+    SOL_ETH_OPEN_ANGLE = 0x03,
+    SOL_ETH_AUTOPRESS_TIME = 0x13,
+    SOL_ETH_AUTOPRESS_LIMIT = 0x14,
+} sol_eth_commands_t;
 
 #endif
