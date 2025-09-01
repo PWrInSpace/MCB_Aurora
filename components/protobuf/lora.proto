@@ -27,14 +27,14 @@ message LoRaFrame {
     required int32 pitot_velocity = 19;
     required int32 pitot_temperature = 20;
 
-    // main valve
-    required float mval_battery = 21;
-    required fixed32 mval_byte_data = 22;
+    // servo eth
+    required float servo_eth_n2_battery = 21;
+    required fixed32 servo_eth_n2_byte_data = 22;
 
-    // vent valve
-    required float vent_battery = 23;
-    required float tank_pressure = 24;
-    required fixed32 vent_byte_data = 25;
+    // sol n2o n2
+    required float sol_n2o_n2_battery = 23;
+    required float sol_n2o_n2_pressure = 24;
+    required fixed32 sol_n2o_n2_byte_data = 25;
 
     // tanwa frame
     required float tanwa_battery = 26;
@@ -51,6 +51,15 @@ message LoRaFrame {
 
     required fixed32 esp_now_byte_data = 35;
     required fixed32 errors = 36;
+
+     // servo eth
+    required float servo_n2o_battery = 37;
+    required fixed32 servo_n2o_byte_data = 38;
+
+    // sol n2o n2
+    required float sol_eth_battery = 39;
+    required float sol_eth_pressure = 40;
+    required fixed32 sol_eth_byte_data = 41;
 }
 
 message LoRaCommand {

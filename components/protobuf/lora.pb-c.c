@@ -576,7 +576,7 @@ static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[36] =
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
-    {
+  {
     "servo_n2o_battery",
     37,
     PROTOBUF_C_LABEL_REQUIRED,
