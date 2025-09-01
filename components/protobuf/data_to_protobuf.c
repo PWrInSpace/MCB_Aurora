@@ -55,18 +55,37 @@ void create_porotobuf_data_frame(LoRaFrame *frame) {
     frame->pitot_velocity = data.pitot.speed;
     frame->pitot_temperature = data.pitot.temperature;
 
-    // main valve
-    frame->mval_battery = data.main_valve.battery_voltage;
 
-    frame->mval_byte_data |= data.main_valve.valve_state;
-    frame->mval_byte_data |= (data.vent_valve.thermistor1 << 8);
-    frame->mval_byte_data |= (data.vent_valve.thermistor2 << 16);
+esp_now_servo_n2o;  // :CCC
+extern const ENA_device_t esp_now_servo_eth_n2;  // :CCC
+extern const ENA_device_t esp_now_sol_n2o_n2;  // :CCC
+extern const ENA_device_t esp_now_sol_eth; 
 
-    // vent valve
-    frame->vent_battery = data.vent_valve.battery_voltage;
-    frame->tank_pressure = data.vent_valve.tank_pressure;
+    // servo valves
+    frame->servo_n2o_battery = data.servo_n2o.battery_voltage;
 
-    frame->vent_byte_data |= data.vent_valve.valve_state;
+    frame->servo_n2o_byte_data |= data.servo_n2o.valve_state;
+    frame->servo_n2o_byte_data |= (data.servo_n2o.thermistor1 << 8);
+    frame->servo_n2o_byte_data |= (data.servo_n2o.thermistor2 << 16);
+
+
+    frame->servo_n2o_battery = data.servo_eth_n2.battery_voltage;
+
+    frame->servo_eth_n2_byte_data |= data.servo_eth_n2.valve_state;
+    frame->servo_eth_n2_byte_data |= (data.servo_eth_n2.thermistor1 << 8);
+    frame->servo_eth_n2_byte_data |= (data.servo_eth_n2.thermistor2 << 16);
+
+    // solenoid valves
+    frame->sol_eth_battery = data.sol_eth.battery_voltage;
+    frame->sol_eth_pressure = data.sol_eth.tank_pressure;
+
+    frame->sol_eth_byte_data |= data.sol_eth.valve_state;
+
+
+    frame->sol_n2o_n2_battery = data.sol_n2o_n2.battery_voltage;
+    frame->sol_n2o_n2_pressure = data.sol_n2o_n2.tank_pressure;
+
+    frame->sol_n2o_n2_byte_data |= data.sol_n2o_n2.valve_state;
 
     // tanwa
     frame->tanwa_battery = data.tanwa.vbat;
@@ -94,15 +113,19 @@ void create_porotobuf_data_frame(LoRaFrame *frame) {
 
     // esp now
     frame->esp_now_byte_data |= (data.pitot.waken_up << 0);
-    frame->esp_now_byte_data |= (data.main_valve.waken_up << 1);
-    frame->esp_now_byte_data |= (data.vent_valve.waken_up << 2);
-    frame->esp_now_byte_data |= (data.payload.waken_up << 3);
+    frame->esp_now_byte_data |= (data.sol_eth.waken_up << 1);
+    frame->esp_now_byte_data |= (data.sol_n2o_n2.waken_up << 2);
+    frame->esp_now_byte_data |= (data.servo_eth_n2.waken_up << 3);
+    frame->esp_now_byte_data |= (data.servo_n2o.waken_up << 4);
+    frame->esp_now_byte_data |= (data.payload.waken_up << 5);
 
     frame->esp_now_byte_data |= (data.connected_dev.pitot << 16);
-    frame->esp_now_byte_data |= (data.connected_dev.main_valve << 17);
-    frame->esp_now_byte_data |= (data.connected_dev.vent_valve << 18);
+    frame->esp_now_byte_data |= (data.connected_dev.sol_eth << 17);
+    frame->esp_now_byte_data |= (data.connected_dev.sol_n2o_n2 << 18);
     frame->esp_now_byte_data |= (data.connected_dev.tanwa << 19);
     frame->esp_now_byte_data |= (data.connected_dev.payload << 20);
+    frame->esp_now_byte_data |= (data.connected_dev.servo_eth_n2 << 21);
+    frame->esp_now_byte_data |= (data.connected_dev.servo_n2o << 22);
 
 
     // errors
