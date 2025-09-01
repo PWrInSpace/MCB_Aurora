@@ -60,15 +60,15 @@ void create_porotobuf_data_frame(LoRaFrame *frame) {
     frame->servo_n2o_battery = data.servo_n2o.battery_voltage;
 
     frame->servo_n2o_byte_data |= data.servo_n2o.valve_state;
-    frame->servo_n2o_byte_data |= (data.servo_n2o.thermistor1 << 8);
-    frame->servo_n2o_byte_data |= (data.servo_n2o.thermistor2 << 16);
+   // frame->servo_n2o_byte_data |= (data.servo_n2o.thermistor1 << 8);
+   // frame->servo_n2o_byte_data |= (data.servo_n2o.thermistor2 << 16);
 
 
-    frame->servo_n2o_battery = data.servo_eth_n2.battery_voltage;
+    frame->servo_eth_n2_battery = data.servo_eth_n2.battery_voltage;
 
     frame->servo_eth_n2_byte_data |= data.servo_eth_n2.valve_state;
-    frame->servo_eth_n2_byte_data |= (data.servo_eth_n2.thermistor1 << 8);
-    frame->servo_eth_n2_byte_data |= (data.servo_eth_n2.thermistor2 << 16);
+   // frame->servo_eth_n2_byte_data |= (data.servo_eth_n2.thermistor1 << 8);
+   // frame->servo_eth_n2_byte_data |= (data.servo_eth_n2.thermistor2 << 16);
 
     // solenoid valves
     frame->sol_eth_battery = data.sol_eth.battery_voltage;

@@ -60,14 +60,21 @@ struct  LoRaFrame
   /*
    * main valve
    */
-  float mval_battery;
-  uint32_t mval_byte_data;
+  float servo_eth_n2_battery;
+  uint32_t servo_eth_n2_byte_data;
+
+  float servo_n2o_battery;
+  uint32_t servo_n2o_byte_data;
   /*
    * vent valve
    */
-  float vent_battery;
-  float tank_pressure;
-  uint32_t vent_byte_data;
+  float sol_n2o_n2_battery;
+  float sol_n2o_n2_pressure;
+  uint32_t sol_n2o_n2_byte_data;
+
+  float sol_eth_battery;
+  float sol_eth_pressure;
+  uint32_t sol_eth_byte_data;
   /*
    * tanwa frame
    */
@@ -88,7 +95,7 @@ struct  LoRaFrame
 };
 #define LO_RA_FRAME__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&lo_ra_frame__descriptor) \
-    , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+    , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 
 
 struct  LoRaCommand
