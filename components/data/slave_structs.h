@@ -7,11 +7,13 @@
 #include "protobuf-c.h"
 
 typedef struct {
-    bool main_valve : 1;
-    bool vent_valve : 1;
+    bool servo_eth_n2 : 1;
+    bool sol_n2o_n2 : 1;
     bool pitot : 1;
     bool payload : 1;
     bool tanwa : 1;
+    bool servo_n2o : 1;
+    bool sol_eth : 1;
 } esp_now_connected_devices_t;
 
 typedef struct {
