@@ -385,60 +385,60 @@ static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[36] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "mval_battery",
+    "servo_eth_n2_battery",
     21,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_FLOAT,
     0,   /* quantifier_offset */
-    offsetof(LoRaFrame, mval_battery),
+    offsetof(LoRaFrame, servo_eth_n2_battery),
     NULL,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "mval_byte_data",
+    "servo_eth_n2_byte_data",
     22,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_FIXED32,
     0,   /* quantifier_offset */
-    offsetof(LoRaFrame, mval_byte_data),
+    offsetof(LoRaFrame, servo_eth_n2_byte_data),
     NULL,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "vent_battery",
+    "sol_n2o_n2_battery",
     23,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_FLOAT,
     0,   /* quantifier_offset */
-    offsetof(LoRaFrame, vent_battery),
+    offsetof(LoRaFrame, sol_n2o_n2_battery),
     NULL,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "tank_pressure",
+    "sol_n2o_n2_pressure",
     24,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_FLOAT,
     0,   /* quantifier_offset */
-    offsetof(LoRaFrame, tank_pressure),
+    offsetof(LoRaFrame, sol_n2o_n2_pressure),
     NULL,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "vent_byte_data",
+    "sol_n2o_n2_byte_data",
     25,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_FIXED32,
     0,   /* quantifier_offset */
-    offsetof(LoRaFrame, vent_byte_data),
+    offsetof(LoRaFrame, sol_n2o_n2_byte_data),
     NULL,
     NULL,
     0,             /* flags */
@@ -576,6 +576,67 @@ static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[36] =
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+    {
+    "servo_n2o_battery",
+    37,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_FLOAT,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrame, servo_n2o_battery),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "servo_n2o_byte_data",
+    38,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_FIXED32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrame, servo_n2o_byte_data),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+
+  {
+    "sol_eth_battery",
+    39,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_FLOAT,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrame, sol_eth_battery),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "sol_eth_pressure",
+    40,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_FLOAT,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrame, sol_eth_pressure),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "sol_eth_byte_data",
+    41,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_FIXED32,
+    0,   /* quantifier_offset */
+    offsetof(LoRaFrame, sol_eth_byte_data),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned lo_ra_frame__field_indices_by_name[] = {
   1,   /* field[1] = dc_time */
@@ -592,8 +653,8 @@ static const unsigned lo_ra_frame__field_indices_by_name[] = {
   3,   /* field[3] = mcb_battery */
   9,   /* field[9] = mcb_temperature */
   8,   /* field[8] = mcb_velocity */
-  20,   /* field[20] = mval_battery */
-  21,   /* field[21] = mval_byte_data */
+  20,   /* field[20] = servo_eth_n2_battery */
+  21,   /* field[21] = servo_eth_n2_byte_data */
   0,   /* field[0] = obc_state */
   33,   /* field[33] = payload_battery */
   17,   /* field[17] = pitot_altitude */
@@ -612,8 +673,12 @@ static const unsigned lo_ra_frame__field_indices_by_name[] = {
   27,   /* field[27] = tanwa_state */
   30,   /* field[30] = temperature1 */
   31,   /* field[31] = temperature2 */
-  22,   /* field[22] = vent_battery */
-  24,   /* field[24] = vent_byte_data */
+  22,   /* field[22] = sol_n2o_n2_battery */
+  24,   /* field[24] = sol_n2o_n2_byte_data */
+  37,   /* field[37] = servo_n2o_battery */
+  38,   /* field[38] = servo_n2o_byte_data */
+  39,  /* field[39] = sol_n2o_n2_battery */
+  41,   /* field[41] = sol_n2o_n2_byte_data */
 };
 static const ProtobufCIntRange lo_ra_frame__number_ranges[1 + 1] =
 {
@@ -628,7 +693,7 @@ const ProtobufCMessageDescriptor lo_ra_frame__descriptor =
   "LoRaFrame",
   "",
   sizeof(LoRaFrame),
-  36,
+  41,
   lo_ra_frame__field_descriptors,
   lo_ra_frame__field_indices_by_name,
   1,  lo_ra_frame__number_ranges,

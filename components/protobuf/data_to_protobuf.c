@@ -56,11 +56,6 @@ void create_porotobuf_data_frame(LoRaFrame *frame) {
     frame->pitot_temperature = data.pitot.temperature;
 
 
-esp_now_servo_n2o;  // :CCC
-extern const ENA_device_t esp_now_servo_eth_n2;  // :CCC
-extern const ENA_device_t esp_now_sol_n2o_n2;  // :CCC
-extern const ENA_device_t esp_now_sol_eth; 
-
     // servo valves
     frame->servo_n2o_battery = data.servo_n2o.battery_voltage;
 
