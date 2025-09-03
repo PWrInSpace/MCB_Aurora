@@ -43,12 +43,12 @@ const ENA_device_t esp_now_servo_eth_n2 = {
 };
 
 const ENA_device_t esp_now_sol_n2o_n2 = {
-    .peer = {.peer_addr = SOL_N2O_N2_MAC .channel = ESP_NOW_CHANNEL},
+    .peer = {.peer_addr = SOL_N2O_N2_MAC, .channel = ESP_NOW_CHANNEL},
     .on_receive = callback_sol_n2o_n2,
 };
 
 const ENA_device_t esp_now_sol_eth = {
-    .peer = {.peer_addr = SOL_ETH_MAC .channel = ESP_NOW_CHANNEL},
+    .peer = {.peer_addr = SOL_ETH_MAC, .channel = ESP_NOW_CHANNEL},
     .on_receive = callback_sol_eth,
 };
 
@@ -89,7 +89,7 @@ static void callback_servo_eth_n2(uint8_t *data, size_t size) {
 
 static void callback_sol_n2o_n2(uint8_t *data, size_t size) {
     ESP_LOGI(TAG, "Solenoid N2O and N2 receive, size %d", size);
-    connected.sol_n2o = true;
+    connected.sol_n2o_n2 = true;
     if (size == sizeof(sol_n2o_n2_data_t)) {
         rocket_data_update_sol_n2o_n2((sol_n2o_n2_data_t *) data);
     }
