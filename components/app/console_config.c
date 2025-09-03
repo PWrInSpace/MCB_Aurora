@@ -153,7 +153,7 @@ static int esp_now_send_tanwa(int argc, char **argv) {
     return 0;
 }
 
-static int esp_now_send_main_valve(int argc, char **argv) {
+static int esp_now_send_servo_n2o(int argc, char **argv) {
     if (argc != 3) {
         return -1;
     }
@@ -162,7 +162,20 @@ static int esp_now_send_main_valve(int argc, char **argv) {
     int payload = atoi(argv[2]);
 
     cmd_message_t msg = cmd_create_message(command, payload);
-    ENA_send(&esp_now_main_valve, msg.raw, sizeof(msg.raw), 3);
+    ENA_send(&esp_now_servo_n2o, msg.raw, sizeof(msg.raw), 3);
+    return 0;
+}
+
+static int esp_now_send_servo_eth_n2(int argc, char **argv) {
+    if (argc != 3) {
+        return -1;
+    }
+
+    int command = atoi(argv[1]);
+    int payload = atoi(argv[2]);
+
+    cmd_message_t msg = cmd_create_message(command, payload);
+    ENA_send(&esp_now_servo_eth_n2, msg.raw, sizeof(msg.raw), 3);
     return 0;
 }
 
@@ -250,7 +263,8 @@ static esp_console_cmd_t cmd[] = {
     {"log-disable", "disable logs", NULL, disable_log, NULL},
     {"reset-dc", "reset disconnect timer", NULL, reset_dc_timer, NULL},
     {"en_tanwa", "send command to tanwa", NULL, esp_now_send_tanwa, NULL},
-    {"en_mv", "send command to main valve", NULL, esp_now_send_main_valve, NULL},
+    {"en_mv", "send command to servo eth n2", NULL, esp_now_send_servo_eth_n2, NULL},
+    {"en_mv", "send command to servo n2o", NULL, esp_now_send_servo_n2o, NULL},
     {"settings_all", "get all settings", NULL, cli_settings_read_all, NULL},
     {"settings_init", "init settings default", NULL, cli_settings_init_default, NULL},
     {"settings_ignit", "change ignition time", NULL, cli_change_ignition_time, NULL},
