@@ -73,7 +73,7 @@ void rocket_data_update_sol_n2o_n2(sol_n2o_n2_data_t *data) {
     xSemaphoreGive(gb.data_mutex);
 }
 
-void rocket_data_update_sol_eth_n2(sol_eth_data_t *data) {
+void rocket_data_update_sol_eth(sol_eth_data_t *data) {
     if (xSemaphoreTake(gb.data_mutex, 1000) != pdTRUE) {
         ESP_LOGE(TAG, "Data semaphore errror :C");
         return;
