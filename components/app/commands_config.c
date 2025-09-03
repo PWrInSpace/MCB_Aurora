@@ -408,7 +408,7 @@ static void servo_n2o_calibrate(uint32_t command, int32_t payload, bool privilag
 
 static cmd_command_t servo_n2o_commands[] = {
     {SERVO_N2O_CLOSE,          servo_n2o_close        },
-    {SERVO_N2O_OPEN,            servo_n2o_open         },
+    {SERVO_N2O_OPEN,            servo_n2o         },
     {SERVO_N2O_OPEN_ANGLE,      servo_n2o_open_angle   },
     {SERVO_N2O_CALIBRATE,      servo_n2o_calibrate    },
 };
