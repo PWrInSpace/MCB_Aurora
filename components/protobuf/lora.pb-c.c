@@ -142,7 +142,7 @@ void   lo_ra_settings__free_unpacked
   assert(message->base.descriptor == &lo_ra_settings__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[36] =
+static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[41] =
 {
   {
     "obc_state",
@@ -600,7 +600,6 @@ static const ProtobufCFieldDescriptor lo_ra_frame__field_descriptors[36] =
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
-
   {
     "sol_eth_battery",
     39,
@@ -653,8 +652,6 @@ static const unsigned lo_ra_frame__field_indices_by_name[] = {
   3,   /* field[3] = mcb_battery */
   9,   /* field[9] = mcb_temperature */
   8,   /* field[8] = mcb_velocity */
-  20,   /* field[20] = servo_eth_n2_battery */
-  21,   /* field[21] = servo_eth_n2_byte_data */
   0,   /* field[0] = obc_state */
   33,   /* field[33] = payload_battery */
   17,   /* field[17] = pitot_altitude */
@@ -666,24 +663,27 @@ static const unsigned lo_ra_frame__field_indices_by_name[] = {
   13,   /* field[13] = recov_pressure_1 */
   14,   /* field[14] = recov_pressure_2 */
   28,   /* field[28] = rocket_weight */
-  23,   /* field[23] = tank_pressure */
+  20,   /* field[20] = servo_eth_n2_battery */
+  21,   /* field[21] = servo_eth_n2_byte_data */
+  36,   /* field[36] = servo_n2o_battery */
+  37,   /* field[37] = servo_n2o_byte_data */
+  38,   /* field[38] = sol_eth_battery */
+  40,   /* field[40] = sol_eth_byte_data */
+  39,   /* field[39] = sol_eth_pressure */
+  22,   /* field[22] = sol_n2o_n2_battery */
+  24,   /* field[24] = sol_n2o_n2_byte_data */
+  23,   /* field[23] = sol_n2o_n2_pressure */
   29,   /* field[29] = tank_weight */
   25,   /* field[25] = tanwa_battery */
   26,   /* field[26] = tanwa_byte_data */
   27,   /* field[27] = tanwa_state */
   30,   /* field[30] = temperature1 */
   31,   /* field[31] = temperature2 */
-  22,   /* field[22] = sol_n2o_n2_battery */
-  24,   /* field[24] = sol_n2o_n2_byte_data */
-  37,   /* field[37] = servo_n2o_battery */
-  38,   /* field[38] = servo_n2o_byte_data */
-  39,  /* field[39] = sol_n2o_n2_battery */
-  41,   /* field[41] = sol_n2o_n2_byte_data */
 };
 static const ProtobufCIntRange lo_ra_frame__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 36 }
+  { 0, 41 }
 };
 const ProtobufCMessageDescriptor lo_ra_frame__descriptor =
 {
