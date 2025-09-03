@@ -323,7 +323,7 @@ static void servo_eth_n2_close(uint32_t command, int32_t payload, bool privilage
         return;
     }
 
-    send_command_esp_now(&esp_servo_eth_n2, command, payload);
+    send_command_esp_now(&esp_now_servo_eth_n2, command, payload);
 }
 
 static void servo_eth_n2(uint32_t command, int32_t payload, bool privilage) {
@@ -357,8 +357,8 @@ static void servo_eth_n2_calibrate(uint32_t command, int32_t payload, bool privi
 
 static cmd_command_t servo_eth_n2_commands[] = {
     {SERVO_ETH_N2_CLOSE,          servo_eth_n2_close        },
-    {SERVO_ETH_N2_OPEN            servo_eth_n2              },
-    {SERVO_ETH_N2_OPEN_ANGLE      servo_eth_n2_open_angle  },
+    {SERVO_ETH_N2_OPEN,            servo_eth_n2              },
+    {SERVO_ETH_N2_OPEN_ANGLE,      servo_eth_n2_open_angle  },
     {SERVO_ETH_N2_CALIBRATE,      servo_eth_n2_calibrate   },
 };
 
@@ -408,8 +408,8 @@ static void servo_n2o_calibrate(uint32_t command, int32_t payload, bool privilag
 
 static cmd_command_t servo_n2o_commands[] = {
     {SERVO_N2O_CLOSE,          servo_n2o_close        },
-    {SERVO_N2O_OPEN            servo_n2o_open         },
-    {SERVO_N2O_OPEN_ANGLE      servo_n2o_open_angle   },
+    {SERVO_N2O_OPEN,            servo_n2o_open         },
+    {SERVO_N2O_OPEN_ANGLE,      servo_n2o_open_angle   },
     {SERVO_N2O_CALIBRATE,      servo_n2o_calibrate    },
 };
 
