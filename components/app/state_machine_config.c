@@ -44,11 +44,11 @@ static void on_recovery_arm(void *arg) {
 
 static void on_fueling(void *arg) {
     gpioexp_led_set_color(YELLOW);
-    cmd_message_t cmd = cmd_create_message(MAIN_VALVE_CLOSE, 0x00);
-    ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
+    cmd_message_t cmd = cmd_create_message(SERVO_ETH_N2_CLOSE, 0x00);
+    ENA_send(&esp_now_servo_eth_n2, cmd.raw, sizeof(cmd.raw), 3);
 
-    cmd = cmd_create_message(VENT_VALVE_CLOSE, 0x00);
-    ENA_send(&esp_now_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+    cmd = cmd_create_message(SOL_ETH_CLOSE, 0x00);
+    ENA_send(&esp_now_sol_eth, cmd.raw, sizeof(cmd.raw), 3);
 
     ESP_LOGI(TAG, "ON FUELING");
 }
@@ -113,8 +113,8 @@ static void on_flight(void *arg) {
         ESP_LOGE(TAG, "Unable do add process fnc");
     }
 
-    cmd_message_t cmd = cmd_create_message(MAIN_VALVE_OPEN, 0x00);
-    ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
+    cmd_message_t cmd = cmd_create_message(SERVO_ETH_N2_OPEN, 0x00);
+    ENA_send(&esp_now_servo_eth_n2, cmd.raw, sizeof(cmd.raw), 3);
 }
 
 static void recovery_second_stage_process(recovery_data_t *data) {
@@ -139,8 +139,8 @@ static void on_first_stage_recovery(void *arg) {
         ESP_LOGE(TAG, "Unable to send first stage recov");
     }
 
-    cmd_message_t cmd = cmd_create_message(MAIN_VALVE_CLOSE, 0x00);
-    ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
+    cmd_message_t cmd = cmd_create_message(SERVO_ETH_N2_CLOSE, 0x00);
+    ENA_send(&esp_now_servo_eth_n2, cmd.raw, sizeof(cmd.raw), 3);
 }
 
 static void on_ground_sensors_process(void *data_buffer) {
@@ -174,8 +174,8 @@ static void on_second_stage_recovery(void *arg) {
         ESP_LOGE(TAG, "Unable to send first stage recov");
     }
 
-    cmd_message_t cmd = cmd_create_message(VENT_VALVE_OPEN, 0x00);
-    ENA_send(&esp_now_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+    cmd_message_t cmd = cmd_create_message(SOL_ETH_OPEN, 0x00);
+    ENA_send(&esp_now_sol_eth, cmd.raw, sizeof(cmd.raw), 3);
 }
 
 static void on_ground(void *arg) {
@@ -207,11 +207,11 @@ static void disable_timers_and_close_valves(void) {
         ESP_LOGE(TAG, "Unable to stop flash data timer");
     }
 
-    cmd_message_t cmd = cmd_create_message(VENT_VALVE_CLOSE, 0x00);
-    ENA_send(&esp_now_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+    cmd_message_t cmd = cmd_create_message(SOL_ETH_CLOSE, 0x00);
+    ENA_send(&esp_now_sol_eth, cmd.raw, sizeof(cmd.raw), 3);
 
-    cmd = cmd_create_message(MAIN_VALVE_CLOSE, 0x00);
-    ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
+    cmd = cmd_create_message(SERVO_ETH_N2_CLOSE, 0x00);
+    ENA_send(&esp_now_servo_eth_n2, cmd.raw, sizeof(cmd.raw), 3);
 
     // send valves close commands to tanwa
 }
