@@ -6,8 +6,10 @@
 #include "freertos/semphr.h"
 
 static struct {
-    main_valve_data_t main_valve;
-    vent_valve_data_t vent_valve;
+    main_valves_data_t main_valves;
+    vent_valves_data_t vent_valves;
+    eth_vent_valve_data_t eth_vent_valve;
+    ox_main_valve_data_t ox_main_valve;
     recovery_data_t recovery;
     payload_data_t payload;
     SemaphoreHandle_t data_mutex;
@@ -26,16 +28,28 @@ bool rocket_data_init(void) {
 
 
 
-void rocket_data_update_main_valve(main_valve_data_t *data) {
+void rocket_data_update_main_valves(main_valves_data_t *data) {
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
-    memcpy(&gb.main_valve, data, sizeof(gb.main_valve));
+    memcpy(&gb.main_valves, data, sizeof(gb.main_valves));
     xSemaphoreGive(gb.data_mutex);
 }
 
 
-void rocket_data_update_vent_valve(vent_valve_data_t *data) {
+void rocket_data_update_vent_valves(vent_valves_data_t *data) {
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
-    memcpy(&gb.vent_valve, data, sizeof(gb.vent_valve));
+    memcpy(&gb.vent_valves, data, sizeof(gb.vent_valves));
+    xSemaphoreGive(gb.data_mutex);
+}
+
+void rocket_data_update_ox_main_valve(ox_main_valve_data_t *data) {
+    xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
+    memcpy(&gb.ox_main_valve, data, sizeof(gb.ox_main_valve));
+    xSemaphoreGive(gb.data_mutex);
+}
+
+void rocket_data_update_eth_vent_valve(eth_vent_valve_data_t *data) {
+    xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
+    memcpy(&gb.eth_vent_valve, data, sizeof(gb.eth_vent_valve));
     xSemaphoreGive(gb.data_mutex);
 }
 
@@ -47,18 +61,18 @@ void rocket_data_update_recovery(recovery_data_t *data) {
 }
 
 
-main_valve_data_t rocket_data_get_main_valve(void) {
-    main_valve_data_t tmp;
+main_valves_data_t rocket_data_get_main_valves(void) {
+    main_valves_data_t tmp;
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
-    tmp = gb.main_valve;
+    tmp = gb.main_valves;
     xSemaphoreGive(gb.data_mutex);
     return tmp;
 }
 
-vent_valve_data_t rocket_data_get_vent_valve(void) {
-    vent_valve_data_t tmp;
+vent_valves_data_t rocket_data_get_vent_valves(void) {
+    vent_valves_data_t tmp;
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
-    tmp = gb.vent_valve;
+    tmp = gb.vent_valves;
     xSemaphoreGive(gb.data_mutex);
     return tmp;
 }

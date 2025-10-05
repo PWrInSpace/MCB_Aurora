@@ -35,8 +35,8 @@ bool lora_hw_set_gpio() {
 }
 
 bool lora_hw_attach_d0_interrupt(gpio_isr_t interrupt_cb) {
-    RETURN_FALSE_ON_ERROR(gpio_pulldown_en(CONFIG_LORA_D0));
-    RETURN_FALSE_ON_ERROR(gpio_pullup_dis(CONFIG_LORA_D0));
+    // GPIO 35 is input-only and doesn't support internal pull-down
+    // External pull-down should be used on the PCB
     RETURN_FALSE_ON_ERROR(gpio_set_intr_type(CONFIG_LORA_D0, GPIO_INTR_POSEDGE));
     RETURN_FALSE_ON_ERROR(gpio_install_isr_service(0));
     RETURN_FALSE_ON_ERROR(gpio_isr_handler_add(CONFIG_LORA_D0, interrupt_cb, NULL));

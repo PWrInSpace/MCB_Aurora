@@ -1,6 +1,7 @@
 // Copyright 2022 PWrInSpace
 #include "processing_task_config.h"
 
+#include <math.h>
 #include "bmi08_wrapper.h"
 #include "bmp5_wrapper.h"
 #include "errors_config.h"
@@ -8,6 +9,8 @@
 #include "mag_wrapper.h"
 #include "magdwick.h"
 #include "rocket_data.h"
+#include "state_machine.h"
+#include "state_machine_config.h"
 
 #define TAG "SENSORS_CFG"
 
@@ -62,6 +65,16 @@ static void sensors_read_data(void *data_buffer) {
     data->velocity = (data->altitude - prev_altitude) / CONFIG_SENSORS_TASK_PERIOD_MS;
 
     mgos_imu_madgwick_get_angles(&madgwick, &data->roll, &data->pitch, &data->yaw);
+    
+    // Szybka kalkulacja przyspieszenia pionowego
+    // Madgwick zwraca kąty w STOPNIACH, więc konwertujemy na radiany
+    float roll_rad = data->roll * (M_PI / 180.0f);
+    float pitch_rad = data->pitch * (M_PI / 180.0f);
+    
+    // Transformacja do układu ziemskiego używając kątów z Madgwicka
+    data->acc_vertical = acc.z * cosf(roll_rad) * cosf(pitch_rad) + 
+                        acc.x * sinf(pitch_rad) + 
+                        acc.y * sinf(roll_rad) * cosf(pitch_rad);
 }
 
 

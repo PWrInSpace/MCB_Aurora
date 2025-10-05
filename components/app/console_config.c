@@ -153,7 +153,7 @@ static int esp_now_send_tanwa(int argc, char **argv) {
     return 0;
 }
 
-static int esp_now_send_main_valve(int argc, char **argv) {
+static int esp_now_send_main_valves(int argc, char **argv) {
     if (argc != 3) {
         return -1;
     }
@@ -162,7 +162,46 @@ static int esp_now_send_main_valve(int argc, char **argv) {
     int payload = atoi(argv[2]);
 
     cmd_message_t msg = cmd_create_message(command, payload);
-    ENA_send(&esp_now_main_valve, msg.raw, sizeof(msg.raw), 3);
+    ENA_send(&esp_now_main_valves, msg.raw, sizeof(msg.raw), 3);
+    return 0;
+}
+
+static int esp_now_send_vent_valves(int argc, char **argv) {
+    if (argc != 3) {
+        return -1;
+    }
+
+    int command = atoi(argv[1]);
+    int payload = atoi(argv[2]);
+
+    cmd_message_t msg = cmd_create_message(command, payload);
+    ENA_send(&esp_now_vent_valves, msg.raw, sizeof(msg.raw), 3);
+    return 0;
+}
+
+static int esp_now_send_eth_vent_valve(int argc, char **argv) {
+    if (argc != 3) {
+        return -1;
+    }
+
+    int command = atoi(argv[1]);
+    int payload = atoi(argv[2]);
+
+    cmd_message_t msg = cmd_create_message(command, payload);
+    ENA_send(&esp_now_eth_vent_valve, msg.raw, sizeof(msg.raw), 3);
+    return 0;
+}
+
+static int esp_now_send_ox_main_valve(int argc, char **argv) {
+    if (argc != 3) {
+        return -1;
+    }
+
+    int command = atoi(argv[1]);
+    int payload = atoi(argv[2]);
+
+    cmd_message_t msg = cmd_create_message(command, payload);
+    ENA_send(&esp_now_ox_main_valve, msg.raw, sizeof(msg.raw), 3);
     return 0;
 }
 
@@ -238,27 +277,30 @@ static int cli_change_lora_frequency(int argc, char **argv) {
 }
 
 static esp_console_cmd_t cmd[] = {
-    {"flash-read", "Read data from flash memory", NULL, read_flash, NULL},
-    {"reset-dev", "Restart device", NULL, reset_device, NULL},
-    {"flash-start", "start flash task loop", NULL, flash_start, NULL},
-    {"flash-terminate", "terminate flash loop", NULL, flash_terminate, NULL},
-    {"state-change", "change state", NULL, change_state, NULL},
-    {"state-change-prev", "change state to previous", NULL, change_to_previous_state, NULL},
-    {"state-change-force", "force change state", NULL, force_change_state, NULL},
-    {"state-get", "get current state", NULL, get_state, NULL},
-    {"log-enable", "enable logs", NULL, enable_log, NULL},
-    {"log-disable", "disable logs", NULL, disable_log, NULL},
-    {"reset-dc", "reset disconnect timer", NULL, reset_dc_timer, NULL},
-    {"en_tanwa", "send command to tanwa", NULL, esp_now_send_tanwa, NULL},
-    {"en_mv", "send command to main valve", NULL, esp_now_send_main_valve, NULL},
-    {"settings_all", "get all settings", NULL, cli_settings_read_all, NULL},
-    {"settings_init", "init settings default", NULL, cli_settings_init_default, NULL},
-    {"settings_ignit", "change ignition time", NULL, cli_change_ignition_time, NULL},
-    {"settings_cdwn", "change countdown time", NULL, cli_change_countdown_time, NULL},
+    {"flash-read", "Read data from flash memory", NULL, read_flash, NULL, NULL, NULL},
+    {"reset-dev", "Restart device", NULL, reset_device, NULL, NULL, NULL},
+    {"flash-start", "start flash task loop", NULL, flash_start, NULL, NULL, NULL},
+    {"flash-terminate", "terminate flash loop", NULL, flash_terminate, NULL, NULL, NULL},
+    {"state-change", "change state", NULL, change_state, NULL, NULL, NULL},
+    {"state-change-prev", "change state to previous", NULL, change_to_previous_state, NULL, NULL, NULL},
+    {"state-change-force", "force change state", NULL, force_change_state, NULL, NULL, NULL},
+    {"state-get", "get current state", NULL, get_state, NULL, NULL, NULL},
+    {"log-enable", "enable logs", NULL, enable_log, NULL, NULL, NULL},
+    {"log-disable", "disable logs", NULL, disable_log, NULL, NULL, NULL},
+    {"reset-dc", "reset disconnect timer", NULL, reset_dc_timer, NULL, NULL, NULL},
+    {"en_tanwa", "send command to tanwa", NULL, esp_now_send_tanwa, NULL, NULL, NULL},
+    {"en_mv", "send command to main valves", NULL, esp_now_send_main_valves, NULL, NULL, NULL},
+    {"en_vv", "send command to vent valves", NULL, esp_now_send_vent_valves, NULL, NULL, NULL},
+    {"en_eth_vv", "send command to eth vent valve", NULL, esp_now_send_eth_vent_valve, NULL, NULL, NULL},
+    {"en_ox_mv", "send command to ox main valve", NULL, esp_now_send_ox_main_valve, NULL, NULL, NULL},
+    {"settings_all", "get all settings", NULL, cli_settings_read_all, NULL, NULL, NULL},
+    {"settings_init", "init settings default", NULL, cli_settings_init_default, NULL, NULL, NULL},
+    {"settings_ignit", "change ignition time", NULL, cli_change_ignition_time, NULL, NULL, NULL},
+    {"settings_cdwn", "change countdown time", NULL, cli_change_countdown_time, NULL, NULL, NULL},
     {"lora_period", "change lora transmit period ms", NULL,
-     cli_change_lora_transmiting_period, NULL},
+     cli_change_lora_transmiting_period, NULL, NULL, NULL},
     {"lora_frequency", "change lora frerquency ms", NULL,
-     cli_change_lora_frequency, NULL},
+     cli_change_lora_frequency, NULL, NULL, NULL},
 };
 
 esp_err_t init_console() {

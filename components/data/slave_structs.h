@@ -7,8 +7,10 @@
 #include "protobuf-c.h"
 
 typedef struct {
-    bool main_valve : 1;    
-    bool vent_valve : 1;
+    bool main_valves : 1;    
+    bool vent_valves : 1;
+    bool eth_vent_valve : 1;
+    bool ox_main_valve : 1;
     bool pitot : 1;
     bool payload : 1;
     bool tanwa : 1;
@@ -16,23 +18,54 @@ typedef struct {
 
 typedef struct {
     bool waken_up :1;
-    uint8_t valve_state : 2;
-    uint32_t thermocouple1;
-    uint32_t thermocouple2;
-    uint32_t battery_voltage;
-} main_valve_data_t;
+    uint8_t valve_1_state : 2;
+    uint8_t valve_2_state : 2;
+    int16_t temperature_1;
+    int16_t temperature_2;
+    int16_t temperature_3;
+    uint16_t pressure_1;
+    uint16_t pressure_2;
+    float battery_voltage;
+} main_valves_data_t;
 
 typedef struct {
-    bool waken_up : 1;
-    uint8_t valve_state : 2;
-    uint32_t tank_pressure;
-    int8_t thermistor1;
-    int8_t thermistor2;
-    uint32_t battery_voltage;
-} vent_valve_data_t;
+     bool waken_up :1;
+    uint8_t valve_1_state : 2;
+    uint8_t valve_2_state : 2;
+    int16_t temperature_1;
+    int16_t temperature_2;
+    int16_t temperature_3;
+    uint16_t pressure_1;
+    uint16_t pressure_2;
+    float battery_voltage;
+} vent_valves_data_t;
 
 typedef struct {
-    bool isArmed :1; // Easymini arming signall
+     bool waken_up :1;
+    uint8_t valve_1_state : 2;
+    uint8_t valve_2_state : 2;
+    int16_t temperature_1;
+    int16_t temperature_2;
+    int16_t temperature_3;
+    uint16_t pressure_1;
+    uint16_t pressure_2;
+    float battery_voltage;
+} eth_vent_valve_data_t;
+
+typedef struct {
+     bool waken_up :1;
+    uint8_t valve_1_state : 2;
+    uint8_t valve_2_state : 2;
+    int16_t temperature_1;
+    int16_t temperature_2;
+    int16_t temperature_3;
+    uint16_t pressure_1;
+    uint16_t pressure_2;
+    float battery_voltage;
+} ox_main_valve_data_t;
+
+typedef struct {
+    bool isArmed :1;
     bool isTeleActive :1; 
     bool easyMiniFirstStage :1;
     bool easyMiniSecondStage :1;
@@ -44,9 +77,7 @@ typedef struct {
     bool secondStageContinouity :1;
     bool separationSwitch1 :1;
     bool separationSwitch2 :1;
-
     uint16_t pressure1;
-    uint16_t pressure2;
 } recovery_data_t;
 
 typedef struct {

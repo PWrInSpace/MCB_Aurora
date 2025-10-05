@@ -22,6 +22,8 @@ static void on_init(void *arg) {
 
 static void on_idle(void *arg) {
     gpioexp_led_set_color(GREEN);
+    cmd_message_t cmd = cmd_create_message(ETH_VALVE_CLOSE, 0x00);
+    ENA_send(&esp_now_main_valves, cmd.raw, sizeof(cmd.raw), 3);
     ESP_LOGI(TAG, "ON IDLE");
 }
 
@@ -44,13 +46,34 @@ static void on_recovery_arm(void *arg) {
 
 static void on_fueling(void *arg) {
     gpioexp_led_set_color(YELLOW);
-    cmd_message_t cmd = cmd_create_message(MAIN_VALVE_CLOSE, 0x00);
-    ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
+    cmd_message_t cmd = cmd_create_message(N2O_VALVE_CLOSE, 0x00);
+    ENA_send(&esp_now_ox_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 
-    cmd = cmd_create_message(VENT_VALVE_CLOSE, 0x00);
-    ENA_send(&esp_now_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+    cmd = cmd_create_message(N2_VALVE_CLOSE, 0x00);
+    ENA_send(&esp_now_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(N2O_SOL_CLOSE, 0x00);
+    ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(ETH_SOL_CLOSE, 0x00);
+    ENA_send(&esp_now_eth_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(N2_SOL_CLOSE, 0x00);
+    ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     ESP_LOGI(TAG, "ON FUELING");
+}
+
+static void on_pressurizing(void *arg) {
+    gpioexp_led_set_color(CYAN);
+
+    cmd_message_t cmd = cmd_create_message(N2_VALVE_CLOSE, 0x00);
+    ENA_send(&esp_now_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(N2_SOL_CLOSE, 0x00);
+    ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
+
+    ESP_LOGI(TAG, "ON PRESSURIZING");
 }
 
 static void on_armed_to_launch(void *arg) {
@@ -59,6 +82,7 @@ static void on_armed_to_launch(void *arg) {
 }
 
 static void on_ready_to_lauch(void *arg) {
+
     gpioexp_led_set_color(PURPLE);
     ESP_LOGI(TAG, "ON READY_TO_LAUNCH");
     Settings settings = settings_get_all();
@@ -71,6 +95,7 @@ static void on_ready_to_lauch(void *arg) {
 }
 
 static void on_countdown(void *arg) {
+
     ESP_LOGI(TAG, "ON COUNTDOWN");
 
     if (sys_timer_stop(TIMER_DISCONNECT) == false) {
@@ -107,14 +132,68 @@ static void recovery_first_stage_process(recovery_data_t *data) {
     }
 }
 
-static void on_flight(void *arg) {
-    ESP_LOGI(TAG, "----> ON FLIGHT <----");
+static void lift_off_process(void *data_buffer) {
+
+    static uint8_t liftoff_counter = 0;
+    sensors_data_t *data = (sensors_data_t *)data_buffer;
+
+    if (data->altitude > 5.0f && data->velocity > 1.0f) {
+        liftoff_counter += 1;
+    } else {
+        liftoff_counter = 0;
+    }
+    if (liftoff_counter >= 2) {
+        if (SM_change_state(BURN) != SM_OK) {
+            errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
+        }
+    }
+}
+
+static void on_lift_off(void *arg) {
+    ESP_LOGI(TAG, "----> ON LIFT_OFF <----");
     if (recovery_change_process_fnc(recovery_first_stage_process) == false) {
         ESP_LOGE(TAG, "Unable do add process fnc");
     }
 
-    cmd_message_t cmd = cmd_create_message(MAIN_VALVE_OPEN, 0x00);
-    ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
+    if (sensors_change_process_function(lift_off_process, 100) == false) {
+        ESP_LOGE(TAG, "Unable to add process function");
+    }
+
+    cmd_message_t cmd = cmd_create_message(VALVE_DZIDA, 0x00);
+    ENA_send(&esp_now_broadcast, cmd.raw, sizeof(cmd.raw), 5);
+
+}
+
+static void burn_process(void *data_buffer) {
+    
+    static uint8_t burn_counter = 0;
+    sensors_data_t *data = (sensors_data_t *)data_buffer;
+
+    if (data->altitude > 50.0f && data->acc_vertical < -3.0f) {
+        burn_counter += 1;
+    } else {
+        burn_counter = 0;
+    }
+
+    if (burn_counter >= 5) {
+        if (SM_change_state(FLIGHT) != SM_OK) {
+            errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
+        }
+    }
+}
+
+static void on_burn(void *arg) {
+    ESP_LOGI(TAG, "----> ON BURN <----");
+    if (sensors_change_process_function(burn_process, 100) == false) {
+        ESP_LOGE(TAG, "Unable to add process function");
+    }
+}
+
+static void on_flight(void *arg) {
+    ESP_LOGI(TAG, "----> ON FLIGHT <----");
+
+    sensors_remove_process_function(1000);
+    gpioexp_led_set_color(RED);
 }
 
 static void recovery_second_stage_process(recovery_data_t *data) {
@@ -138,9 +217,6 @@ static void on_first_stage_recovery(void *arg) {
     if (recovery_send_cmd(RECOV_FORCE_FIRST_STAGE, 0) == false) {
         ESP_LOGE(TAG, "Unable to send first stage recov");
     }
-
-    cmd_message_t cmd = cmd_create_message(MAIN_VALVE_CLOSE, 0x00);
-    ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 }
 
 static void on_ground_sensors_process(void *data_buffer) {
@@ -174,8 +250,14 @@ static void on_second_stage_recovery(void *arg) {
         ESP_LOGE(TAG, "Unable to send first stage recov");
     }
 
-    cmd_message_t cmd = cmd_create_message(VENT_VALVE_OPEN, 0x00);
-    ENA_send(&esp_now_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+    cmd_message_t cmd = cmd_create_message(ETH_SOL_OPEN, 0x00);
+    ENA_send(&esp_now_eth_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(N2O_SOL_OPEN, 0x00);
+    ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(N2_SOL_OPEN, 0x00);
+    ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
 }
 
 static void on_ground(void *arg) {
@@ -197,7 +279,44 @@ static void on_ground(void *arg) {
 }
 
 
-static void disable_timers_and_close_valves(void) {
+static void close_valves(void) {
+
+    cmd_message_t cmd = cmd_create_message(N2O_VALVE_CLOSE, 0x00);
+    ENA_send(&esp_now_ox_main_valve, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(N2_VALVE_CLOSE, 0x00);
+    ENA_send(&esp_now_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(ETH_VALVE_CLOSE, 0x00);
+    ENA_send(&esp_now_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(N2O_SOL_CLOSE, 0x00);
+    ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(ETH_SOL_CLOSE, 0x00);
+    ENA_send(&esp_now_eth_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(N2_SOL_CLOSE, 0x00);
+    ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
+
+}
+
+static void close_valves_on_lift_off(void) {
+
+    cmd_message_t cmd = cmd_create_message(ETH_SOL_CLOSE, 0x00);
+    ENA_send(&esp_now_eth_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(N2O_SOL_CLOSE, 0x00);
+    ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(N2_SOL_CLOSE, 0x00);
+    ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
+
+}
+
+static void on_hold(void *arg) {
+    ESP_LOGI(TAG, "ON HOLD");
+
     if (hybrid_mission_timer_stop() == false) {
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_MISSION_TIMER, 100);
         ESP_LOGE(TAG, "Unable to stop mission timer");
@@ -206,19 +325,8 @@ static void disable_timers_and_close_valves(void) {
     if (sys_timer_stop(TIMER_FLASH_DATA) == false) {
         ESP_LOGE(TAG, "Unable to stop flash data timer");
     }
-
-    cmd_message_t cmd = cmd_create_message(VENT_VALVE_CLOSE, 0x00);
-    ENA_send(&esp_now_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
-
-    cmd = cmd_create_message(MAIN_VALVE_CLOSE, 0x00);
-    ENA_send(&esp_now_main_valve, cmd.raw, sizeof(cmd.raw), 3);
-
     
-}
-
-static void on_hold(void *arg) {
-    ESP_LOGI(TAG, "ON HOLD");
-    disable_timers_and_close_valves();
+    close_valves();
 
     if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
         ESP_LOGE(TAG, "Unable to restart disconnect timer");
@@ -229,7 +337,29 @@ static void on_hold(void *arg) {
 
 static void on_abort(void *arg) {
     ESP_LOGI(TAG, "ON ABORT");
-    disable_timers_and_close_valves();
+
+    state_id current_state = SM_get_current_state();
+
+    if (hybrid_mission_timer_stop() == false) {
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_MISSION_TIMER, 100);
+        ESP_LOGE(TAG, "Unable to stop mission timer");
+    }
+
+    if (sys_timer_stop(TIMER_FLASH_DATA) == false) {
+        ESP_LOGE(TAG, "Unable to stop flash data timer");
+    }
+
+    if(current_state == LIFT_OFF) {
+        ESP_LOGI(TAG, "Abort during LIFT_OFF - changing to ON_GROUND");
+
+        //in case of not lifting off close vents
+        close_valves_on_lift_off();
+    }
+    else {
+
+        //in case of general abort close all valves        
+        close_valves();
+    }
 
     if (sys_timer_delete(TIMER_DISCONNECT) == false) {
         ESP_LOGE(TAG, "Unable to delete disconnect timer");
@@ -257,9 +387,12 @@ static state_config_t states_cfg[] = {
     {IDLE, on_idle, NULL},
     {RECOVERY_ARM, on_recovery_arm, NULL},
     {FUELING, on_fueling, NULL},
+    {PRESSURIZING, on_pressurizing, NULL},
     {ARMED_TO_LAUNCH, on_armed_to_launch, NULL},
     {RDY_TO_LAUNCH, on_ready_to_lauch, NULL},
     {COUNTDOWN, on_countdown, NULL},
+    {LIFT_OFF, on_lift_off, NULL},
+    {BURN, on_burn, NULL},
     {FLIGHT, on_flight, NULL},
     {FIRST_STAGE_RECOVERY, on_first_stage_recovery, NULL},
     {SECOND_STAGE_RECOVERY, on_second_stage_recovery, NULL},

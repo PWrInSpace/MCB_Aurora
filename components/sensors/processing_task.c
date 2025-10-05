@@ -99,7 +99,7 @@ static void process_data(void *data_buffer) {
 
 static void processing_task(void *arg) {
     while (1) {
-        if (xSemaphoreTake(gb.data_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+        if (xSemaphoreTake(gb.data_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
             read_data_from_sensors(gb.data_buffer);
             process_data(gb.data_buffer);
             xSemaphoreGive(gb.data_mutex);

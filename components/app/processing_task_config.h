@@ -11,6 +11,7 @@ typedef struct {
     float acc_x;
     float acc_y;
     float acc_z;
+    float acc_vertical;  // Przyspieszenie pionowe (bez grawitacji)
     float gyr_x;
     float gyr_y;
     float gyr_z;

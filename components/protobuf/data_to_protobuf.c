@@ -33,7 +33,7 @@ void create_porotobuf_data_frame(LoRaFrame *frame) {
 
     // recovery
     frame->recov_pressure_1 = data.recovery.pressure1;
-    frame->recov_pressure_2 = data.recovery.pressure2;
+    frame->recov_pressure_2 = 0;
 
     frame->recov_byte_data |= (data.recovery.isArmed << 0);
     frame->recov_byte_data |= (data.recovery.isTeleActive << 1);
@@ -56,17 +56,17 @@ void create_porotobuf_data_frame(LoRaFrame *frame) {
     frame->pitot_temperature = data.pitot.temperature;
 
     // main valve
-    frame->mval_battery = data.main_valve.battery_voltage;
+    frame->mval_battery = data.main_valves.battery_voltage;
 
-    frame->mval_byte_data |= data.main_valve.valve_state;
-    frame->mval_byte_data |= (data.vent_valve.thermistor1 << 8);
-    frame->mval_byte_data |= (data.vent_valve.thermistor2 << 16);
+    //frame->mval_byte_data |= data.main_valves.valve_state;
+    //frame->mval_byte_data |= (data.vent_valves.thermistor1 << 8);
+    //frame->mval_byte_data |= (data.vent_valves.thermistor2 << 16);
 
     // vent valve
-    frame->vent_battery = data.vent_valve.battery_voltage;
-    frame->tank_pressure = data.vent_valve.tank_pressure;
+    frame->vent_battery = data.vent_valves.battery_voltage;
+    //frame->tank_pressure = data.vent_valves.tank_pressure;
 
-    frame->vent_byte_data |= data.vent_valve.valve_state;
+    //frame->vent_byte_data |= data.vent_valves.valve_state;
 
     // tanwa
     frame->tanwa_battery = data.tanwa.vbat;
@@ -100,13 +100,13 @@ void create_porotobuf_data_frame(LoRaFrame *frame) {
 
     // esp now
     frame->esp_now_byte_data |= (data.pitot.waken_up << 0);
-    frame->esp_now_byte_data |= (data.main_valve.waken_up << 1);
-    frame->esp_now_byte_data |= (data.vent_valve.waken_up << 2);
+    frame->esp_now_byte_data |= (data.main_valves.waken_up << 1);
+    frame->esp_now_byte_data |= (data.vent_valves.waken_up << 2);
     frame->esp_now_byte_data |= (data.payload.waken_up << 3);
 
     frame->esp_now_byte_data |= (data.connected_dev.pitot << 16);
-    frame->esp_now_byte_data |= (data.connected_dev.main_valve << 17);
-    frame->esp_now_byte_data |= (data.connected_dev.vent_valve << 18);
+    frame->esp_now_byte_data |= (data.connected_dev.main_valves << 17);
+    frame->esp_now_byte_data |= (data.connected_dev.vent_valves << 18);
     frame->esp_now_byte_data |= (data.connected_dev.tanwa << 19);
     frame->esp_now_byte_data |= (data.connected_dev.payload << 20);
 
