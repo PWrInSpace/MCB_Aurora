@@ -4,7 +4,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "protobuf-c.h"
 
 typedef struct {
     bool main_valves : 1;    
@@ -23,8 +22,8 @@ typedef struct {
     int16_t temperature_1;
     int16_t temperature_2;
     int16_t temperature_3;
-    uint16_t pressure_1;
-    uint16_t pressure_2;
+    float pressure_1;
+    float pressure_2;
     float battery_voltage;
 } main_valves_data_t;
 
@@ -35,8 +34,8 @@ typedef struct {
     int16_t temperature_1;
     int16_t temperature_2;
     int16_t temperature_3;
-    uint16_t pressure_1;
-    uint16_t pressure_2;
+    float pressure_1;
+    float pressure_2;
     float battery_voltage;
 } vent_valves_data_t;
 
@@ -47,20 +46,20 @@ typedef struct {
     int16_t temperature_1;
     int16_t temperature_2;
     int16_t temperature_3;
-    uint16_t pressure_1;
-    uint16_t pressure_2;
+    float pressure_1;
+    float pressure_2;
     float battery_voltage;
 } eth_vent_valve_data_t;
 
 typedef struct {
-     bool waken_up :1;
+    bool waken_up :1;
     uint8_t valve_1_state : 2;
     uint8_t valve_2_state : 2;
     int16_t temperature_1;
     int16_t temperature_2;
     int16_t temperature_3;
-    uint16_t pressure_1;
-    uint16_t pressure_2;
+    float pressure_1;
+    float pressure_2;
     float battery_voltage;
 } ox_main_valve_data_t;
 
@@ -77,7 +76,6 @@ typedef struct {
     bool secondStageContinouity :1;
     bool separationSwitch1 :1;
     bool separationSwitch2 :1;
-    uint16_t pressure1;
 } recovery_data_t;
 
 typedef struct {
@@ -116,27 +114,34 @@ typedef struct {
 typedef struct{
     float vbat;
     uint8_t tanWaState;
-    float rocketWeight_val;
+    float thrust_val;
     float tankWeight_val;
-    float fill_temp;
-    float preFill_pres;
-    float postFill_pres;
-    float tank_pres;
-    bool canHxBtl_con : 1;
-    bool canHxRck_con : 1;
-    bool canFac_con : 1;
-    bool canFlc_con : 1;
-    bool canTermo_con : 1;
+    float temperature_postFill;
+    float temperature_Wall;
+    float postFillN2O_pres;
+    float cutoffN2O_pres;
+    float droidN2O_press;
+    float preRegulatorN2_pres;
+    float postRegulatorN2_pres;
+    float postFillN2_pres;
+    float droidN2_press;
+    float combChamber_pres;
+    bool soft_arm : 1;
+    bool canWeights_con : 1;
+    bool canSensor_con : 1;
+    bool canSolenoid_con : 1;
+    bool canUtility_con : 1;
+    bool canPower_con : 1;
     bool igniterContinouity_1 : 1;
     bool igniterContinouity_2 : 1;
-    bool limitSwitch_1 : 1;
-    bool limitSwitch_2 : 1;
-    bool fillState : 1;
-    bool deprState : 1;
-    uint8_t facMotorState_1;
-    uint8_t facMotorState_2;
-    bool coolingState : 1;
-    bool heatingState : 1;
+    bool fillN2OState : 1;
+    bool deprN2OState : 1;
+    bool fillN2State : 1;
+    bool deprN2State : 1;
+    bool droidN2OState : 1;
+    bool droidN2State : 1;
+    bool heatingTankState : 1;
+    bool heatingValveState : 1;
     bool abortButton : 1;
 }tanwa_data_t;
 

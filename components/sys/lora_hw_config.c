@@ -7,6 +7,10 @@
 #include "utils.h"
 #include "sdkconfig.h"
 #include "spi.h"
+#include <string.h>
+#include <stdlib.h>
+#include <stdint.h>
+
 extern SemaphoreHandle_t mutex_spi;
 
 static spi_device_handle_t __spi;
@@ -24,6 +28,7 @@ bool lora_hw_spi_add_device(spi_host_device_t host) {
                                          .pre_cb = NULL};
     ret = spi_bus_add_device(host, &dev, &__spi);
     ESP_ERROR_CHECK(ret);
+    /* normal operation - no guard monitor in production */
 
     return ret == ESP_OK ? true : false;
 }
@@ -44,13 +49,29 @@ bool lora_hw_attach_d0_interrupt(gpio_isr_t interrupt_cb) {
 }
 
 bool lora_hw_spi_transmit(uint8_t _in[2], uint8_t _out[2]) {
-    spi_transaction_t t = {
-        .flags = 0, .length = 8 * sizeof(uint8_t) * 2, .tx_buffer = _out, .rx_buffer = _in};
+    if (mutex_spi == NULL) {
+        ESP_LOGE(TAG, "mutex_spi is NULL");
+        return false;
+    }
+
+    if (__spi == NULL) {
+        ESP_LOGE(TAG, "spi device handle is NULL");
+        return false;
+    }
+
+    spi_transaction_t t;
+    memset(&t, 0, sizeof(t));
+    t.flags = 0;
+    t.length = 8 * sizeof(uint8_t) * 2; /* bits */
+    t.tx_buffer = _out;
+    t.rx_buffer = _in;
+
     xSemaphoreTake(mutex_spi, portMAX_DELAY);
     gpio_set_level(CONFIG_LORA_CS, 0);
-    spi_device_transmit(__spi, &t);
+    esp_err_t res = spi_device_transmit(__spi, &t);
     gpio_set_level(CONFIG_LORA_CS, 1);
     xSemaphoreGive(mutex_spi);
+
     return true;
 }
 
@@ -61,3 +82,5 @@ bool lora_hw_gpio_set_level(uint8_t _gpio_num, uint32_t _level) {
 }
 
 void lora_hw_log(const char* info) { ESP_LOGD(TAG, "%s", info); }
+
+/* guard monitor removed for production build */

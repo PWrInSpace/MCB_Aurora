@@ -16,7 +16,7 @@ static struct {
     lora_task_process_rx_packet process_packet_fnc;
     lora_task_get_tx_packet get_tx_packet_fnc;
     lora_state_t lora_state;
-    uint8_t tx_buffer[256];
+    uint8_t tx_buffer[512];
     size_t tx_buffer_size;
 
     SemaphoreHandle_t irq_notification;
@@ -30,7 +30,11 @@ static bool wait_until_irq(void) {
 
 void IRAM_ATTR lora_task_irq_notify(void *arg) {
     BaseType_t higher_priority_task_woken = pdFALSE;
-    vTaskNotifyGiveFromISR(gb.task, &higher_priority_task_woken);
+    /* Defensive: ensure gb.task is valid before notifying from ISR. If it's NULL or corrupted,
+       calling vTaskNotifyGiveFromISR may dereference invalid pointer and crash. */
+    if (gb.task != NULL) {
+        vTaskNotifyGiveFromISR(gb.task, &higher_priority_task_woken);
+    }
     if (higher_priority_task_woken == pdTRUE) {
         portYIELD_FROM_ISR();
     }
@@ -38,7 +42,7 @@ void IRAM_ATTR lora_task_irq_notify(void *arg) {
 
 static void notify_end_of_rx_window(void) { 
     xTaskNotifyGive(gb.task);
-    ESP_LOGI(TAG, "END OF WINDOW");
+    ESP_LOGD(TAG, "END OF WINDOW");
 }
 
 static void on_receive_window_timer(TimerHandle_t timer) { notify_end_of_rx_window(); }
@@ -66,7 +70,7 @@ static void lora_change_state_to_transmit() {
 void turn_on_receive_window_timer(void) {
     if (xTimerIsTimerActive(gb.receive_window_timer) == pdTRUE) {
         xTimerReset(gb.receive_window_timer, portMAX_DELAY);
-        ESP_LOGE(TAG, "TIMER IS ACTIVE");
+        //ESP_LOGE(TAG, "TIMER IS ACTIVE");
         return;
     }
     xTimerStart(gb.receive_window_timer, portMAX_DELAY);
@@ -106,14 +110,14 @@ static void on_lora_transmit() {
 }
 
 static void lora_task(void *arg) {
-    uint8_t rx_buffer[256];
+    uint8_t rx_buffer[512];
     size_t rx_packet_size = 0;
 
     while (1) {
         if (wait_until_irq() == true) {
             // on transmit
             if (gb.lora_state == LORA_TRANSMIT) {
-                ESP_LOGI(TAG, "ON transmit");
+                //ESP_LOGI(TAG, "ON transmit");
                 on_lora_transmit();
             // on receive
             } else {
@@ -174,6 +178,10 @@ bool lora_task_init(lora_api_config_t *cfg) {
 
     if (gb.task == NULL) {
         return false;
+    }
+    {
+        UBaseType_t high = uxTaskGetStackHighWaterMark(gb.task);
+        ESP_LOGI(TAG, "LoRa task %s stack high water mark: %u", pcTaskGetName(gb.task), (unsigned)high);
     }
     return true;
 }

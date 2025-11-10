@@ -1,4 +1,6 @@
 #include "basic_task.h"
+#include "esp_heap_caps.h"
+#include "esp_log.h"
 
 static void basic_task(void *arg) {
     basic_task_handle_t * info = (basic_task_handle_t*)arg;
@@ -30,6 +32,9 @@ bool basic_task_create(basic_task_cfg_t *cfg, basic_task_t *task) {
         cfg->core_id);
 
     if (task->task_handle == NULL) {
+        // log free heap to aid debugging OOM
+        size_t free_heap = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
+        ESP_LOGE("BASIC_TASK", "task create failed, free heap: %u", (unsigned)free_heap);
         return false;
     }
 

@@ -21,6 +21,7 @@ bool rocket_data_init(void) {
     if (gb.data_mutex == NULL) {
         return false;
     }
+    /* initialize mutex */
 
     return true;
 }
@@ -31,6 +32,9 @@ void rocket_data_update_connected_dev(esp_now_connected_devices_t *data) {
         return;
     }
     memcpy(&gb.rocket_data.connected_dev, data, sizeof(gb.rocket_data.connected_dev));
+    ESP_LOGI(TAG, "Connected dev - main:%d vent:%d eth_vent:%d ox_main:%d pitot:%d payload:%d tanwa:%d",
+             (int)data->main_valves, (int)data->vent_valves, (int)data->eth_vent_valve,
+             (int)data->ox_main_valve, (int)data->pitot, (int)data->payload, (int)data->tanwa);
     xSemaphoreGive(gb.data_mutex);
 }
 
@@ -40,11 +44,10 @@ void rocket_data_update_main_valves(main_valves_data_t *data) {
         return;
     }
     memcpy(&gb.rocket_data.main_valves, data, sizeof(gb.rocket_data.main_valves));
-    // ESP_LOGD(TAG, "Main valve:");
-    // ESP_LOGD(TAG, "waken_up %d", gb.rocket_data.main_valves.waken_up);
-    // ESP_LOGD(TAG, "vbat %d", gb.rocket_data.main_valves.battery_voltage);
-    // ESP_LOGD(TAG, "valve state %d", gb.rocket_data.main_valves.valve_state);
-    // ESP_LOGD(TAG, "thermocouple %d", gb.rocket_data.main_valves.thermocouple1);
+    ESP_LOGI(TAG, "Main valves updated - waken_up:%d vbat:%f valve1:%d valve2:%d temp1:%d temp2:%d temp3:%d pres1:%d pres2:%d",
+             (int)data->waken_up, data->battery_voltage, (int)data->valve_1_state, (int)data->valve_2_state,
+             (int)data->temperature_1, (int)data->temperature_2, (int)data->temperature_3,
+             (int)data->pressure_1, (int)data->pressure_2);
     xSemaphoreGive(gb.data_mutex);
 }
 
@@ -55,6 +58,10 @@ void rocket_data_update_vent_valves(vent_valves_data_t *data) {
         return;
     }
     memcpy(&gb.rocket_data.vent_valves, data, sizeof(gb.rocket_data.vent_valves));
+    ESP_LOGI(TAG, "Vent valves updated - waken_up:%d valve1:%d valve2:%d temp1:%d temp2:%d temp3:%d pres1:%f pres2:%d vbat:%f",
+             (int)data->waken_up, (int)data->valve_1_state, (int)data->valve_2_state,
+             (int)data->temperature_1, (int)data->temperature_2, (int)data->temperature_3,
+             data->pressure_1, (int)data->pressure_2, data->battery_voltage);
     xSemaphoreGive(gb.data_mutex);
 }
 
@@ -64,6 +71,10 @@ void rocket_data_update_eth_vent_valve(eth_vent_valve_data_t *data) {
         return;
     }
     memcpy(&gb.rocket_data.eth_vent_valve, data, sizeof(gb.rocket_data.eth_vent_valve));
+    ESP_LOGI(TAG, "Eth vent valve updated - waken_up:%d valve1:%d valve2:%d temp1:%d temp2:%d temp3:%d pres1:%d pres2:%d vbat:%f",
+             (int)data->waken_up, (int)data->valve_1_state, (int)data->valve_2_state,
+             (int)data->temperature_1, (int)data->temperature_2, (int)data->temperature_3,
+             (int)data->pressure_1, (int)data->pressure_2, data->battery_voltage);
     xSemaphoreGive(gb.data_mutex);
 }
 
@@ -73,6 +84,10 @@ void rocket_data_update_ox_main_valve(ox_main_valve_data_t *data) {
         return;
     }
     memcpy(&gb.rocket_data.ox_main_valve, data, sizeof(gb.rocket_data.ox_main_valve));
+    ESP_LOGI(TAG, "Ox main valve updated - waken_up:%d valve1:%d valve2:%d temp1:%d temp2:%d temp3:%d pres1:%d pres2:%d vbat:%f",
+             (int)data->waken_up, (int)data->valve_1_state, (int)data->valve_2_state,
+             (int)data->temperature_1, (int)data->temperature_2, (int)data->temperature_3,
+             (int)data->pressure_1, (int)data->pressure_2, data->battery_voltage);
     xSemaphoreGive(gb.data_mutex);
 }
 
@@ -91,6 +106,9 @@ void rocket_data_update_mcb(mcb_data_t *data) {
         return;
     }
     memcpy(&gb.rocket_data.mcb, data, sizeof(gb.rocket_data.mcb));
+    ESP_LOGI(TAG, "MCB updated - state:%u uptime:%lu batt:%f lat:%f lon:%f alt:%f",
+             (unsigned)data->state, (unsigned long)data->uptime, data->battery_voltage,
+             data->latitude, data->longitude, data->gps_altitude);
     xSemaphoreGive(gb.data_mutex);
 }
 
@@ -101,6 +119,7 @@ void rocket_data_update_payload(payload_data_t *data) {
     }
 
     memcpy(&gb.rocket_data.payload, data, sizeof(gb.rocket_data.payload));
+    ESP_LOGI(TAG, "Payload updated - waken_up:%d vbat:%f", (int)data->waken_up, data->vbat);
     xSemaphoreGive(gb.data_mutex);
 }
 
@@ -110,12 +129,8 @@ void rocket_data_update_pitot(pitot_data_t *data) {
         return;
     }
     memcpy(&gb.rocket_data.pitot, data, sizeof(gb.rocket_data.pitot));
-    ESP_LOGD(TAG, "Pitot:");
-    ESP_LOGD(TAG, "waken_up %d", gb.rocket_data.pitot.waken_up);
-    ESP_LOGD(TAG, "vbat %f", gb.rocket_data.pitot.vbat);
-    ESP_LOGD(TAG, "static press %f", gb.rocket_data.pitot.static_press);
-    ESP_LOGD(TAG, "dynamic press %f", gb.rocket_data.pitot.dynamic_press);
-    ESP_LOGD(TAG, "temperature %f", gb.rocket_data.pitot.temperature);
+    ESP_LOGD(TAG, "Pitot updated - waken_up:%d vbat:%f static:%f dynamic:%f temp:%f",
+             (int)data->waken_up, data->vbat, data->static_press, data->dynamic_press, data->temperature);
     xSemaphoreGive(gb.data_mutex);
 }
 
@@ -125,11 +140,8 @@ void rocket_data_update_tanwa(tanwa_data_t *data) {
         return;
     }
     memcpy(&gb.rocket_data.tanwa, data, sizeof(gb.rocket_data.tanwa));
-    ESP_LOGD(TAG, "Tanwa:");
-    ESP_LOGD(TAG, "state %d", gb.rocket_data.tanwa.tanWaState);
-    ESP_LOGD(TAG, "vbat %f", gb.rocket_data.tanwa.vbat);
-    ESP_LOGD(TAG, "solenoid fill %d", gb.rocket_data.tanwa.fillState);
-    ESP_LOGD(TAG, "solenoid depr %d", gb.rocket_data.tanwa.deprState);
+    ESP_LOGI(TAG, "Tanwa updated - state:%u vbat:%f fillState:%d deprState:%d",
+             (unsigned)data->tanWaState, data->vbat, (int)data->fillN2OState, (int)data->deprN2OState);
     xSemaphoreGive(gb.data_mutex);
 }
 
@@ -160,6 +172,19 @@ rocket_data_t rocket_data_get(void) {
     return tmp;
 }
 
+void rocket_data_copy(rocket_data_t *out) {
+    if (out == NULL) return;
+    if (xSemaphoreTake(gb.data_mutex, 1000) != pdTRUE) {
+        ESP_LOGE(TAG, "Data semaphore errror :C");
+        memset(out, 0, sizeof(*out));
+        return;
+    }
+    memcpy(out, &gb.rocket_data, sizeof(*out));
+    xSemaphoreGive(gb.data_mutex);
+    update_errors(out);
+    mcb_update_struct(&out->mcb);
+}
+
 mcb_data_t rocket_data_get_mcb(void) {
     mcb_data_t tmp;
     mcb_update_struct(&tmp);
@@ -173,7 +198,9 @@ main_valves_data_t rocket_data_get_main_valves(void) {
         return tmp;
     }
     tmp = gb.rocket_data.main_valves;
+
     xSemaphoreGive(gb.data_mutex);
+
     return tmp;
 }
 
@@ -184,6 +211,7 @@ vent_valves_data_t rocket_data_get_vent_valves(void) {
         return tmp;
     }
     tmp = gb.rocket_data.vent_valves;
+
     xSemaphoreGive(gb.data_mutex);
     return tmp;
 }

@@ -166,6 +166,10 @@ static void check_terminate_condition(void) {
 
 static void sdTask(void *args) {
     ESP_LOGI(TAG, "RUNNING SD TASK");
+    {
+        UBaseType_t high = uxTaskGetStackHighWaterMark(NULL);
+        ESP_LOGI(TAG, "SD task stack high water mark: %u", (unsigned)high);
+    }
     while (1) {
         if (xSemaphoreTake(mem.data_write_mutex, 10) == pdTRUE) {
             data_check_and_save();

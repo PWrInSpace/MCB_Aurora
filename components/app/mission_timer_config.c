@@ -1,21 +1,33 @@
 #include "mission_timer_config.h"
 #include "mission_timer.h"
 #include "system_timer_config.h"
+#include "rocket_data.h"
+#include "state_machine_config.h"
+#include "errors_config.h"
 
 #include "esp_log.h"
 
 #define TAG "MT"
 
-bool hybrid_mission_timer_init(int32_t countdown_start_ms) {
+bool liquid_mission_timer_init(int32_t countdown_start_ms) {
     return mission_timer_init(countdown_start_ms);
 }
 
-bool hybrid_mission_timer_start(int32_t countdown_time, int32_t ignition_time) {
+bool liquid_mission_timer_start(int32_t countdown_time, int32_t ignition_time) {
     assert(countdown_time < 0);
     assert(ignition_time < 0);
     if (countdown_time >= 0 || ignition_time >= 0) {
         return false;
     }
+
+    //rocket_data_t data = rocket_data_get();
+
+    // if(data.tanwa.soft_arm == false || data.recovery.isTeleActive == false) {
+    //     ESP_LOGE(TAG, "Tanwa is not armed or telemetry is not active");
+    //     SM_change_to_previous_state(true);
+    //     errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_NOT_ARMED, 100);
+    //     return false;
+    // }
 
     if (countdown_time >= ignition_time) {
         return false;
@@ -38,11 +50,11 @@ bool hybrid_mission_timer_start(int32_t countdown_time, int32_t ignition_time) {
 
     return true;
 abort_start:
-    hybrid_mission_timer_stop();
+    liquid_mission_timer_stop();
     return false;
 }
 
-bool hybrid_mission_timer_stop() {
+bool liquid_mission_timer_stop() {
     if (sys_timer_stop(TIMER_IGNITION) == false) {
         return false;
     }
@@ -58,10 +70,10 @@ bool hybrid_mission_timer_stop() {
     return true;
 }
 
-int hybrid_mission_timer_get_time() {
+int liquid_mission_timer_get_time() {
     return mission_timer_get_time();
 }
 
-void hybrid_mission_timer_set_disable_val(int64_t time) {
+void liquid_mission_timer_set_disable_val(int64_t time) {
     mission_timer_set_disable_value(time);
 }

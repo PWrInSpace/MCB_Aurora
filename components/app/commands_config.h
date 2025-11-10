@@ -12,7 +12,7 @@
  * @return true :D
  * @return false :C
  */
-bool lora_cmd_init(void);
+// bool lora_TANWA_init(void);
 
 /**
  * @brief Process received command from lora
@@ -23,6 +23,11 @@ bool lora_cmd_init(void);
  * @return true :D
  * @return false :C
  */
+// bool lora_TANWA_process_command(TANWA_lora_dev_id lora_dev_id,
+//                             TANWA_sys_dev_id dev_id,
+//                             TANWA_message_t *message);
+
+
 bool lora_cmd_process_command(cmd_lora_dev_id lora_dev_id,
                             cmd_sys_dev_id dev_id,
                             cmd_message_t *message);
@@ -67,27 +72,42 @@ typedef enum {
 } recovery_commands_t;
 
 typedef enum {
-    TANWA_FILL = 0x10,
-    TANWA_FILL_TIME = 0x15,
-    TANWA_DEPR = 0x20,
-    TANWA_QD = 0x30,
-    TANWA_QD_2 = 0x31,
-    TANWA_RESTART_ESP_RCK = 0x61,
-    TANWA_RESTART_ESP_BTL = 0x62,
-    TANWA_SOFT_RESTART_ESP = 0x06,
-    TANWA_SOFT_RESTART_STM = 0x07,
-    TANWA_CALIBRATE_RCK = 0x40,
-    TANWA_TARE_RCK = 0x41,
-    TANWA_SET_CAL_FACTOR_RCK = 0x42,
-    TANWA_SET_OFFSET_RCK = 0x43,
-    TANWA_CALIBRATE_TANK = 0x50,
-    TANWA_TARE_TANK = 0x51,
-    TANWA_SET_CAL_FACTOR_TANK = 0x52,
-    TANWA_SET_OFFSET_TANK = 0x53,
-    TANWA_SOFT_ARM = 0x04,
-    TANWA_SOFT_DISARM = 0x05,
-    TANWA_ITF_RCK = 0x44,
-    TANWA_ITF_TANK = 0x54,
+    TANWA_STATE_CHANGE = 0x00,
+    TANWA_ABORT = 0x01,
+    TANWA_HOLD_IN = 0x02,
+    TANWA_HOLD_OUT = 0x03,
+    TANWA_LORA_TRANSMIT_F = 0x10,
+    TANWA_LORA_TRANSMIT_T = 0x11,
+    TANWA_SEND_SETTINGS = 0x15,
+    TANWA_RESET = 0x80,
+    TANWA_SOFT_ARM = 0x29,
+    TANWA_SOFT_DISARM = 0x30,
+    TANWA_RESTART_WEIGHT = 0x31,
+    TANWA_CALIBRATE_WEIGHT = 0x34,
+    TANWA_TARE_WEIGHT = 0x35,
+    TANWA_SET_CAL_FACTOR_WEIGHT = 0x36,
+    TANWA_SET_OFFSET_WEIGHT = 0x37,
+    TANWA_N2O_FILL_OPEN = 0x42,
+    TANWA_N2O_FILL_CLOSE = 0x43,
+    TANWA_N2O_FILL_OPEN_TIME = 0x44,
+    TANWA_N2O_DEPR_OPEN = 0x45,
+    TANWA_N2O_DEPR_CLOSE = 0x46,
+    TANWA_N2O_DEPR_OPEN_TIME = 0x47,
+    TANWA_QD_N2O_UNPLUG = 0x48,
+    TANWA_QD_N2O_STOP = 0x49,
+    TANWA_QD_N2_UNPLUG = 0x4A,
+    TANWA_QD_N2_STOP = 0x4B,
+    TANWA_HEATING_TANK_START = 0x4C,
+    TANWA_HEATING_TANK_STOP = 0x4D,
+    TANWA_HEATING_VALVE_START = 0x4E,
+    TANWA_HEATING_VALVE_STOP = 0x4F,
+    TANWA_N2_FILL_OPEN = 0x50,
+    TANWA_N2_FILL_CLOSE = 0x51,
+    TANWA_N2_FILL_OPEN_TIME = 0x52,
+    TANWA_N2_DEPR_OPEN = 0x53,
+    TANWA_N2_DEPR_CLOSE = 0x54,
+    TANWA_N2_DEPR_OPEN_TIME = 0x55,
+    TANWA_FIRE = 0x60, //FIREBALL, DOO DOO DOO DOO DO DOO (FIREBALL) ~PITBULL 2k10
 } tanwa_commands_t;
 
 typedef enum {

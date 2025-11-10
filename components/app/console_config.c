@@ -14,7 +14,11 @@
 #include "settings_mem.h"
 #include "state_machine_config.h"
 #include "system_timer_config.h"
+#include "rocket_data.h"
 #define TAG "CONSOLE_CONFIG"
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 static int read_flash(int argc, char **argv) {
     esp_log_level_set("*", ESP_LOG_NONE);
@@ -269,10 +273,70 @@ static int cli_change_lora_frequency(int argc, char **argv) {
     }
 
     cmd_message_t command = cmd_create_message(MCB_CHANGE_LORA_FREQ, atoi(argv[1]));
-    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
-        return -1;
-    }
+    lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command);
 
+    return 0;
+}
+
+int recovery_force_first_stage(int argc, char **argv) {
+
+    cmd_message_t command = cmd_create_message(RECOV_FORCE_FIRST_STAGE, 0);
+    lora_cmd_process_command(LORA_DEV_ID, DEVICE_RECOVERY, &command);
+
+    return 0;
+}
+
+int recovery_force_second_stage(int argc, char **argv) {
+
+    cmd_message_t command = cmd_create_message(RECOV_FORCE_SECOND_STAGE, 0);
+    lora_cmd_process_command(LORA_DEV_ID, DEVICE_RECOVERY, &command);
+
+    return 0;
+}
+
+int recovery_easymini_arm(int argc, char **argv) {
+
+    cmd_message_t command = cmd_create_message(RECOV_EASYMINI_ARM, 0);
+    lora_cmd_process_command(LORA_DEV_ID, DEVICE_RECOVERY, &command);
+
+    return 0;
+}
+
+int recovery_easymini_disarm(int argc, char **argv) {
+
+    cmd_message_t command = cmd_create_message(RECOV_EASYMINI_DISARM, 0);
+    lora_cmd_process_command(LORA_DEV_ID, DEVICE_RECOVERY, &command);
+
+    return 0;
+}
+
+int recovery_telemetrum_arm(int argc, char **argv) {
+
+
+    cmd_message_t command = cmd_create_message(RECOV_TELEMETRUM_ARM, 0);
+    lora_cmd_process_command(LORA_DEV_ID, DEVICE_RECOVERY, &command);
+
+    return 0;
+}
+
+int recovery_telemetrum_disarm(int argc, char **argv) {
+    
+
+    cmd_message_t command = cmd_create_message(RECOV_TELEMETRUM_DISARM, 0);
+    lora_cmd_process_command(LORA_DEV_ID, DEVICE_RECOVERY, &command);
+
+    return 0;
+}
+
+int get_data(int argc, char **argv) {
+    
+    mcb_data_t data = rocket_data_get_mcb();
+
+    CONSOLE_WRITE("State: %d", data.state);
+    CONSOLE_WRITE("Battery voltage: %.2f", data.battery_voltage);
+    CONSOLE_WRITE("GPS altitude: %.2f", data.gps_altitude);    
+    CONSOLE_WRITE("Altitude: %.2f", data.altitude);
+    CONSOLE_WRITE("Velocity: %.2f", data.velocity);
     return 0;
 }
 
@@ -301,12 +365,42 @@ static esp_console_cmd_t cmd[] = {
      cli_change_lora_transmiting_period, NULL, NULL, NULL},
     {"lora_frequency", "change lora frerquency ms", NULL,
      cli_change_lora_frequency, NULL, NULL, NULL},
+    {"recov_force_first", "force first stage separation", NULL, recovery_force_first_stage, NULL, NULL, NULL},
+    {"recov_force_second", "force second stage separation", NULL, recovery_force_second_stage, NULL, NULL, NULL},
+    {"recov_easymini_arm", "arm easymini recovery", NULL, recovery_easymini_arm, NULL, NULL, NULL},
+    {"recov_easymini_disarm", "disarm easymini recovery", NULL, recovery_easymini_disarm, NULL, NULL, NULL},
+    {"recov_telemetrum_arm", "arm telemetrum recovery", NULL, recovery_telemetrum_arm, NULL, NULL, NULL},
+    {"recov_telemetrum_disarm", "disarm telemetrum recovery", NULL, recovery_telemetrum_disarm, NULL, NULL, NULL},
+    {"get_data", "get mcb data", NULL, get_data, NULL, NULL, NULL},
 };
 
-esp_err_t init_console() {
-    esp_err_t ret;
-    ret = console_init();
+static void console_register_task(void *arg) {
+    (void)arg;
+    esp_err_t ret = ESP_OK;
+    /* small delay to allow other init actions to settle */
+    vTaskDelay(pdMS_TO_TICKS(50));
     ret = console_register_commands(cmd, sizeof(cmd) / sizeof(cmd[0]));
-    // ESP_LOGW(TAG, "%s", esp_err_to_name(ret));
-    return ret;
+    if (ret == ESP_OK) {
+        ret = console_start();
+        if (ret != ESP_OK) {
+            ESP_LOGW(TAG, "console_start failed: %s", esp_err_to_name(ret));
+        }
+    } else {
+        ESP_LOGW(TAG, "console_register_commands failed: %s", esp_err_to_name(ret));
+    }
+    vTaskDelete(NULL);
+}
+
+esp_err_t init_console() {
+    esp_err_t ret = console_init();
+    if (ret != ESP_OK) {
+        ESP_LOGW(TAG, "console_init failed: %s", esp_err_to_name(ret));
+        return ret;
+    }
+    BaseType_t tr = xTaskCreate(console_register_task, "console_reg", 4096, NULL, 5, NULL);
+    if (tr != pdPASS) {
+        ESP_LOGE(TAG, "Failed to create console register task");
+        return ESP_FAIL;
+    }
+    return ESP_OK;
 }

@@ -48,6 +48,9 @@ void rocket_data_update_pitot(pitot_data_t *data);
 
 rocket_data_t rocket_data_get(void);
 
+/* Copy current rocket data into provided buffer under mutex. */
+void rocket_data_copy(rocket_data_t *out);
+
 mcb_data_t rocket_data_get_mcb(void);
 
 main_valves_data_t rocket_data_get_main_valves(void);

@@ -11,12 +11,19 @@
 #include "errors_config.h"
 #include "gen_pysd.h"
 #include "buzzer_pwm.h"
+#include "commands_config.h"
 
 void on_sd_timer(void *arg){
-    rocket_data_t test = rocket_data_get();
-    if (SDT_send_data(&test, sizeof(test)) == false) {
+    rocket_data_t *p = malloc(sizeof(rocket_data_t));
+    if (p == NULL) {
+        errors_add(ERROR_TYPE_MEMORY, ERROR_MEMORY_UNKNOWN, 0);
+        return;
+    }
+    rocket_data_copy(p);
+    if (SDT_send_data(p, sizeof(*p)) == false) {
         errors_add(ERROR_TYPE_MCB, ERROR_MCB_SD_QUEUE_ADD, 0);
     }
+    free(p);
 }
 
 static void on_broadcast_timer(void *arg) {
@@ -25,19 +32,25 @@ static void on_broadcast_timer(void *arg) {
 }
 
 static void on_flash_data_timer(void *arg) {
-    rocket_data_t data = rocket_data_get();
-    if (FT_send_data(&data) == false) {
+    rocket_data_t *p = malloc(sizeof(rocket_data_t));
+    if (p == NULL) {
+        errors_add(ERROR_TYPE_MEMORY, ERROR_MEMORY_UNKNOWN, 0);
+        return;
+    }
+    rocket_data_copy(p);
+    if (FT_send_data(p) == false) {
         errors_add(ERROR_TYPE_MCB, ERROR_MCB_FLASH_QUEUE_ADD, 0);
     }
+    free(p);
 }
 
 static void on_ignition_timer(void *arg) {
-    cmd_message_t mess = cmd_create_message(0x88, 0x00);
+    cmd_message_t mess = cmd_create_message(TANWA_FIRE, 0x00);
     ENA_send(&esp_now_tanwa, mess.raw, sizeof(mess.raw), 3);
 }
 
 static void on_liftoff_timer(void *arg) {
-    if (SM_change_state(FLIGHT) != SM_OK) {
+    if (SM_change_state(LIFT_OFF) != SM_OK) {
         errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 100);
     }
 }
@@ -67,10 +80,23 @@ static void connected_dev(void *arg) {
 }
 
 static void debug_data(void *arg) {
-    char buffer[512];
-    rocket_data_t rocket_data = rocket_data_get();
-    pysd_create_sd_frame(buffer, sizeof(buffer), rocket_data, false);
+    const size_t buf_sz = 2048;
+    char *buffer = malloc(buf_sz);
+    if (buffer == NULL) {
+        errors_add(ERROR_TYPE_MEMORY, ERROR_MEMORY_UNKNOWN, 0);
+        return;
+    }
+    rocket_data_t *p = malloc(sizeof(rocket_data_t));
+    if (p == NULL) {
+        free(buffer);
+        errors_add(ERROR_TYPE_MEMORY, ERROR_MEMORY_UNKNOWN, 0);
+        return;
+    }
+    rocket_data_copy(p);
+    pysd_create_sd_frame(buffer, buf_sz, *p, true);
     ESP_LOGD(TAG, "%s", buffer);
+    free(p);
+    free(buffer);
 }
 
 bool initialize_timers(void) {

@@ -106,7 +106,7 @@ static void on_countdown(void *arg) {
 
 
     Settings settings = settings_get_all();
-    if (hybrid_mission_timer_start(settings.countdownTime, settings.ignitTime) == false) {
+    if (liquid_mission_timer_start(settings.countdownTime, settings.ignitTime) == false) {
         ESP_LOGE(TAG, "Mission timer error");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_DISCONNECT_TIMER, 100);
         goto abort_countdown;
@@ -137,7 +137,7 @@ static void lift_off_process(void *data_buffer) {
     static uint8_t liftoff_counter = 0;
     sensors_data_t *data = (sensors_data_t *)data_buffer;
 
-    if (data->altitude > 5.0f && data->velocity > 1.0f) {
+    if (data->altitude > 10.0f) {
         liftoff_counter += 1;
     } else {
         liftoff_counter = 0;
@@ -169,7 +169,7 @@ static void burn_process(void *data_buffer) {
     static uint8_t burn_counter = 0;
     sensors_data_t *data = (sensors_data_t *)data_buffer;
 
-    if (data->altitude > 50.0f && data->acc_vertical < -3.0f) {
+    if (data->altitude > 50.0f && data->acc_vertical < -8.5f) {
         burn_counter += 1;
     } else {
         burn_counter = 0;
@@ -317,7 +317,7 @@ static void close_valves_on_lift_off(void) {
 static void on_hold(void *arg) {
     ESP_LOGI(TAG, "ON HOLD");
 
-    if (hybrid_mission_timer_stop() == false) {
+    if (liquid_mission_timer_stop() == false) {
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_MISSION_TIMER, 100);
         ESP_LOGE(TAG, "Unable to stop mission timer");
     }
@@ -340,7 +340,7 @@ static void on_abort(void *arg) {
 
     state_id current_state = SM_get_current_state();
 
-    if (hybrid_mission_timer_stop() == false) {
+    if (liquid_mission_timer_stop() == false) {
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_MISSION_TIMER, 100);
         ESP_LOGE(TAG, "Unable to stop mission timer");
     }
@@ -350,7 +350,7 @@ static void on_abort(void *arg) {
     }
 
     if(current_state == LIFT_OFF) {
-        ESP_LOGI(TAG, "Abort during LIFT_OFF - changing to ON_GROUND");
+        ESP_LOGI(TAG, "Abort during LIFT_OFF");
 
         //in case of not lifting off close vents
         close_valves_on_lift_off();

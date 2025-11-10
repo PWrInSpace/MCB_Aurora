@@ -12,7 +12,7 @@
 bool mcb_update_struct(mcb_data_t *mcb) {
     mcb->state = SM_get_current_state();
     mcb->uptime = get_uptime_ms();
-    mcb->flight_time = hybrid_mission_timer_get_time();
+    mcb->flight_time = liquid_mission_timer_get_time();
     mcb->battery_voltage = vbat_read();
 
     uint64_t dc_timer_expire = 0;
@@ -33,6 +33,7 @@ bool mcb_update_struct(mcb_data_t *mcb) {
     mcb->acc_x = sensors_data.acc_x;
     mcb->acc_y = sensors_data.acc_y;
     mcb->acc_z = sensors_data.acc_z;
+    mcb->acc_vertical = sensors_data.acc_vertical;
     mcb->gyr_x = sensors_data.gyr_x;
     mcb->gyr_y = sensors_data.gyr_y;
     mcb->gyr_z = sensors_data.gyr_z;

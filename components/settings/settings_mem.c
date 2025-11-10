@@ -13,8 +13,8 @@ static nvs_handle_t settings_handle;
 void settings_init_default() {
     settings.countdownTime = -30000;
     settings.ignitTime = -15000;
-    settings.lora_transmit_ms = 1800;
-    settings.loraFreq_KHz = 915000;
+    settings.lora_transmit_ms = 500;
+    settings.loraFreq_KHz = 869525;
     settings.flash_on = 0;
     settings.buzzer_on = 0;
 

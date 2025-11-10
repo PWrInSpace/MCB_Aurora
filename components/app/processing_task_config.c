@@ -71,10 +71,11 @@ static void sensors_read_data(void *data_buffer) {
     float roll_rad = data->roll * (M_PI / 180.0f);
     float pitch_rad = data->pitch * (M_PI / 180.0f);
     
-    // Transformacja do układu ziemskiego używając kątów z Madgwicka
-    data->acc_vertical = acc.z * cosf(roll_rad) * cosf(pitch_rad) + 
-                        acc.x * sinf(pitch_rad) + 
-                        acc.y * sinf(roll_rad) * cosf(pitch_rad);
+    float acc_earth_z = -acc.x * sinf(pitch_rad) + 
+                                acc.y * sinf(roll_rad) * cosf(pitch_rad) + 
+                                acc.z * cosf(roll_rad) * cosf(pitch_rad);
+
+    data->acc_vertical = acc_earth_z;
 }
 
 

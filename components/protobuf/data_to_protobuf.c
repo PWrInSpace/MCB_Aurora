@@ -5,127 +5,294 @@
 #include "esp_log.h"
 #include "settings_mem.h"
 
+#include "math.h"
+
 #define TAG "PBF"
 
-void create_porotobuf_data_frame(LoRaFrame *frame) {
+void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     rocket_data_t data = rocket_data_get();
-    lo_ra_frame__init(frame);   // fill struct with 0
     error_data_t errors[MAX_NUMBER_OF_ERRORS];
     if (errors_get_all(errors, sizeof(errors)) == false) {
-        ESP_LOGI(TAG, "Unable to get errrors");
+        ESP_LOGI(TAG, "Unable to get errors");
     }
 
     // mcb
-    frame->obc_state = data.mcb.state;
-    frame->dc_time = data.mcb.disconnect_timer;
-    frame->flight_time = data.mcb.flight_time;
-    frame->mcb_battery = data.mcb.battery_voltage;
-    frame->gps_lat = data.mcb.latitude;
-    frame->gps_long = data.mcb.longitude;
-    frame->gps_sat = data.mcb.satelites_in_view;
+    frame->stan_mcb.is_present = true;
+    frame->stan_mcb.value = data.mcb.state;
 
-    frame->mcb_altitude = data.mcb.altitude;
-    frame->mcb_velocity = data.mcb.velocity;
-    frame->mcb_temperature = data.mcb.temperature;
-    frame->euler_psi = data.mcb.pitch;
-    frame->euler_theta = data.mcb.roll;
-    frame->euler_fi = data.mcb.yaw;
+    frame->uptime_disconnect_timer.is_present = true;
+    frame->uptime_disconnect_timer.value = (uint32_t) data.mcb.disconnect_timer;
 
-    // recovery
-    frame->recov_pressure_1 = data.recovery.pressure1;
-    frame->recov_pressure_2 = 0;
+    frame->czas_lotu.is_present = true;
+    frame->czas_lotu.value = (int32_t) data.mcb.flight_time;
 
-    frame->recov_byte_data |= (data.recovery.isArmed << 0);
-    frame->recov_byte_data |= (data.recovery.isTeleActive << 1);
-    frame->recov_byte_data |= (data.recovery.easyMiniFirstStage << 2);
-    frame->recov_byte_data |= (data.recovery.easyMiniSecondStage << 3);
-    frame->recov_byte_data |= (data.recovery.telemetrumFirstStage << 4);
-    frame->recov_byte_data |= (data.recovery.telemetrumSecondStage<< 5);
-    frame->recov_byte_data |= (data.recovery.firstStageDone << 6);
-    frame->recov_byte_data |= (data.recovery.secondStageDone << 7);
+    frame->mcb_batt.is_present = true;
+    frame->mcb_batt.value = data.mcb.battery_voltage;
 
-    frame->recov_byte_data |= (data.recovery.firstStageContinouity << 8);
-    frame->recov_byte_data |= (data.recovery.secondStageContinouity << 9);
-    frame->recov_byte_data |= (data.recovery.separationSwitch1 << 10);
-    frame->recov_byte_data |= (data.recovery.separationSwitch2 << 11);
+    frame->gps_lat.is_present = true;
+    frame->gps_lat.value = data.mcb.latitude;
+
+    frame->gps_long.is_present = true;
+    frame->gps_long.value = data.mcb.longitude;
+
+    // gps_sat in proto is a bool — set true if number of satellites > 0
+    frame->gps_sat.is_present = true;
+    frame->gps_sat.value = (data.mcb.satelites_in_view > 0);
+
+    frame->altitude.is_present = true;
+    frame->altitude.value = (int32_t) data.mcb.altitude;
+
+    frame->velocity.is_present = true;
+    frame->velocity.value = (int32_t) data.mcb.velocity;
+
+    frame->mcb_temperature.is_present = true;
+    frame->mcb_temperature.value = (int32_t) data.mcb.temperature;
+
+    frame->euler_psi.is_present = true;
+    frame->euler_psi.value = data.mcb.pitch;
+
+    frame->euler_theta.is_present = true;
+    frame->euler_theta.value = data.mcb.roll;
+
+    frame->euler_fi.is_present = true;
+    frame->euler_fi.value = data.mcb.yaw;
+
+    // recovery - pack various boolean fields into a single fixed32 recovery_flags
+    {
+        uint32_t recovery_flags = 0;
+        recovery_flags |= (data.recovery.separationSwitch1    ? (1u << 0) : 0u);
+        recovery_flags |= (data.recovery.separationSwitch2    ? (1u << 1) : 0u);
+        recovery_flags |= (data.recovery.firstStageDone        ? (1u << 2) : 0u);
+        recovery_flags |= (data.recovery.secondStageDone       ? (1u << 3) : 0u);
+        recovery_flags |= (data.recovery.telemetrumFirstStage  ? (1u << 4) : 0u);
+        recovery_flags |= (data.recovery.telemetrumSecondStage ? (1u << 5) : 0u);
+        recovery_flags |= (data.recovery.easyMiniFirstStage    ? (1u << 6) : 0u);
+        recovery_flags |= (data.recovery.easyMiniSecondStage   ? (1u << 7) : 0u);
+        recovery_flags |= (data.recovery.isTeleActive          ? (1u << 8) : 0u);
+        recovery_flags |= (data.recovery.isArmed               ? (1u << 9) : 0u);
+        //ESP_LOGI(TAG, "arm status: %d", data.recovery.isArmed);
+        //ESP_LOGI(TAG, "telemetry status: %d", data.recovery.isTeleActive);
+        frame->recovery_flags.is_present = true;
+        frame->recovery_flags.value = recovery_flags;
+    }
 
     // pitot
-    frame->pitot_battery = data.pitot.vbat;
-    frame->pitot_altitude = data.pitot.alt;
-    frame->pitot_velocity = data.pitot.speed;
-    frame->pitot_temperature = data.pitot.temperature;
+    frame->pitot_bateria.is_present = true;
+    frame->pitot_bateria.value = data.pitot.vbat;
+
+    frame->pitot_wysokosc.is_present = true;
+    frame->pitot_wysokosc.value = (int32_t) data.pitot.alt;
+
+    frame->pitot_predkosc.is_present = true;
+    frame->pitot_predkosc.value = (int32_t) data.pitot.speed;
+
+    frame->pitot_temperatura.is_present = true;
+    frame->pitot_temperatura.value = (int32_t) data.pitot.temperature;
+
+    uint32_t valve_states_bitfield = 0;
+    valve_states_bitfield |= (data.ox_main_valve.valve_1_state == 1 ? (1u << 0) : 0u);
+    valve_states_bitfield |= (data.main_valves.valve_1_state == 1 ? (1u << 1) : 0u);
+    valve_states_bitfield |= (data.main_valves.valve_2_state == 1 ? (1u << 2) : 0u);
+    valve_states_bitfield |= (data.tanwa.heatingTankState == 1 ? (1u << 3) : 0u);
+    valve_states_bitfield |= (data.eth_vent_valve.valve_1_state == 1 ? (1u << 4) : 0u);
+    valve_states_bitfield |= (data.vent_valves.valve_2_state == 1 ? (1u << 5) : 0u);
+
+    frame->main_vent_flags.is_present = true;
+    frame->main_vent_flags.value = valve_states_bitfield;
 
     // main valve
-    frame->mval_battery = data.main_valves.battery_voltage;
+    // mval bit data mapping not present in proto; skipping
 
-    //frame->mval_byte_data |= data.main_valves.valve_state;
-    //frame->mval_byte_data |= (data.vent_valves.thermistor1 << 8);
-    //frame->mval_byte_data |= (data.vent_valves.thermistor2 << 16);
+    // Pack valve bit-data fields using lowest-index sensors as requested:
+    // Byte layout: [temp1 (8b)] [pressure1 high byte (8b)] [pressure2 high byte (8b)] [battery scaled (8b)]
 
-    // vent valve
-    frame->vent_battery = data.vent_valves.battery_voltage;
-    //frame->tank_pressure = data.vent_valves.tank_pressure;
+    // eth vent valve bit data (uses eth_vent_valve struct)
+    {
+        uint32_t v = 0;
+        uint8_t temp_b = (uint8_t) (fminf(255.0f, roundf(data.eth_vent_valve.temperature_1)));
+        uint16_t press_temp = (uint16_t) (fmax(data.eth_vent_valve.pressure_1, 0) * 100);
+        uint8_t pres1_b = (uint8_t) ((press_temp >> 8) & 0xFF);
+        uint8_t pres2_b = (uint8_t) ((press_temp) & 0xFF);
+        uint8_t batt_b = (uint8_t) (fminf(255.0f, data.eth_vent_valve.battery_voltage * 10.0f));
+        v |= ((uint32_t)temp_b << 24);
+        v |= ((uint32_t)pres1_b << 16);
+        v |= ((uint32_t)pres2_b << 8);
+        v |= ((uint32_t)batt_b << 0);
+        frame->eth_vent_bit_data.is_present = true;
+        frame->eth_vent_bit_data.value = v;
+    }
 
-    //frame->vent_byte_data |= data.vent_valves.valve_state;
+    // oxi main valve bit data (uses ox_main_valve struct)
+    {
+        uint32_t v = 0;
+        uint8_t temp_b = (uint8_t) (fminf(255.0f, roundf(data.ox_main_valve.temperature_1)));
+        uint16_t press_temp = (uint16_t) (fmax(data.ox_main_valve.pressure_1, 0) * 100);
+        uint8_t pres1_b = (uint8_t) ((press_temp >> 8) & 0xFF);
+        uint8_t pres2_b = (uint8_t) ((press_temp) & 0xFF);
+        uint8_t batt_b = (uint8_t) (fminf(255.0f, data.ox_main_valve.battery_voltage * 10.0f));
+        v |= ((uint32_t)temp_b << 24);
+        v |= ((uint32_t)pres1_b << 16);
+        v |= ((uint32_t)pres2_b << 8);
+        v |= ((uint32_t)batt_b << 0);
+        frame->oxi_main_bit_data.is_present = true;
+        frame->oxi_main_bit_data.value = v;
+    }
 
-    // tanwa
-    frame->tanwa_battery = data.tanwa.vbat;
-    frame->tanwa_state = data.tanwa.tanWaState;
-    frame->rocket_weight = data.tanwa.rocketWeight_val;
-    frame->tank_weight = data.tanwa.tankWeight_val;
-    frame->fill_temperature = data.tanwa.fill_temp;
-    frame->pre_fill_pressure = data.tanwa.preFill_pres;
-    frame->post_fill_pressure = data.tanwa.postFill_pres;
-    frame->tanwa_tank_pressure = data.tanwa.tank_pres;
+    // oxi + n2 vents bit data (uses vent_valves struct for N2 vents)
+    {
+        uint32_t v = 0;
+        uint8_t temp_b = (uint8_t) (fminf(255.0f, roundf(data.vent_valves.temperature_1)));
+        uint16_t press_temp = (uint16_t) (fmax(data.vent_valves.pressure_1, 0) * 100);
+        uint8_t pres1_b = (uint8_t) ((press_temp >> 8) & 0xFF);
+        uint8_t pres2_b = (uint8_t) ((press_temp) & 0xFF);
+        uint8_t batt_b = (uint8_t) (fminf(255.0f, data.vent_valves.battery_voltage * 10.0f));
+        v |= ((uint32_t)temp_b << 24);
+        v |= ((uint32_t)pres1_b << 16);
+        v |= ((uint32_t)pres2_b << 8);
+        v |= ((uint32_t)batt_b << 0);
+        frame->oxi_n2_vent_bit_data.is_present = true;
+        frame->oxi_n2_vent_bit_data.value = v;
+    }
 
-    frame->tanwa_byte_data |= data.tanwa.canHxRck_con;
-    frame->tanwa_byte_data |= (data.tanwa.canHxBtl_con << 1);
-    frame->tanwa_byte_data |= (data.tanwa.canFac_con << 2);
-    frame->tanwa_byte_data |= (data.tanwa.canFlc_con << 3);
-    frame->tanwa_byte_data |= (data.tanwa.canTermo_con << 4);
-    frame->tanwa_byte_data |= (data.tanwa.igniterContinouity_1 << 8);
-    frame->tanwa_byte_data |= (data.tanwa.igniterContinouity_2 << 9);
-    frame->tanwa_byte_data |= (data.tanwa.limitSwitch_1 << 10);
-    frame->tanwa_byte_data |= (data.tanwa.limitSwitch_2 << 11);
-    frame->tanwa_byte_data |= (data.tanwa.fillState << 16);
-    frame->tanwa_byte_data |= (data.tanwa.deprState << 17);
-    frame->tanwa_byte_data |= (data.tanwa.facMotorState_1 << 18);
-    frame->tanwa_byte_data |= (data.tanwa.facMotorState_2 << 20);
-    frame->tanwa_byte_data |= (data.tanwa.heatingState << 22);
-    frame->tanwa_byte_data |= (data.tanwa.coolingState << 23);
-    frame->tanwa_byte_data |= (data.tanwa.abortButton << 24);
+    // eth + n2 mains bit data (uses main_valves struct for N2 mains)
+    {
+        uint32_t v = 0;
+        uint8_t temp_b = (uint8_t) (fminf(255.0f, roundf(data.main_valves.temperature_1)));
+        uint16_t press_temp = (uint16_t) (fmax(data.main_valves.pressure_1, 0) * 100);
+        uint8_t pres1_b = (uint8_t) ((press_temp >> 8) & 0xFF);
+        uint8_t pres2_b = (uint8_t) ((press_temp) & 0xFF);
+        uint8_t batt_b = (uint8_t) (fminf(255.0f, data.main_valves.battery_voltage * 10.0f));
+        v |= ((uint32_t)temp_b << 24);
+        v |= ((uint32_t)pres1_b << 16);
+        v |= ((uint32_t)pres2_b << 8);
+        v |= ((uint32_t)batt_b << 0);
+        frame->eth_n2_main_bit_data.is_present = true;
+        frame->eth_n2_main_bit_data.value = v;
+    }
+
+    // tanwa - map explicit fields from tanwa_data_t
+    frame->tanwa_bateria.is_present = true;
+    frame->tanwa_bateria.value = data.tanwa.vbat;
+
+    frame->tanwa_state.is_present = true;
+    frame->tanwa_state.value = data.tanwa.tanWaState;
+
+    frame->tanwa_thrust.is_present = true;
+    frame->tanwa_thrust.value = data.tanwa.thrust_val;
+
+    frame->tanwa_tank_weight.is_present = true;
+    frame->tanwa_tank_weight.value = data.tanwa.tankWeight_val;
+
+    frame->tanwa_temperature_post_n2_o_fill.is_present = true;
+    frame->tanwa_temperature_post_n2_o_fill.value = data.tanwa.temperature_postFill;
+
+    frame->tanwa_temperature_filling_wall.is_present = true;
+    frame->tanwa_temperature_filling_wall.value = data.tanwa.temperature_Wall;
+
+    frame->tanwa_post_fill_n2_o_pres.is_present = true;
+    frame->tanwa_post_fill_n2_o_pres.value = (float) data.tanwa.postFillN2O_pres;
+
+    frame->tanwa_cutoff_n2_o_pres.is_present = true;
+    frame->tanwa_cutoff_n2_o_pres.value = (float) data.tanwa.cutoffN2O_pres;
+
+    frame->tanwa_droid_n2_o_press.is_present = true;
+    frame->tanwa_droid_n2_o_press.value = (float) data.tanwa.droidN2O_press;
+
+    frame->tanwa_pre_regulator_n2_pres.is_present = true;
+    frame->tanwa_pre_regulator_n2_pres.value = (float) data.tanwa.preRegulatorN2_pres;
+
+    frame->tanwa_post_regulator_n2_pres.is_present = true;
+    frame->tanwa_post_regulator_n2_pres.value = (float) data.tanwa.postRegulatorN2_pres;
+
+    frame->tanwa_post_fill_n2_pres.is_present = true;
+    frame->tanwa_post_fill_n2_pres.value = (float) data.tanwa.postFillN2_pres;
+
+    frame->tanwa_droid_n2_press.is_present = true;
+    frame->tanwa_droid_n2_press.value = (float) data.tanwa.droidN2_press;
+
+    frame->tanwa_comb_chamber_pres.is_present = true;
+    frame->tanwa_comb_chamber_pres.value = (float) data.tanwa.combChamber_pres;
+
+    // tanwa flags - pack many boolean status bits into a single fixed32 tanwa_flags
+    {
+        uint32_t tanwa_flags = 0;
+        tanwa_flags |= (data.tanwa.canWeights_con       ? (1u << 0) : 0u); // CAN_Weights_connection
+        tanwa_flags |= (data.tanwa.canUtility_con       ? (1u << 1) : 0u); // CAN_Utility_connection
+        tanwa_flags |= (data.tanwa.canSensor_con        ? (1u << 2) : 0u); // CAN_Sensor_connection
+        tanwa_flags |= (data.tanwa.canPower_con         ? (1u << 3) : 0u); // CAN_Power_connection
+        tanwa_flags |= (data.tanwa.canSolenoid_con      ? (1u << 4) : 0u); // CAN_Solenoid_connection
+        tanwa_flags |= (data.tanwa.igniterContinouity_1 ? (1u << 5) : 0u); // igniter_1_continuity
+        tanwa_flags |= (data.tanwa.igniterContinouity_2 ? (1u << 6) : 0u); // igniter_2_continuity
+        tanwa_flags |= (data.tanwa.soft_arm              ? (1u << 7) : 0u); // soft_arm
+        tanwa_flags |= (data.tanwa.abortButton           ? (1u << 8) : 0u); // abort_button
+        tanwa_flags |= (data.tanwa.fillN2OState         ? (1u << 9) : 0u);
+        tanwa_flags |= (data.tanwa.deprN2OState         ? (1u << 10) : 0u);
+        tanwa_flags |= (data.tanwa.fillN2State          ? (1u << 11) : 0u);
+        tanwa_flags |= (data.tanwa.deprN2State          ? (1u << 12) : 0u);
+        tanwa_flags |= (data.tanwa.droidN2OState        ? (1u << 13) : 0u);
+        tanwa_flags |= (data.tanwa.droidN2State         ? (1u << 14) : 0u);
+        tanwa_flags |= (data.tanwa.heatingTankState     ? (1u << 15) : 0u);
+        tanwa_flags |= (data.tanwa.heatingValveState    ? (1u << 16) : 0u);
+        frame->tanwa_flags.is_present = true;
+        frame->tanwa_flags.value = tanwa_flags;
+    }
     
     // payload
-    frame->payload_battery = data.payload.vbat;
+    frame->payload_bateria.is_present = true;
+    frame->payload_bateria.value = data.payload.vbat;
 
-    // esp now
-    frame->esp_now_byte_data |= (data.pitot.waken_up << 0);
-    frame->esp_now_byte_data |= (data.main_valves.waken_up << 1);
-    frame->esp_now_byte_data |= (data.vent_valves.waken_up << 2);
-    frame->esp_now_byte_data |= (data.payload.waken_up << 3);
+    // ESP-NOW connected flags (bitfield) - pack individual connection booleans
+    {
+        uint32_t conn = 0;
+        conn |= (data.connected_dev.payload    ? (1u << 0) : 0u); // payload_connected
+        conn |= (data.connected_dev.tanwa      ? (1u << 1) : 0u); // tanwa_connected
+        conn |= (data.connected_dev.eth_vent_valve ? (1u << 2) : 0u);
+        conn |= (data.connected_dev.ox_main_valve  ? (1u << 3) : 0u);
+        conn |= (data.connected_dev.vent_valves    ? (1u << 4) : 0u);
+        conn |= (data.connected_dev.main_valves    ? (1u << 5) : 0u);
+        conn |= (data.connected_dev.pitot          ? (1u << 6) : 0u);
+        frame->espnow_connected_flags.is_present = true;
+        frame->espnow_connected_flags.value = conn;
+    }
 
-    frame->esp_now_byte_data |= (data.connected_dev.pitot << 16);
-    frame->esp_now_byte_data |= (data.connected_dev.main_valves << 17);
-    frame->esp_now_byte_data |= (data.connected_dev.vent_valves << 18);
-    frame->esp_now_byte_data |= (data.connected_dev.tanwa << 19);
-    frame->esp_now_byte_data |= (data.connected_dev.payload << 20);
+    // ESP-NOW wakeup flags (bitfield) - pack waken_up booleans
+    {
+        uint32_t wk = 0;
+        wk |= (data.payload.waken_up           ? (1u << 0) : 0u);
+        wk |= (data.eth_vent_valve.waken_up   ? (1u << 1) : 0u);
+        wk |= (data.ox_main_valve.waken_up    ? (1u << 2) : 0u);
+        wk |= (data.vent_valves.waken_up      ? (1u << 3) : 0u);
+        wk |= (data.main_valves.waken_up      ? (1u << 4) : 0u);
+        wk |= (data.pitot.waken_up            ? (1u << 5) : 0u);
+        frame->espnow_wkup_flags.is_present = true;
+        frame->espnow_wkup_flags.value = wk;
+    }
 
 
-    // errors
-    frame->errors |= errors[ERROR_TYPE_LAST_EXCEPTION];
-    frame->errors |= (errors[ERROR_TYPE_RECOVERY] << 8);
-    frame->errors |= (errors[ERROR_TYPE_ESP_NOW] << 12);
-    frame->errors |= (errors[ERROR_TYPE_MEMORY] << 16);
-    frame->errors |= (errors[ERROR_TYPE_MCB] << 24);
-    frame->errors |= (errors[ERROR_TYPE_SENSORS] << 28);
+    // errors - pack into single uint32 value as before
+    frame->errors.is_present = true;
+    frame->errors.value = 0;
+    frame->errors.value |= errors[ERROR_TYPE_LAST_EXCEPTION];
+    frame->errors.value |= (errors[ERROR_TYPE_RECOVERY] << 8);
+    frame->errors.value |= (errors[ERROR_TYPE_ESP_NOW] << 12);
+    frame->errors.value |= (errors[ERROR_TYPE_MEMORY] << 16);
+    frame->errors.value |= (errors[ERROR_TYPE_MCB] << 24);
+    frame->errors.value |= (errors[ERROR_TYPE_SENSORS] << 28);
 }
 
-void create_protobuf_settings_frame(LoRaSettings *frame) {
+void create_protobuf_settings_frame(struct obc_lo_ra_settings_t *frame) {
     Settings settings = settings_get_all();
-    frame->countdown_time = settings.countdownTime;
-    frame->ingition_time = settings.ignitTime;
-    frame->lora_freq_khz = settings.loraFreq_KHz;
-    frame->lora_transmit_ms = settings.lora_transmit_ms;
-    frame->buzzer_enable = settings.buzzer_on;
-    frame->flash_enable = settings.flash_on;
+    frame->countdown_time.value = settings.countdownTime;
+    frame->ingition_time.value = settings.ignitTime;
+    frame->lora_freq_khz.value = settings.loraFreq_KHz;
+    frame->lora_transmit_ms.value = settings.lora_transmit_ms;
+    frame->buzzer_enable.value = settings.buzzer_on;
+    frame->flash_enable.value = settings.flash_on;
+
+    frame->countdown_time.is_present = true;
+    frame->ingition_time.is_present = true;
+    frame->lora_freq_khz.is_present = true;
+    frame->lora_transmit_ms.is_present = true;
+    frame->buzzer_enable.is_present = true;
+    frame->flash_enable.is_present = true;
 }

@@ -22,20 +22,43 @@
 // MCB
 static bool state_change_check_countdown(void) {
     recovery_data_t data = rocket_data_get_recovery();
-    if (data.isArmed == false || data.isTeleActive == false) {
+    tanwa_data_t tanwa = rocket_data_get_tanwa();
+    if (data.isArmed == false || data.isTeleActive == false || tanwa.soft_arm == false) {
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_NOT_ARMED, 100);
         return false;
     }
 
-    if (rocket_data_woken_up() == false) {
-        ESP_LOGE(TAG, "On or more devices are sleeping");
-        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_WAKE_UP, 100);
-        return false;
-    }
+    // if (rocket_data_woken_up() == false) {
+    //     ESP_LOGE(TAG, "On or more devices are sleeping");
+    //     errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_WAKE_UP, 100);
+    //     return false;
+    // }
 
     return true;
 }
 
+static void send_command_esp_now(const ENA_device_t *dev, uint32_t command, int32_t payload) {
+    cmd_message_t mess = cmd_create_message(command, payload);
+    if (ENA_send(dev, mess.raw, sizeof(mess), 3) != ESP_OK) {
+        ESP_LOGI(TAG, "Unable to send command %d, %d", command, payload);
+        return;
+    }
+}
+
+static void tanwa_process_command(uint32_t command, int32_t payload, bool privilage) {
+    if(command == N2O_SOL_OPEN){
+        ESP_LOGI(TAG, "Sending N2O_SOL_OPEN command to TANWA with payload %d", payload);
+        send_command_esp_now(&esp_now_tanwa, 0x70, payload); // Open N2O valve
+        return;
+    }
+    
+    if(command == N2O_SOL_CLOSE){
+        ESP_LOGI(TAG, "Sending N2O_SOL_CLOSE command to TANWA with payload %d", payload);
+        send_command_esp_now(&esp_now_tanwa, 0x71, payload); // Close N2O valve
+        return;
+    }
+    send_command_esp_now(&esp_now_tanwa, command, payload);
+}
 
 static void mcb_state_change(uint32_t command, int32_t payload, bool privilage) {
     ESP_LOGI(TAG, "Changing state to -> %d", payload);
@@ -159,7 +182,7 @@ static void mcb_change_countdown_time(uint32_t command, int32_t payload, bool pr
     settings_read_all();
     settings = settings_get_all();
 
-    hybrid_mission_timer_set_disable_val(settings.countdownTime);
+    liquid_mission_timer_set_disable_val(settings.countdownTime);
 }
 
 static void mcb_change_ignition_time(uint32_t command, int32_t payload, bool privilage) {
@@ -258,11 +281,13 @@ static cmd_command_t mcb_commands[] = {
 };
 
 // RECOVERY
-static void send_command_recovery(uint32_t command, int32_t payload, bool privilage) {
-    if (privilage == false) {
-        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
-        return;
-    }
+static void send_comm
+
+    send_command_esp_now(&esp_now_ox_main_valve, command, payload);
+}
+
+static cmd_command_t main_valves_commands[] = {
+    {ETH_VALVE_CLOSE,           mvand_recovery(uint32_t command, int32_t payload, bool privilage) {
 
     if (recovery_send_cmd(command, payload) == false) {
         errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
@@ -308,74 +333,80 @@ static cmd_command_t recovery_commands[] = {
 
 
 // MAIN VALVE
-static void send_command_esp_now(const ENA_device_t *dev, uint32_t command, int32_t payload) {
-    cmd_message_t mess = cmd_create_message(command, payload);
-    if (ENA_send(dev, mess.raw, sizeof(mess), 3) != ESP_OK) {
-        ESP_LOGI(TAG, "Unable to send command %d, %d", command, payload);
-        return;
-    }
+
+
+    send_command_esp_now(&esp_now_ox_main_valve, command, payload);
 }
+
+static cmd_command_t main_valves_commands[] = {
+    {ETH_VALVE_CLOSE,           mv
 
 
 static void mval_eth_valve_close(uint32_t command, int32_t payload, bool privilage) {
-    if (privilage == false) {
-        return;
-    }
+    // if (privilage == false) {
+    //     return;
+    // }
 
-    state_id state = SM_get_current_state();
-    if (state > RDY_TO_LAUNCH && state < HOLD) {
-        return;
-    }
+    // state_id state = SM_get_current_state();
+    // if (state > RDY_TO_LAUNCH && state < HOLD) {
+    //     return;
+    // }
 
     send_command_esp_now(&esp_now_main_valves, command, payload);
 }
 
 static void mval_eth_valve_open(uint32_t command, int32_t payload, bool privilage) {
-    if (privilage == false) {
-        return;
-    }
+    // if (privilage == false) {
+    //     return;
+    // }
 
     send_command_esp_now(&esp_now_main_valves, command, payload);
 }
 
 static void mval_n2_valve_close(uint32_t command, int32_t payload, bool privilage) {
-    if (privilage == false) {
-        return;
-    }
+    // if (privilage == false) {
+    //     return;
+    // }
 
+
+    send_command_esp_now(&esp_now_ox_main_valve, command, payload);
+}
+
+static cmd_command_t main_valves_commands[] = {
+    {ETH_VALVE_CLOSE,           mv
     state_id state = SM_get_current_state();
-    if (state > RDY_TO_LAUNCH && state < HOLD) {
-        return;
-    }
+    // if (state > RDY_TO_LAUNCH && state < HOLD) {
+    //     return;
+    // }
 
     send_command_esp_now(&esp_now_main_valves, command, payload);
 }
 
 static void mval_n2_valve_open(uint32_t command, int32_t payload, bool privilage) {
-    if (privilage == false) {
-        return;
-    }
+    // if (privilage == false) {
+    //     return;
+    // }
 
     send_command_esp_now(&esp_now_main_valves, command, payload);
 }
 
 static void mval_n2o_valve_close(uint32_t command, int32_t payload, bool privilage) {
-    if (privilage == false) {
-        return;
-    }
+    // if (privilage == false) {
+    //     return;
+    // }
 
-    state_id state = SM_get_current_state();
-    if (state > RDY_TO_LAUNCH && state < HOLD) {
-        return;
-    }
+    //state_id state = SM_get_current_state();
+    // if (state > RDY_TO_LAUNCH && state < HOLD) {
+    //     return;
+    // }
 
     send_command_esp_now(&esp_now_ox_main_valve, command, payload);
 }
 
 static void mval_n2o_valve_open(uint32_t command, int32_t payload, bool privilage) {
-    if (privilage == false) {
-        return;
-    }
+    // if (privilage == false) {
+    //     return;
+    // }
 
     send_command_esp_now(&esp_now_ox_main_valve, command, payload);
 }
@@ -395,56 +426,58 @@ static cmd_command_t ox_main_valve_commands[] = {
 // VENT VALVE
 
 static void vval_n2o_sol_close(uint32_t command, int32_t payload, bool privilage) {
-    if (privilage == false) {
-        return;
-    }
+    // if (privilage == false) {
+    //     return;
+    // }
 
+    send_command_esp_now(&esp_now_tanwa, 0x71, payload);
     send_command_esp_now(&esp_now_vent_valves, command, payload);
 }
 
 static void vval_n2o_sol_open(uint32_t command, int32_t payload, bool privilage) {
-    if (privilage == false) {
-        return;
-    }
+    // if (privilage == false) {
+    //     return;
+    // }
 
+    send_command_esp_now(&esp_now_tanwa, 0x70, payload);
     send_command_esp_now(&esp_now_vent_valves, command, payload);
 }
 
 static void vval_n2_sol_close(uint32_t command, int32_t payload, bool privilage) {
-    if (privilage == false) {
-        return;
-    }
+    // if (privilage == false) {
+    //     return;
+    // }
 
     send_command_esp_now(&esp_now_vent_valves, command, payload);
 }
 
 static void vval_n2_sol_open(uint32_t command, int32_t payload, bool privilage) {
-    if (privilage == false) {
-        return;
-    }
+    // if (privilage == false) {
+    //     return;
+    // }
 
     send_command_esp_now(&esp_now_vent_valves, command, payload);
 }
 
 static void eval_eth_sol_close(uint32_t command, int32_t payload, bool privilage) {
-    if (privilage == false) {
-        return;
-    }
+    // if (privilage == false) {
+    //     return;
+    // }
 
     send_command_esp_now(&esp_now_eth_vent_valve, command, payload);
 }
 
 static void eval_eth_sol_open(uint32_t command, int32_t payload, bool privilage) {
-    if (privilage == false) {
-        return;
-    }
+    // if (privilage == false) {
+    //     return;
+    // }
 
     send_command_esp_now(&esp_now_eth_vent_valve, command, payload);
 }
 
 static cmd_command_t vent_valves_commands[] = {
-    {N2O_SOL_CLOSE,             vval_n2o_sol_close      },
-    {N2O_SOL_OPEN,              vval_n2o_sol_open       },
+    {N2O_SOL_CLOSE,             vval_n2o_sol_close},
+    {N2O_SOL_OPEN,              vval_n2o_sol_open },
     {N2_SOL_CLOSE,              vval_n2_sol_close       },
     {N2_SOL_OPEN,               vval_n2_sol_open        },
 };
@@ -454,32 +487,45 @@ static cmd_command_t eth_vent_valve_commands[] = {
     {ETH_SOL_OPEN,       eval_eth_sol_open       },
 };
 
-static void tanwa_process_command(uint32_t command, int32_t payload, bool privilage) {
-    send_command_esp_now(&esp_now_tanwa, command, payload);
-}
+
 
 static cmd_command_t tanwa_commands[] = {
-    {TANWA_FILL,                tanwa_process_command},
-    {TANWA_FILL_TIME,           tanwa_process_command},
-    {TANWA_DEPR,                tanwa_process_command},
-    {TANWA_QD,                  tanwa_process_command},
-    {TANWA_QD_2,                tanwa_process_command},
-    {TANWA_RESTART_ESP_RCK,     tanwa_process_command},
-    {TANWA_RESTART_ESP_BTL,     tanwa_process_command},
-    {TANWA_SOFT_RESTART_ESP,    tanwa_process_command},
-    {TANWA_SOFT_RESTART_STM,    tanwa_process_command},
-    {TANWA_CALIBRATE_RCK,       tanwa_process_command},
-    {TANWA_TARE_RCK,            tanwa_process_command},
-    {TANWA_SET_CAL_FACTOR_RCK,  tanwa_process_command},
-    {TANWA_SET_OFFSET_RCK,      tanwa_process_command},
-    {TANWA_CALIBRATE_TANK,      tanwa_process_command},
-    {TANWA_TARE_TANK,           tanwa_process_command},
-    {TANWA_SET_CAL_FACTOR_TANK, tanwa_process_command},
-    {TANWA_SET_OFFSET_TANK,     tanwa_process_command},
-    {TANWA_SOFT_ARM,            tanwa_process_command},
-    {TANWA_SOFT_DISARM,         tanwa_process_command},
-    {TANWA_ITF_RCK,            tanwa_process_command},
-    {TANWA_ITF_TANK,         tanwa_process_command},
+    {TANWA_STATE_CHANGE,            tanwa_process_command},
+    {TANWA_ABORT,                   tanwa_process_command},
+    {TANWA_HOLD_IN,                 tanwa_process_command},
+    {TANWA_HOLD_OUT,                tanwa_process_command},
+    {TANWA_LORA_TRANSMIT_F,         tanwa_process_command},
+    {TANWA_LORA_TRANSMIT_T,         tanwa_process_command},
+    {TANWA_SEND_SETTINGS,           tanwa_process_command},
+    {TANWA_RESET,                   tanwa_process_command},
+    {TANWA_SOFT_ARM,                tanwa_process_command},
+    {TANWA_SOFT_DISARM,             tanwa_process_command},
+    {TANWA_RESTART_WEIGHT,          tanwa_process_command},
+    {TANWA_CALIBRATE_WEIGHT,        tanwa_process_command},
+    {TANWA_TARE_WEIGHT,             tanwa_process_command},
+    {TANWA_SET_CAL_FACTOR_WEIGHT,   tanwa_process_command},
+    {TANWA_SET_OFFSET_WEIGHT,       tanwa_process_command},
+    {TANWA_N2O_FILL_OPEN,           tanwa_process_command},
+    {TANWA_N2O_FILL_CLOSE,          tanwa_process_command},
+    {TANWA_N2O_FILL_OPEN_TIME,      tanwa_process_command},
+    {TANWA_N2O_DEPR_OPEN,           tanwa_process_command},
+    {TANWA_N2O_DEPR_CLOSE,          tanwa_process_command},
+    {TANWA_N2O_DEPR_OPEN_TIME,      tanwa_process_command},
+    {TANWA_QD_N2O_UNPLUG,           tanwa_process_command},
+    {TANWA_QD_N2O_STOP,             tanwa_process_command},
+    {TANWA_QD_N2_UNPLUG,            tanwa_process_command},
+    {TANWA_QD_N2_STOP,              tanwa_process_command},
+    {TANWA_HEATING_TANK_START,      tanwa_process_command},
+    {TANWA_HEATING_TANK_STOP,       tanwa_process_command},
+    {TANWA_HEATING_VALVE_START,     tanwa_process_command},
+    {TANWA_HEATING_VALVE_STOP,      tanwa_process_command},
+    {TANWA_N2_FILL_OPEN,            tanwa_process_command},
+    {TANWA_N2_FILL_CLOSE,           tanwa_process_command},
+    {TANWA_N2_FILL_OPEN_TIME,       tanwa_process_command},
+    {TANWA_N2_DEPR_OPEN,            tanwa_process_command},
+    {TANWA_N2_DEPR_CLOSE,           tanwa_process_command},
+    {TANWA_N2_DEPR_OPEN_TIME,       tanwa_process_command},
+    {TANWA_FIRE,                    tanwa_process_command},
 };
 
 // DEVICES

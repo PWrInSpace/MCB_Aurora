@@ -13,6 +13,7 @@
 #define TAG "LORA_C"
 
 static bool settings_frame = false;
+static uint8_t workspace[1024];
 
 void lora_send_settings_frame(void) { settings_frame = true; }
 
@@ -42,7 +43,7 @@ static uint8_t calculate_checksum(uint8_t* buffer, size_t size) {
 
 static void lora_process(uint8_t* packet, size_t packet_size) {
     if (packet_size > 40) {
-        ESP_LOGI(TAG, "Recevied packet is too big");
+        ESP_LOGE(TAG, "Recevied packet is too big");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 100);
         return;
     }
@@ -59,27 +60,26 @@ static void lora_process(uint8_t* packet, size_t packet_size) {
         return;
     }
 
-    LoRaCommand* received =
-        lo_ra_command__unpack(NULL, packet_size - prefix_size - 1, packet + prefix_size);
-    if (received != NULL) {
-        ESP_LOGI(TAG, "Received LORA_ID %d, DEV_ID %d, COMMAND %d, PLD %d", received->lora_dev_id,
-                 received->sys_dev_id, received->command, received->payload);
+       
 
-        cmd_message_t received_command = cmd_create_message(received->command, received->payload);
-        lo_ra_command__free_unpacked(received, NULL);
-        if (lora_cmd_process_command(received->lora_dev_id, received->sys_dev_id,
-                                     &received_command) == false) {
+    struct obc_lo_ra_command_t* received = obc_lo_ra_command_new(&workspace, sizeof(workspace));
+    size_t decoded_size = 0;
+    decoded_size = obc_lo_ra_command_decode(received, packet + prefix_size, packet_size - prefix_size - 1);
+    if (decoded_size > 0 && received->lora_dev_id.is_present && received->sys_dev_id.is_present &&
+        received->command.is_present && received->payload.is_present) {
+         cmd_message_t received_command = cmd_create_message(received->command.value, received->payload.value);
+        if (lora_cmd_process_command(received->lora_dev_id.value, received->sys_dev_id.value,
+                                &received_command) == false) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_COMMAND_NOT_FOUND, 200);
             ESP_LOGE(TAG, "Unable to prcess command :C");
             return;
         }
-
-        if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
-            ESP_LOGE(TAG, "Unable to restart timer");
-        }
     } else {
-        errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 200);
         ESP_LOGE(TAG, "Unable to decode received package");
+    }
+
+    if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
+        ESP_LOGE(TAG, "Unable to restart timer");
     }
 }
 
@@ -94,25 +94,47 @@ static size_t add_prefix(uint8_t* buffer, size_t size) {
 }
 
 static size_t lora_create_settings_packet(uint8_t* buffer, size_t size) {
-    LoRaSettings frame = LO_RA_SETTINGS__INIT;
-    create_protobuf_settings_frame(&frame);
+    /* create settings protobuf into buffer, reserve 1 byte at the end for checksum */
+    if (buffer == NULL || size == 0) return 0;
 
-    uint8_t data_size = 0;
-    uint8_t prefix_size = 0;
-    prefix_size = add_prefix(buffer, size);
-    data_size = lo_ra_settings__pack(&frame, buffer + prefix_size);
+    struct obc_lo_ra_settings_t *frame = obc_lo_ra_settings_new(&workspace, sizeof(workspace));
+    create_protobuf_settings_frame(frame);
+
+    size_t prefix_size = add_prefix(buffer, size);
+    if (prefix_size == 0) return 0;
+
+    if (size <= prefix_size) return 0;
+    size_t max_payload = size - prefix_size;
+
+    size_t data_size = obc_lo_ra_settings_encode(frame, buffer + prefix_size, max_payload);
+    if (data_size == 0 || data_size > max_payload) return 0;
 
     return prefix_size + data_size;
 }
 
 static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
-    LoRaFrame frame;
-    create_porotobuf_data_frame(&frame);
+    /* create data protobuf into buffer, reserve 1 byte at the end for checksum */
+    if (buffer == NULL || size == 0) return 0;
 
-    uint8_t data_size = 0;
-    uint8_t prefix_size = 0;
-    prefix_size = add_prefix(buffer, size);
-    data_size = lo_ra_frame__pack(&frame, buffer + prefix_size);
+    struct obc_lo_ra_frame_t *frame = obc_lo_ra_frame_new(&workspace, sizeof(workspace));
+    create_protobuf_data_frame(frame);
+
+    size_t prefix_size = add_prefix(buffer, size);
+    if (prefix_size == 0) return 0; /* not enough room for prefix */
+
+    /* reserve 1 byte for checksum */
+    if (size <= prefix_size) return 0;
+    size_t max_payload = size - prefix_size;
+
+    size_t data_size = obc_lo_ra_frame_encode(frame, buffer + prefix_size, max_payload);
+    if (data_size == 0 || data_size > max_payload) return 0;
+
+    ESP_LOGI(TAG, "Data frame size: %zu", data_size);
+
+    if(prefix_size + data_size > 255) {
+        ESP_LOGE(TAG, "Data frame too large to send over LoRa");
+        return 0;
+    }
 
     return prefix_size + data_size;
 }

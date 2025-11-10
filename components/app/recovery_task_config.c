@@ -38,7 +38,7 @@ static bool recovery_read_data(recovery_data_t* message, size_t len) {
    recovery_data_t leftRecoveryData;
    bool leftStatus = true;
    if(i2c_com_only_read(RECOVERY_ADDRESS_LEFT, (uint8_t*)&leftRecoveryData, len) == false){
-    ESP_LOGE(TAG, "RECOVERY ESP RECEIVER ERROR");
+    //ESP_LOGE(TAG, "RECOVERY ESP RECEIVER ERROR");
     memset(&leftRecoveryData,0,sizeof(leftRecoveryData));
     leftStatus = false;
     }
@@ -50,14 +50,15 @@ static bool recovery_read_data(recovery_data_t* message, size_t len) {
 
     //ESP_LOGI(TAG, "sizeof recovery data: %d,   %d", sizeof(leftRecoveryData), len);
 
-    //ESP_LOGI(TAG, "LEFT RECOVERY DATA: isArmed=%d isTeleActive=%d easyMiniFirstStage=%d easyMiniSecondStage=%d telemetrumFirstStage=%d telemetrumSecondStage=%d firstStageDone=%d secondStageDone=%d firstStageContinouity=%d secondStageContinouity=%d separationSwitch1=%d separationSwitch2=%d pressure1=%u",
+    // ESP_LOGI(TAG, "LEFT RECOVERY DATA: isArmed=%d isTeleActive=%d easyMiniFirstStage=%d easyMiniSecondStage=%d telemetrumFirstStage=%d telemetrumSecondStage=%d firstStageDone=%d secondStageDone=%d firstStageContinouity=%d secondStageContinouity=%d separationSwitch1=%d separationSwitch2=%d",
     // leftRecoveryData.isArmed, leftRecoveryData.isTeleActive, leftRecoveryData.easyMiniFirstStage, leftRecoveryData.easyMiniSecondStage,
     // leftRecoveryData.telemetrumFirstStage, leftRecoveryData.telemetrumSecondStage, leftRecoveryData.firstStageDone, leftRecoveryData.secondStageDone,
-    // leftRecoveryData.firstStageContinouity, leftRecoveryData.secondStageContinouity, leftRecoveryData.separationSwitch1, leftRecoveryData.separationSwitch2,
-    // leftRecoveryData.pressure1);
+    // leftRecoveryData.firstStageContinouity, leftRecoveryData.secondStageContinouity, leftRecoveryData.separationSwitch1, leftRecoveryData.separationSwitch2);
     
     gb.recovery_data.isArmed = leftRecoveryData.isArmed;
     gb.recovery_data.isTeleActive = leftRecoveryData.isTeleActive;
+    //ESP_LOGI(TAG, "Arm status: %d", leftRecoveryData.isArmed);
+    //ESP_LOGI(TAG, "Telemetry status: %d", leftRecoveryData.isTeleActive);
     gb.recovery_data.easyMiniFirstStage = leftRecoveryData.easyMiniFirstStage;
     gb.recovery_data.easyMiniSecondStage = leftRecoveryData.easyMiniSecondStage;
     gb.recovery_data.telemetrumFirstStage = leftRecoveryData.telemetrumFirstStage;
@@ -68,7 +69,6 @@ static bool recovery_read_data(recovery_data_t* message, size_t len) {
     gb.recovery_data.secondStageContinouity = leftRecoveryData.secondStageContinouity;
     gb.recovery_data.separationSwitch1 = leftRecoveryData.separationSwitch1;
     //gb.recovery_data.separationSwitch2 = rightRecoveryData.separationSwitch1;
-    gb.recovery_data.pressure1 = leftRecoveryData.pressure1;
     //gb.recovery_data.pressure2 = rightRecoveryData.pressure1;
 
 
