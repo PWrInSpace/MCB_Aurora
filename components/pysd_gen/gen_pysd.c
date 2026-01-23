@@ -53,14 +53,15 @@ size_t pysd_get_sd_frame_size(rocket_data_t pysd_main, bool new_line_ending) {
     size_t string_size = 0;
     if (new_line_ending == true) {
         string_size = snprintf(NULL, 0,
-            "%u;%lu;%ld;%lu;%f;%d;%f;%f;%f;%u;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;"
+            "%u;%lu;%ld;%lu;%f;%d;%f;%f;%f;%u;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;"
             "%d;%u;%u;%d;%d;%d;%u;%u;%f;"
             "%d;%u;%u;%d;%d;%d;%u;%u;%f;"
             "%d;%u;%u;%d;%d;%d;%u;%u;%f;"
-            "%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%u;"
+            "%d;%u;%u;%d;%d;%d;%u;%u;%f;"
+            "%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;"
             "%d;%f;"
-            "%f;%u;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%d;%d;%d;%d;%d;%d;%d;"
-            "%d;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;"
+            "%f;%u;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;"
+            "%d;%f;%f;%f;%f;%f;%f;%f;%f;"
             "%d;%d;%d;%d;%d;%d;%d;"
             "%lu;%lu;%lu;%lu;%lu;%lu\n",
             /* mcb */
@@ -206,16 +207,18 @@ size_t pysd_get_sd_frame_size(rocket_data_t pysd_main, bool new_line_ending) {
             pysd_main.error_last_exception);
     } else {
         string_size = snprintf(NULL, 0,
-            "%d;%lu;%ld;%lu;%f;%d;%f;%f;%f;%d;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;"
-            "%d;%d;%d;%d;%d;%d;%u;%u;%f;"
-            "%d;%d;%d;%d;%d;%d;%u;%u;%f;"
-            "%d;%d;%d;%d;%d;%d;%u;%u;%f;"
-            "%d;%d;%d;%d;%d;%d;%u;"
+            "%u;%lu;%ld;%lu;%f;%d;%f;%f;%f;%u;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;"
+            "%d;%u;%u;%d;%d;%d;%u;%u;%f;"
+            "%d;%u;%u;%d;%d;%d;%u;%u;%f;"
+            "%d;%u;%u;%d;%d;%d;%u;%u;%f;"
+            "%d;%u;%u;%d;%d;%d;%u;%u;%f;"
+            "%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;"
             "%d;%f;"
-            "%f;%d;%f;%f;%f;%f;%f;%f;%f;%f;"
+            "%f;%u;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;"
+            "%d;%f;%f;%f;%f;%f;%f;%f;%f;"
             "%d;%d;%d;%d;%d;%d;%d;"
             "%lu;%lu;%lu;%lu;%lu;%lu",
-            pysd_main.mcb.state,
+            (unsigned)pysd_main.mcb.state,
             pysd_main.mcb.uptime,
             pysd_main.mcb.flight_time,
             pysd_main.mcb.disconnect_timer,
@@ -224,7 +227,7 @@ size_t pysd_get_sd_frame_size(rocket_data_t pysd_main, bool new_line_ending) {
             pysd_main.mcb.latitude,
             pysd_main.mcb.longitude,
             pysd_main.mcb.gps_altitude,
-            pysd_main.mcb.satelites_in_view,
+            (unsigned)pysd_main.mcb.satelites_in_view,
             pysd_main.mcb.acc_x,
             pysd_main.mcb.acc_y,
             pysd_main.mcb.acc_z,
@@ -242,58 +245,65 @@ size_t pysd_get_sd_frame_size(rocket_data_t pysd_main, bool new_line_ending) {
             pysd_main.mcb.yaw,
             pysd_main.mcb.pitch,
             pysd_main.mcb.roll,
-            pysd_main.vent_valves.waken_up,
-            pysd_main.vent_valves.valve_1_state,
-            pysd_main.vent_valves.valve_2_state,
+            /* vent_valves */
+            (int)pysd_main.vent_valves.waken_up,
+            (unsigned)pysd_main.vent_valves.valve_1_state,
+            (unsigned)pysd_main.vent_valves.valve_2_state,
             pysd_main.vent_valves.temperature_1,
             pysd_main.vent_valves.temperature_2,
             pysd_main.vent_valves.temperature_3,
             pysd_main.vent_valves.pressure_1,
             pysd_main.vent_valves.pressure_2,
             pysd_main.vent_valves.battery_voltage,
-            pysd_main.main_valves.waken_up,
-            pysd_main.main_valves.valve_1_state,
-            pysd_main.main_valves.valve_2_state,
+            /* main_valves */
+            (int)pysd_main.main_valves.waken_up,
+            (unsigned)pysd_main.main_valves.valve_1_state,
+            (unsigned)pysd_main.main_valves.valve_2_state,
             pysd_main.main_valves.temperature_1,
             pysd_main.main_valves.temperature_2,
             pysd_main.main_valves.temperature_3,
             pysd_main.main_valves.pressure_1,
             pysd_main.main_valves.pressure_2,
             pysd_main.main_valves.battery_voltage,
-            pysd_main.eth_vent_valve.waken_up,
-            pysd_main.eth_vent_valve.valve_1_state,
-            pysd_main.eth_vent_valve.valve_2_state,
+            /* eth_vent_valve */
+            (int)pysd_main.eth_vent_valve.waken_up,
+            (unsigned)pysd_main.eth_vent_valve.valve_1_state,
+            (unsigned)pysd_main.eth_vent_valve.valve_2_state,
             pysd_main.eth_vent_valve.temperature_1,
             pysd_main.eth_vent_valve.temperature_2,
             pysd_main.eth_vent_valve.temperature_3,
             pysd_main.eth_vent_valve.pressure_1,
             pysd_main.eth_vent_valve.pressure_2,
             pysd_main.eth_vent_valve.battery_voltage,
-            pysd_main.ox_main_valve.waken_up,
-            pysd_main.ox_main_valve.valve_1_state,
-            pysd_main.ox_main_valve.valve_2_state,
+            /* ox_main_valve */
+            (int)pysd_main.ox_main_valve.waken_up,
+            (unsigned)pysd_main.ox_main_valve.valve_1_state,
+            (unsigned)pysd_main.ox_main_valve.valve_2_state,
             pysd_main.ox_main_valve.temperature_1,
             pysd_main.ox_main_valve.temperature_2,
             pysd_main.ox_main_valve.temperature_3,
             pysd_main.ox_main_valve.pressure_1,
             pysd_main.ox_main_valve.pressure_2,
             pysd_main.ox_main_valve.battery_voltage,
-            pysd_main.recovery.isArmed,
-            pysd_main.recovery.isTeleActive,
-            pysd_main.recovery.easyMiniFirstStage,
-            pysd_main.recovery.easyMiniSecondStage,
-            pysd_main.recovery.telemetrumFirstStage,
-            pysd_main.recovery.telemetrumSecondStage,
-            pysd_main.recovery.firstStageDone,
-            pysd_main.recovery.secondStageDone,
-            pysd_main.recovery.firstStageContinouity,
-            pysd_main.recovery.secondStageContinouity,
-            pysd_main.recovery.separationSwitch1,
-            pysd_main.recovery.separationSwitch2,
-            pysd_main.payload.waken_up,
+            /* recovery */
+            (int)pysd_main.recovery.isArmed,
+            (int)pysd_main.recovery.isTeleActive,
+            (int)pysd_main.recovery.easyMiniFirstStage,
+            (int)pysd_main.recovery.easyMiniSecondStage,
+            (int)pysd_main.recovery.telemetrumFirstStage,
+            (int)pysd_main.recovery.telemetrumSecondStage,
+            (int)pysd_main.recovery.firstStageDone,
+            (int)pysd_main.recovery.secondStageDone,
+            (int)pysd_main.recovery.firstStageContinouity,
+            (int)pysd_main.recovery.secondStageContinouity,
+            (int)pysd_main.recovery.separationSwitch1,
+            (int)pysd_main.recovery.separationSwitch2,
+            /* payload */
+            (int)pysd_main.payload.waken_up,
             pysd_main.payload.vbat,
+            /* tanwa */
             pysd_main.tanwa.vbat,
-            pysd_main.tanwa.tanWaState,
+            (unsigned)pysd_main.tanwa.tanWaState,
             pysd_main.tanwa.thrust_val,
             pysd_main.tanwa.tankWeight_val,
             pysd_main.tanwa.temperature_postFill,
@@ -306,24 +316,25 @@ size_t pysd_get_sd_frame_size(rocket_data_t pysd_main, bool new_line_ending) {
             pysd_main.tanwa.postFillN2_pres,
             pysd_main.tanwa.droidN2_press,
             pysd_main.tanwa.combChamber_pres,
-            pysd_main.tanwa.soft_arm,
-            pysd_main.tanwa.canWeights_con,
-            pysd_main.tanwa.canSensor_con,
-            pysd_main.tanwa.canSolenoid_con,
-            pysd_main.tanwa.canUtility_con,
-            pysd_main.tanwa.canPower_con,
-            pysd_main.tanwa.igniterContinouity_1,
-            pysd_main.tanwa.igniterContinouity_2,
-            pysd_main.tanwa.fillN2OState,
-            pysd_main.tanwa.deprN2OState,
-            pysd_main.tanwa.fillN2State,
-            pysd_main.tanwa.deprN2State,
-            pysd_main.tanwa.droidN2OState,
-            pysd_main.tanwa.droidN2State,
-            pysd_main.tanwa.heatingTankState,
-            pysd_main.tanwa.heatingValveState,
-            pysd_main.tanwa.abortButton,
-            pysd_main.pitot.waken_up,
+            (int)pysd_main.tanwa.soft_arm,
+            (int)pysd_main.tanwa.canWeights_con,
+            (int)pysd_main.tanwa.canSensor_con,
+            (int)pysd_main.tanwa.canSolenoid_con,
+            (int)pysd_main.tanwa.canUtility_con,
+            (int)pysd_main.tanwa.canPower_con,
+            (int)pysd_main.tanwa.igniterContinouity_1,
+            (int)pysd_main.tanwa.igniterContinouity_2,
+            (int)pysd_main.tanwa.fillN2OState,
+            (int)pysd_main.tanwa.deprN2OState,
+            (int)pysd_main.tanwa.fillN2State,
+            (int)pysd_main.tanwa.deprN2State,
+            (int)pysd_main.tanwa.droidN2OState,
+            (int)pysd_main.tanwa.droidN2State,
+            (int)pysd_main.tanwa.heatingTankState,
+            (int)pysd_main.tanwa.heatingValveState,
+            (int)pysd_main.tanwa.abortButton,
+            /* pitot */
+            (int)pysd_main.pitot.waken_up,
             pysd_main.pitot.dynamic_press,
             pysd_main.pitot.static_press,
             pysd_main.pitot.temperature,
@@ -332,13 +343,15 @@ size_t pysd_get_sd_frame_size(rocket_data_t pysd_main, bool new_line_ending) {
             pysd_main.pitot.speed,
             pysd_main.pitot.alt,
             pysd_main.pitot.pred_apogee,
-            pysd_main.connected_dev.main_valves,
-            pysd_main.connected_dev.vent_valves,
-            pysd_main.connected_dev.eth_vent_valve,
-            pysd_main.connected_dev.ox_main_valve,
-            pysd_main.connected_dev.pitot,
-            pysd_main.connected_dev.payload,
-            pysd_main.connected_dev.tanwa,
+            /* connected */
+            (int)pysd_main.connected_dev.main_valves,
+            (int)pysd_main.connected_dev.vent_valves,
+            (int)pysd_main.connected_dev.eth_vent_valve,
+            (int)pysd_main.connected_dev.ox_main_valve,
+            (int)pysd_main.connected_dev.pitot,
+            (int)pysd_main.connected_dev.payload,
+            (int)pysd_main.connected_dev.tanwa,
+            /* errors */
             pysd_main.error_esp_now,
             pysd_main.error_memory,
             pysd_main.error_mcb,
@@ -407,14 +420,15 @@ size_t pysd_create_sd_frame(char *buffer, size_t size, rocket_data_t pysd_main, 
 
     if (new_line_ending == true) {
         frame_size = snprintf(buffer, size,
-            "%u;%lu;%ld;%lu;%f;%d;%f;%f;%f;%u;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;"
+            "%u;%lu;%ld;%lu;%f;%d;%f;%f;%f;%u;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;"
             "%d;%u;%u;%d;%d;%d;%u;%u;%f;"
             "%d;%u;%u;%d;%d;%d;%u;%u;%f;"
             "%d;%u;%u;%d;%d;%d;%u;%u;%f;"
-            "%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%u;"
+            "%d;%u;%u;%d;%d;%d;%u;%u;%f;"
+            "%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;"
             "%d;%f;"
-            "%f;%u;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%d;%d;%d;%d;%d;%d;%d;"
-            "%d;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;"
+            "%f;%u;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;"
+            "%d;%f;%f;%f;%f;%f;%f;%f;%f;"
             "%d;%d;%d;%d;%d;%d;%d;"
             "%lu;%lu;%lu;%lu;%lu;%lu\n",
             /* mcb */
@@ -452,17 +466,17 @@ size_t pysd_create_sd_frame(char *buffer, size_t size, rocket_data_t pysd_main, 
             pysd_main.vent_valves.temperature_1,
             pysd_main.vent_valves.temperature_2,
             pysd_main.vent_valves.temperature_3,
-            pysd_main.vent_valves.pressure_1, //34
+            pysd_main.vent_valves.pressure_1,
             pysd_main.vent_valves.pressure_2,
             pysd_main.vent_valves.battery_voltage,
             /* main_valves */
-            (int)pysd_main.main_valves.waken_up, //37
+            (int)pysd_main.main_valves.waken_up,
             (unsigned)pysd_main.main_valves.valve_1_state,
             (unsigned)pysd_main.main_valves.valve_2_state,
             pysd_main.main_valves.temperature_1,
             pysd_main.main_valves.temperature_2,
             pysd_main.main_valves.temperature_3,
-            pysd_main.main_valves.pressure_1, //43
+            pysd_main.main_valves.pressure_1,
             pysd_main.main_valves.pressure_2,
             pysd_main.main_valves.battery_voltage,
             /* eth_vent_valve */
@@ -472,7 +486,7 @@ size_t pysd_create_sd_frame(char *buffer, size_t size, rocket_data_t pysd_main, 
             pysd_main.eth_vent_valve.temperature_1,
             pysd_main.eth_vent_valve.temperature_2,
             pysd_main.eth_vent_valve.temperature_3,
-            pysd_main.eth_vent_valve.pressure_1, //52
+            pysd_main.eth_vent_valve.pressure_1,
             pysd_main.eth_vent_valve.pressure_2,
             pysd_main.eth_vent_valve.battery_voltage,
             /* ox_main_valve */
@@ -560,16 +574,18 @@ size_t pysd_create_sd_frame(char *buffer, size_t size, rocket_data_t pysd_main, 
             pysd_main.error_last_exception);
     } else {
         frame_size = snprintf(buffer, size,
-            "%u;%lu;%ld;%lu;%f;%d;%f;%f;%f;%u;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;"
+            "%u;%lu;%ld;%lu;%f;%d;%f;%f;%f;%u;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;"
             "%d;%u;%u;%d;%d;%d;%u;%u;%f;"
             "%d;%u;%u;%d;%d;%d;%u;%u;%f;"
             "%d;%u;%u;%d;%d;%d;%u;%u;%f;"
-            "%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%u;"
+            "%d;%u;%u;%d;%d;%d;%u;%u;%f;"
+            "%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;"
             "%d;%f;"
-            "%f;%u;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%d;%d;%d;%d;%d;%d;%d;"
-            "%d;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;"
+            "%f;%u;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;%d;"
+            "%d;%f;%f;%f;%f;%f;%f;%f;%f;"
             "%d;%d;%d;%d;%d;%d;%d;"
             "%lu;%lu;%lu;%lu;%lu;%lu",
+
             (unsigned)pysd_main.mcb.state,
             pysd_main.mcb.uptime,
             pysd_main.mcb.flight_time,
@@ -597,6 +613,7 @@ size_t pysd_create_sd_frame(char *buffer, size_t size, rocket_data_t pysd_main, 
             pysd_main.mcb.yaw,
             pysd_main.mcb.pitch,
             pysd_main.mcb.roll,
+            /* vent_valves */
             (int)pysd_main.vent_valves.waken_up,
             (unsigned)pysd_main.vent_valves.valve_1_state,
             (unsigned)pysd_main.vent_valves.valve_2_state,
@@ -606,6 +623,7 @@ size_t pysd_create_sd_frame(char *buffer, size_t size, rocket_data_t pysd_main, 
             pysd_main.vent_valves.pressure_1,
             pysd_main.vent_valves.pressure_2,
             pysd_main.vent_valves.battery_voltage,
+            /* main_valves */
             (int)pysd_main.main_valves.waken_up,
             (unsigned)pysd_main.main_valves.valve_1_state,
             (unsigned)pysd_main.main_valves.valve_2_state,
@@ -615,6 +633,7 @@ size_t pysd_create_sd_frame(char *buffer, size_t size, rocket_data_t pysd_main, 
             pysd_main.main_valves.pressure_1,
             pysd_main.main_valves.pressure_2,
             pysd_main.main_valves.battery_voltage,
+            /* eth_vent_valve */
             (int)pysd_main.eth_vent_valve.waken_up,
             (unsigned)pysd_main.eth_vent_valve.valve_1_state,
             (unsigned)pysd_main.eth_vent_valve.valve_2_state,
@@ -624,6 +643,7 @@ size_t pysd_create_sd_frame(char *buffer, size_t size, rocket_data_t pysd_main, 
             pysd_main.eth_vent_valve.pressure_1,
             pysd_main.eth_vent_valve.pressure_2,
             pysd_main.eth_vent_valve.battery_voltage,
+            /* ox_main_valve */
             (int)pysd_main.ox_main_valve.waken_up,
             (unsigned)pysd_main.ox_main_valve.valve_1_state,
             (unsigned)pysd_main.ox_main_valve.valve_2_state,
@@ -633,6 +653,7 @@ size_t pysd_create_sd_frame(char *buffer, size_t size, rocket_data_t pysd_main, 
             pysd_main.ox_main_valve.pressure_1,
             pysd_main.ox_main_valve.pressure_2,
             pysd_main.ox_main_valve.battery_voltage,
+            /* recovery */
             (int)pysd_main.recovery.isArmed,
             (int)pysd_main.recovery.isTeleActive,
             (int)pysd_main.recovery.easyMiniFirstStage,
@@ -645,8 +666,10 @@ size_t pysd_create_sd_frame(char *buffer, size_t size, rocket_data_t pysd_main, 
             (int)pysd_main.recovery.secondStageContinouity,
             (int)pysd_main.recovery.separationSwitch1,
             (int)pysd_main.recovery.separationSwitch2,
+            /* payload */
             (int)pysd_main.payload.waken_up,
             pysd_main.payload.vbat,
+            /* tanwa */
             pysd_main.tanwa.vbat,
             (unsigned)pysd_main.tanwa.tanWaState,
             pysd_main.tanwa.thrust_val,
@@ -678,6 +701,7 @@ size_t pysd_create_sd_frame(char *buffer, size_t size, rocket_data_t pysd_main, 
             (int)pysd_main.tanwa.heatingTankState,
             (int)pysd_main.tanwa.heatingValveState,
             (int)pysd_main.tanwa.abortButton,
+            /* pitot */
             (int)pysd_main.pitot.waken_up,
             pysd_main.pitot.dynamic_press,
             pysd_main.pitot.static_press,
@@ -687,6 +711,7 @@ size_t pysd_create_sd_frame(char *buffer, size_t size, rocket_data_t pysd_main, 
             pysd_main.pitot.speed,
             pysd_main.pitot.alt,
             pysd_main.pitot.pred_apogee,
+            /* connected */
             (int)pysd_main.connected_dev.main_valves,
             (int)pysd_main.connected_dev.vent_valves,
             (int)pysd_main.connected_dev.eth_vent_valve,
@@ -694,6 +719,7 @@ size_t pysd_create_sd_frame(char *buffer, size_t size, rocket_data_t pysd_main, 
             (int)pysd_main.connected_dev.pitot,
             (int)pysd_main.connected_dev.payload,
             (int)pysd_main.connected_dev.tanwa,
+            /* errors */
             pysd_main.error_esp_now,
             pysd_main.error_memory,
             pysd_main.error_mcb,
