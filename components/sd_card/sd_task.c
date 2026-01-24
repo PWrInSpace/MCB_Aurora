@@ -8,10 +8,14 @@ static struct {
     sd_card_t sd_card;
 
     TaskHandle_t sd_task;
-    QueueHandle_t data_queue;
-    QueueHandle_t log_queue;
+    RingbufHandle_t data_ringbuffer;
+    RingbufHandle_t log_ringbuffer;
+
+    SemaphoreHandle_t ringbuffer_mutex;
     SemaphoreHandle_t data_write_mutex;  // prevent race condition during path changing
     SemaphoreHandle_t spi_mutex;
+
+    size_t data_items_count;
 
     void *data_from_queue;
     size_t data_from_queue_size;
@@ -27,8 +31,10 @@ static struct {
     create_sd_frame create_sd_frame_fnc;
 } mem = {
     .sd_task = NULL,
-    .log_queue = NULL,
+    .log_ringbuffer = NULL,
+    .data_ringbuffer = NULL,
     .data_write_mutex = NULL,
+    .ringbuffer_mutex = NULL
 };
 
 static void report_error(SD_TASK_ERR error_code) {
@@ -38,7 +44,6 @@ static void report_error(SD_TASK_ERR error_code) {
 
     mem.error_handler_fnc(error_code);
 }
-
 
 static bool write_to_sd(FILE *file, char *data, size_t size) {
     if (file == NULL) {
@@ -52,37 +57,33 @@ static bool write_to_sd(FILE *file, char *data, size_t size) {
     return true;
 }
 
-static void get_data_from_queue_and_save(FILE * data_file) {
-    size_t frame_size;
-    if (xQueueReceive(mem.data_queue, mem.data_from_queue, 0) == pdFALSE) {
-            report_error(SD_QUEUE_READ);
-    } else {
-        frame_size = mem.create_sd_frame_fnc(mem.data_buffer, sizeof(mem.data_buffer),
-                                             mem.data_from_queue, mem.data_from_queue_size);
-        if (write_to_sd(data_file, mem.data_buffer, frame_size) == false) {
-            xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
-            SD_remount(&mem.sd_card);
-            xSemaphoreGive(mem.spi_mutex);
-            report_error(SD_WRITE);
-        }
-    }
-}
-
 static void prepare_data_file_and_save(void) {
     xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
     FILE *data_file = fopen(mem.data_path, "a");
     xSemaphoreGive(mem.spi_mutex);
 
     int received_data_counter = 0;
-    // ESP_LOGI(TAG, "Saving to sd");
-    while (uxQueueMessagesWaiting(mem.data_queue) > 0) {
-        get_data_from_queue_and_save(data_file);
+    while (received_data_counter < SD_MAX_DATA_RECEIVE) {
+        size_t item_size;
+        void *item = xRingbufferReceive(mem.data_ringbuffer, &item_size, 0);
+        if (item == NULL) break;
+
+        xSemaphoreTake(mem.ringbuffer_mutex, portMAX_DELAY);
+        mem.data_items_count--;
+        xSemaphoreGive(mem.ringbuffer_mutex);
+
+        size_t frame_size = mem.create_sd_frame_fnc(mem.data_buffer, sizeof(mem.data_buffer), item, item_size);
+
+        if (write_to_sd(data_file, mem.data_buffer, frame_size) == false) {
+            xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
+            SD_remount(&mem.sd_card);
+            xSemaphoreGive(mem.spi_mutex);
+            report_error(SD_WRITE);
+        }
+
+        vRingbufferReturnItem(mem.data_ringbuffer, item);
 
         received_data_counter++;
-        if (received_data_counter > SD_MAX_DATA_RECEIVE) {
-            ESP_LOGI(TAG, "TIMEOUT");
-            break;
-        }
         vTaskDelay(pdMS_TO_TICKS(1));
     }
 
@@ -105,9 +106,24 @@ static bool check_sd_status(void) {
     xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
     bool result = SD_mount(&mem.sd_card);
     xSemaphoreGive(mem.spi_mutex);
-    xQueueReset(mem.data_queue);
+    
+    void *item;
+    size_t item_size;
+    while ((item = xRingbufferReceive(mem.data_ringbuffer, &item_size, 0)) != NULL) {
+        vRingbufferReturnItem(mem.data_ringbuffer, item);
+    }
+    xSemaphoreTake(mem.ringbuffer_mutex, portMAX_DELAY);
+    mem.data_items_count = 0;
+    xSemaphoreGive(mem.ringbuffer_mutex);
 
     return result;
+}
+
+static bool data_has_at_least(size_t n) {
+    xSemaphoreTake(mem.ringbuffer_mutex, portMAX_DELAY);
+    bool ok = (mem.data_items_count >= n);
+    xSemaphoreGive(mem.ringbuffer_mutex);
+    return ok;
 }
 
 static void data_check_and_save(void) {
@@ -115,7 +131,7 @@ static void data_check_and_save(void) {
         return;
     }
 
-    if (uxQueueMessagesWaiting(mem.data_queue) < SD_DATA_DROP_VALUE) {
+    if (!data_has_at_least(SD_DATA_DROP_VALUE)) {
         return;
     }
 
@@ -128,28 +144,30 @@ static void log_check_and_save(void) {
     }
 
     int received_data_counter = 0;
-    while (uxQueueMessagesWaiting(mem.log_queue) > 0) {
-        xQueueReceive(mem.log_queue, &mem.log_buffer, 0);
+    while (received_data_counter < SD_MAX_DATA_RECEIVE) {
+        size_t item_size;
+        const char *item = (const char *)xRingbufferReceive(mem.log_ringbuffer, &item_size, 0);
+        if (item == NULL) break;
+
         xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
-        if (SD_write(&mem.sd_card, mem.log_path, mem.log_buffer, sizeof(mem.log_buffer)) == false) {
+        if (SD_write(&mem.sd_card, mem.log_path, item, item_size) == false) {
             report_error(SD_WRITE);
         }
         xSemaphoreGive(mem.spi_mutex);
 
+        vRingbufferReturnItem(mem.log_ringbuffer, (void *)item);
+
         received_data_counter++;
-        if (received_data_counter > SD_MAX_DATA_RECEIVE) {
-            return;
-        }
         vTaskDelay(pdMS_TO_TICKS(1));
     }
 }
 
 static void terminate_task(void) {
     ESP_LOGI(TAG, "Terminating SD TASK");
-    vQueueDelete(mem.data_queue);
-    vQueueDelete(mem.log_queue);
-    mem.data_queue = NULL;
-    mem.log_queue = NULL;
+    vRingbufferDelete(mem.data_ringbuffer);
+    vRingbufferDelete(mem.log_ringbuffer);
+    mem.data_ringbuffer = NULL;
+    mem.log_ringbuffer = NULL;
     free(mem.data_from_queue);
     vTaskDelete(NULL);
 }
@@ -243,7 +261,7 @@ static bool initialize_sd_card(sd_task_cfg_t *task_cfg) {
 }
 
 static bool initialize_task(sd_task_cfg_t *task_cfg) {
-    if (task_cfg->create_sd_frame_fnc == NULL) {
+    if (task_cfg == NULL || task_cfg->create_sd_frame_fnc == NULL) {
         return false;
     }
     mem.create_sd_frame_fnc = task_cfg->create_sd_frame_fnc;
@@ -253,28 +271,41 @@ static bool initialize_task(sd_task_cfg_t *task_cfg) {
     if (mem.data_from_queue == NULL) {
         return false;
     }
+    
+    mem.data_ringbuffer = xRingbufferCreate((CONFIG_SD_DATA_RINGBUF_CAPACITY * task_cfg->data_size), RINGBUF_TYPE_NOSPLIT);
+    if (mem.data_ringbuffer == NULL) {
+        free(mem.data_from_queue);
+        return false;
+    }
+    mem.data_items_count = 0;
 
-    mem.data_queue = xQueueCreate(SD_DATA_QUEUE_SIZE, mem.data_from_queue_size);
-    if (mem.data_queue == NULL) {
+    mem.log_ringbuffer = xRingbufferCreate((CONFIG_SD_LOG_RINGBUF_CAPACITY * sizeof(char[SD_LOG_BUFFER_MAX_SIZE])), RINGBUF_TYPE_NOSPLIT);
+    if (mem.log_ringbuffer == NULL) {
+        vRingbufferDelete(mem.data_ringbuffer);
+        mem.data_ringbuffer = NULL;
         free(mem.data_from_queue);
         return false;
     }
 
-    mem.log_queue = xQueueCreate(SD_LOG_QUEUE_SIZE, sizeof(char[SD_LOG_BUFFER_MAX_SIZE]));
-    if (mem.log_queue == NULL) {
-        vQueueDelete(mem.data_queue);
+    mem.ringbuffer_mutex = xSemaphoreCreateMutex();
+    if (mem.ringbuffer_mutex == NULL) {
+        vRingbufferDelete(mem.data_ringbuffer);
+        vRingbufferDelete(mem.log_ringbuffer);
+        mem.data_ringbuffer = NULL;
+        mem.log_ringbuffer = NULL;
         free(mem.data_from_queue);
-        mem.data_queue = NULL;
         return false;
     }
 
     // prevent race condition during path changing
     mem.data_write_mutex = xSemaphoreCreateMutex();
     if (mem.data_write_mutex == NULL) {
-        vQueueDelete(mem.data_queue);
-        vQueueDelete(mem.log_queue);
-        mem.data_queue = NULL;
-        mem.log_queue = NULL;
+        vRingbufferDelete(mem.data_ringbuffer);
+        vRingbufferDelete(mem.log_ringbuffer);
+        mem.data_ringbuffer = NULL;
+        mem.log_ringbuffer = NULL;
+        vSemaphoreDelete(mem.ringbuffer_mutex);
+        mem.ringbuffer_mutex = NULL;
         free(mem.data_from_queue);
         return false;
     }
@@ -283,10 +314,14 @@ static bool initialize_task(sd_task_cfg_t *task_cfg) {
                             &mem.sd_task, task_cfg->core_id);
 
     if (mem.sd_task == NULL) {
-        vQueueDelete(mem.data_queue);
-        vQueueDelete(mem.log_queue);
-        mem.data_queue = NULL;
-        mem.log_queue = NULL;
+        vRingbufferDelete(mem.data_ringbuffer);
+        vRingbufferDelete(mem.log_ringbuffer);
+        mem.data_ringbuffer = NULL;
+        mem.log_ringbuffer = NULL;
+        vSemaphoreDelete(mem.ringbuffer_mutex);
+        vSemaphoreDelete(mem.data_write_mutex);
+        mem.ringbuffer_mutex = NULL;
+        mem.data_write_mutex = NULL;
         free(mem.data_from_queue);
         return false;
     }
@@ -311,7 +346,7 @@ bool SDT_init(sd_task_cfg_t *task_cfg) {
 }
 
 bool SDT_send_data(void *data, size_t data_size) {
-    if (mem.data_queue == NULL) {
+    if (mem.data_ringbuffer == NULL) {
         return false;
     }
 
@@ -323,16 +358,19 @@ bool SDT_send_data(void *data, size_t data_size) {
         return false;
     }
 
-    if (xQueueSend(mem.data_queue, data, 0) == pdFALSE) {
-        ESP_LOGW(TAG, "Unable to add data to sd mem.queue");
+    if (xRingbufferSend(mem.data_ringbuffer, data, data_size, 0) == pdFALSE) {
+        ESP_LOGW(TAG, "Unable to add data to sd mem.data_ringbuffer");
         return false;
     }
+    xSemaphoreTake(mem.ringbuffer_mutex, portMAX_DELAY);
+    mem.data_items_count++;
+    xSemaphoreGive(mem.ringbuffer_mutex);
 
     return true;
 }
 
 bool SDT_send_log(char *data, size_t data_size) {
-    if (mem.log_queue == NULL) {
+    if (mem.log_ringbuffer == NULL) {
         return false;
     }
 
@@ -340,8 +378,8 @@ bool SDT_send_log(char *data, size_t data_size) {
         return false;
     }
 
-    if (xQueueSend(mem.log_queue, data, 0) == pdFALSE) {
-        ESP_LOGW(TAG, "Unable to add data to sd mem.queue");
+    if (xRingbufferSend(mem.log_ringbuffer, data, data_size, 0) == pdFALSE) {
+        ESP_LOGW(TAG, "Unable to add data to sd mem.log_ringbuffer");
         return false;
     }
 

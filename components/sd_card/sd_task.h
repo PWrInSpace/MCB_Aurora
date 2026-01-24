@@ -7,15 +7,16 @@
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/projdefs.h"
-#include "freertos/queue.h"
+#include "freertos/ringbuf.h"
 #include "freertos/task.h"
 
 #define SD_LOG_BUFFER_MAX_SIZE CONFIG_SD_LOG_BUFFER_MAX_SIZE
 #define SD_DATA_BUFFER_MAX_SIZE CONFIG_SD_DATA_BUFFER_MAX_SIZE
 #define SD_MOUNT_POINT CONFIG_SD_MOUNT_POINT
 
-#define SD_DATA_QUEUE_SIZE CONFIG_SD_DATA_QUEUE_SIZE
-#define SD_LOG_QUEUE_SIZE CONFIG_SD_LOG_QUEUE_SIZE
+//#define SD_DATA_RINGBUF_SIZE (CONFIG_SD_DATA_RINGBUF_CAPACITY * sizeof(rocket_data_t))
+//#define LOG_RINGBUF_SIZE (CONFIG_SD_LOG_RINGBUF_CAPACITY * ???)
+
 #define SD_MAX_DATA_RECEIVE CONFIG_SD_MAX_DATA_RECEIVE
 #define SD_TRY_TO_REMOUNT_DELAY CONFIG_SD_TASK_TRY_TO_MOUNT_DELAY
 #define SD_DATA_DROP_VALUE CONFIG_SD_DATA_DROP_VALUE
