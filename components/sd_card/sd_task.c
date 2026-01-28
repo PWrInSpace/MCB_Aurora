@@ -67,13 +67,8 @@ static void prepare_data_file_and_save(void) {
         size_t item_size;
         void *item = xRingbufferReceive(mem.data_ringbuffer, &item_size, 0);
         if (item == NULL) break;
-
-        xSemaphoreTake(mem.ringbuffer_mutex, portMAX_DELAY);
-        mem.data_items_count--;
-        xSemaphoreGive(mem.ringbuffer_mutex);
-
+        
         size_t frame_size = mem.create_sd_frame_fnc(mem.data_buffer, sizeof(mem.data_buffer), item, item_size);
-
         if (write_to_sd(data_file, mem.data_buffer, frame_size) == false) {
             xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
             SD_remount(&mem.sd_card);
@@ -82,7 +77,10 @@ static void prepare_data_file_and_save(void) {
         }
 
         vRingbufferReturnItem(mem.data_ringbuffer, item);
-
+        xSemaphoreTake(mem.ringbuffer_mutex, portMAX_DELAY);
+        mem.data_items_count--;
+        xSemaphoreGive(mem.ringbuffer_mutex);
+        
         received_data_counter++;
         vTaskDelay(pdMS_TO_TICKS(1));
     }
@@ -272,15 +270,15 @@ static bool initialize_task(sd_task_cfg_t *task_cfg) {
         return false;
     }
     
-    // nie ma gwarancji, że w buforze będzie dokładnie CONFIG_SD_DATA_RINGBUF_CAPACITY itemów, bo RINGBUF_TYPE_NOSPLIT dokłada do każdego itemu jeszcze header (8 bajtów, uwzględniony) oraz każdy item jest trzymany w blokach po 32 bity (niezaleznie od rzeczywistego rozmiaru)
-    mem.data_ringbuffer = xRingbufferCreate((CONFIG_SD_DATA_RINGBUF_CAPACITY * (task_cfg->data_size + 8)), RINGBUF_TYPE_NOSPLIT);
+    // nie ma gwarancji, że w buforze będzie dokładnie CONFIG_SD_DATA_RINGBUF_CAPACITY itemów, bo RINGBUF_TYPE_NOSPLIT dokłada do każdego itemu jeszcze header (8 bajtów) oraz każdy item jest trzymany w blokach po 32 bity (niezaleznie od rzeczywistego rozmiaru)
+    mem.data_ringbuffer = xRingbufferCreate((CONFIG_SD_DATA_RINGBUF_CAPACITY * (task_cfg->data_size)), RINGBUF_TYPE_NOSPLIT);
     if (mem.data_ringbuffer == NULL) {
         free(mem.data_from_queue);
         return false;
     }
     mem.data_items_count = 0;
 
-    mem.log_ringbuffer = xRingbufferCreate((CONFIG_SD_LOG_RINGBUF_CAPACITY * sizeof(char[SD_LOG_BUFFER_MAX_SIZE])), RINGBUF_TYPE_NOSPLIT);
+    mem.log_ringbuffer = xRingbufferCreate(SD_LOG_RINGBUF_SIZE, RINGBUF_TYPE_NOSPLIT);
     if (mem.log_ringbuffer == NULL) {
         vRingbufferDelete(mem.data_ringbuffer);
         mem.data_ringbuffer = NULL;
