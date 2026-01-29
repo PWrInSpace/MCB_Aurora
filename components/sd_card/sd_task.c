@@ -270,8 +270,7 @@ static bool initialize_task(sd_task_cfg_t *task_cfg) {
         return false;
     }
     
-    // nie ma gwarancji, że w buforze będzie dokładnie CONFIG_SD_DATA_RINGBUF_CAPACITY itemów, bo RINGBUF_TYPE_NOSPLIT dokłada do każdego itemu jeszcze header (8 bajtów) oraz każdy item jest trzymany w blokach po 32 bity (niezaleznie od rzeczywistego rozmiaru)
-    mem.data_ringbuffer = xRingbufferCreate((CONFIG_SD_DATA_RINGBUF_CAPACITY * (task_cfg->data_size)), RINGBUF_TYPE_NOSPLIT);
+    mem.data_ringbuffer = xRingbufferCreate((SD_DATA_RINGBUF_CAPACITY * (task_cfg->data_size + RINGBUF_TYPE_NOSPLIT_HEADER_SIZE)), RINGBUF_TYPE_NOSPLIT);
     if (mem.data_ringbuffer == NULL) {
         free(mem.data_from_queue);
         return false;
