@@ -12,12 +12,12 @@ menu "SD Task"
         string "mount_point"
         default "/sdcard"
 
-    config SD_DATA_RINGBUF_CAPACITY
-        int "Data ringbuffer capacity"
+    config SD_DATA_QUEUE_SIZE
+        int "Data queue size"
         default 20
 
-    config SD_LOG_RINGBUF_CAPACITY
-        int "Log ringbuffer capacity"
+    config SD_LOG_QUEUE_SIZE
+        int "Log queue size"
         default 20
 
     config SD_PATH_SIZE
@@ -26,7 +26,7 @@ menu "SD Task"
 
     config SD_DATA_DROP_VALUE
         int "Data drop value"
-        range 0 SD_DATA_RINGBUF_CAPACITY
+        range 0 SD_DATA_QUEUE_SIZE
         default 10
 
     config SD_TASK_STACK_DEPTH
