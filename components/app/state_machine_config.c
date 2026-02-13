@@ -23,7 +23,7 @@ static void on_init(void *arg) {
 static void on_idle(void *arg) {
     gpioexp_led_set_color(GREEN);
     cmd_message_t cmd = cmd_create_message(ETH_VALVE_CLOSE, 0x00);
-    ENA_send(&esp_now_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
     ESP_LOGI(TAG, "ON IDLE");
 }
 
@@ -50,13 +50,13 @@ static void on_fueling(void *arg) {
     ENA_send(&esp_now_ox_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_VALVE_CLOSE, 0x00);
-    ENA_send(&esp_now_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_n2_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2O_SOL_CLOSE, 0x00);
-    ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(ETH_SOL_CLOSE, 0x00);
-    ENA_send(&esp_now_eth_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_SOL_CLOSE, 0x00);
     ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
@@ -68,7 +68,7 @@ static void on_pressurizing(void *arg) {
     gpioexp_led_set_color(CYAN);
 
     cmd_message_t cmd = cmd_create_message(N2_VALVE_CLOSE, 0x00);
-    ENA_send(&esp_now_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_n2_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_SOL_CLOSE, 0x00);
     ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
@@ -251,10 +251,10 @@ static void on_second_stage_recovery(void *arg) {
     }
 
     cmd_message_t cmd = cmd_create_message(ETH_SOL_OPEN, 0x00);
-    ENA_send(&esp_now_eth_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2O_SOL_OPEN, 0x00);
-    ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_SOL_OPEN, 0x00);
     ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
@@ -285,16 +285,16 @@ static void close_valves(void) {
     ENA_send(&esp_now_ox_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_VALVE_CLOSE, 0x00);
-    ENA_send(&esp_now_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_n2_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(ETH_VALVE_CLOSE, 0x00);
-    ENA_send(&esp_now_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2O_SOL_CLOSE, 0x00);
-    ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(ETH_SOL_CLOSE, 0x00);
-    ENA_send(&esp_now_eth_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_SOL_CLOSE, 0x00);
     ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
@@ -304,10 +304,10 @@ static void close_valves(void) {
 static void close_valves_on_lift_off(void) {
 
     cmd_message_t cmd = cmd_create_message(ETH_SOL_CLOSE, 0x00);
-    ENA_send(&esp_now_eth_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2O_SOL_CLOSE, 0x00);
-    ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_SOL_CLOSE, 0x00);
     ENA_send(&esp_now_vent_valves, cmd.raw, sizeof(cmd.raw), 3);

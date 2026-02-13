@@ -6,9 +6,9 @@
 #include <stdbool.h>
 
 typedef struct {
-    bool main_valves : 1;    
+    bool n2_main_valve : 1;    
     bool vent_valves : 1;
-    bool eth_vent_valve : 1;
+    bool ox_vent_eth_main_valves : 1;
     bool ox_main_valve : 1;
     bool pitot : 1;
     bool payload : 1;
@@ -25,7 +25,7 @@ typedef struct {
     float pressure_1;
     float pressure_2;
     float battery_voltage;
-} main_valves_data_t;
+} n2_main_valve_data_t;
 
 typedef struct {
      bool waken_up :1;
@@ -49,7 +49,7 @@ typedef struct {
     float pressure_1;
     float pressure_2;
     float battery_voltage;
-} eth_vent_valve_data_t;
+} ox_vent_eth_main_valves_data_t;
 
 typedef struct {
     bool waken_up :1;

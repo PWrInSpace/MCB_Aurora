@@ -122,15 +122,15 @@ struct obc_lo_ra_frame_t {
     struct {
         bool is_present;
         uint32_t value;
-    } main_vent_flags;
+    } valve_flags;
     struct {
         bool is_present;
         uint32_t value;
-    } eth_n2_main_bit_data;
+    } n2_main_bit_data;
     struct {
         bool is_present;
         uint32_t value;
-    } oxi_n2_vent_bit_data;
+    } eth_n2_vent_bit_data;
     struct {
         bool is_present;
         uint32_t value;
@@ -138,7 +138,7 @@ struct obc_lo_ra_frame_t {
     struct {
         bool is_present;
         uint32_t value;
-    } eth_vent_bit_data;
+    } ox_vent_eth_main_bit_data;
     struct {
         bool is_present;
         float value;

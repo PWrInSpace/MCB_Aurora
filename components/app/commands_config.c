@@ -319,7 +319,7 @@ static cmd_command_t recovery_commands[] = {
 // MAIN VALVE
 
 
-static void mval_eth_valve_close(uint32_t command, int32_t payload, bool privilage) {
+static void ov_emval_eth_valve_close(uint32_t command, int32_t payload, bool privilage) {
     // if (privilage == false) {
     //     return;
     // }
@@ -329,35 +329,35 @@ static void mval_eth_valve_close(uint32_t command, int32_t payload, bool privila
     //     return;
     // }
 
-    send_command_esp_now(&esp_now_main_valves, command, payload);
+    send_command_esp_now(&esp_now_ox_vent_eth_main_valves, command, payload);
 }
 
-static void mval_eth_valve_open(uint32_t command, int32_t payload, bool privilage) {
+static void ov_emval_eth_valve_open(uint32_t command, int32_t payload, bool privilage) {
     // if (privilage == false) {
     //     return;
     // }
 
-    send_command_esp_now(&esp_now_main_valves, command, payload);
+    send_command_esp_now(&esp_now_ox_vent_eth_main_valves, command, payload);
 }
 
-static void mval_n2_valve_close(uint32_t command, int32_t payload, bool privilage) {
+static void n2val_n2_valve_close(uint32_t command, int32_t payload, bool privilage) {
     state_id state = SM_get_current_state();
     // if (state > RDY_TO_LAUNCH && state < HOLD) {
     //     return;
     // }
 
-    send_command_esp_now(&esp_now_main_valves, command, payload);
+    send_command_esp_now(&esp_now_n2_main_valve, command, payload);
 }
 
-static void mval_n2_valve_open(uint32_t command, int32_t payload, bool privilage) {
+static void n2val_n2_valve_open(uint32_t command, int32_t payload, bool privilage) {
     // if (privilage == false) {
     //     return;
     // }
 
-    send_command_esp_now(&esp_now_main_valves, command, payload);
+    send_command_esp_now(&esp_now_n2_main_valve, command, payload);
 }
 
-static void mval_n2o_valve_close(uint32_t command, int32_t payload, bool privilage) {
+static void oval_n2o_valve_close(uint32_t command, int32_t payload, bool privilage) {
     // if (privilage == false) {
     //     return;
     // }
@@ -370,7 +370,7 @@ static void mval_n2o_valve_close(uint32_t command, int32_t payload, bool privila
     send_command_esp_now(&esp_now_ox_main_valve, command, payload);
 }
 
-static void mval_n2o_valve_open(uint32_t command, int32_t payload, bool privilage) {
+static void oval_n2o_valve_open(uint32_t command, int32_t payload, bool privilage) {
     // if (privilage == false) {
     //     return;
     // }
@@ -378,37 +378,35 @@ static void mval_n2o_valve_open(uint32_t command, int32_t payload, bool privilag
     send_command_esp_now(&esp_now_ox_main_valve, command, payload);
 }
 
-static cmd_command_t main_valves_commands[] = {
-    {ETH_VALVE_CLOSE,           mval_eth_valve_close    },
-    {ETH_VALVE_OPEN,            mval_eth_valve_open     },
-    {N2_VALVE_CLOSE,            mval_n2_valve_close     },
-    {N2_VALVE_OPEN,             mval_n2_valve_open      },
+static cmd_command_t n2_main_valve_commands[] = {
+    {N2_VALVE_CLOSE,            n2val_n2_valve_close     },
+    {N2_VALVE_OPEN,             n2val_n2_valve_open      },
 };
 
 static cmd_command_t ox_main_valve_commands[] = {
-    {N2O_VALVE_CLOSE,       mval_n2o_valve_close     },
-    {N2O_VALVE_OPEN,        mval_n2o_valve_open      },
+    {N2O_VALVE_CLOSE,       oval_n2o_valve_close     },
+    {N2O_VALVE_OPEN,        oval_n2o_valve_open      },
 };
 
 // VENT VALVE
 
-static void vval_n2o_sol_close(uint32_t command, int32_t payload, bool privilage) {
+static void ov_emval_n2o_sol_close(uint32_t command, int32_t payload, bool privilage) {
     // if (privilage == false) {
     //     return;
     // }
 
     int32_t tanwa_command = 0x71; // Close N2O valve command for TANWA
     send_command_esp_now(&esp_now_tanwa, tanwa_command, payload);
-    send_command_esp_now(&esp_now_vent_valves, command, payload);
+    send_command_esp_now(&esp_now_ox_vent_eth_main_valves, command, payload);
 }
 
-static void vval_n2o_sol_open(uint32_t command, int32_t payload, bool privilage) {
+static void ov_emval_n2o_sol_open(uint32_t command, int32_t payload, bool privilage) {
     // if (privilage == false) {
     //     return;
     // }
     int32_t command_tanwa = 0x70; // Open N2O valve command for TANWA
     send_command_esp_now(&esp_now_tanwa, command_tanwa, payload);
-    send_command_esp_now(&esp_now_vent_valves, command, payload);
+    send_command_esp_now(&esp_now_ox_vent_eth_main_valves, command, payload);
 }
 
 static void vval_n2_sol_close(uint32_t command, int32_t payload, bool privilage) {
@@ -427,32 +425,34 @@ static void vval_n2_sol_open(uint32_t command, int32_t payload, bool privilage) 
     send_command_esp_now(&esp_now_vent_valves, command, payload);
 }
 
-static void eval_eth_sol_close(uint32_t command, int32_t payload, bool privilage) {
+static void vval_eth_sol_close(uint32_t command, int32_t payload, bool privilage) {
     // if (privilage == false) {
     //     return;
     // }
 
-    send_command_esp_now(&esp_now_eth_vent_valve, command, payload);
+    send_command_esp_now(&esp_now_vent_valves, command, payload);
 }
 
-static void eval_eth_sol_open(uint32_t command, int32_t payload, bool privilage) {
+static void vval_eth_sol_open(uint32_t command, int32_t payload, bool privilage) {
     // if (privilage == false) {
     //     return;
     // }
 
-    send_command_esp_now(&esp_now_eth_vent_valve, command, payload);
+    send_command_esp_now(&esp_now_vent_valves, command, payload);
 }
 
 static cmd_command_t vent_valves_commands[] = {
-    {N2O_SOL_CLOSE,             vval_n2o_sol_close},
-    {N2O_SOL_OPEN,              vval_n2o_sol_open },
     {N2_SOL_CLOSE,              vval_n2_sol_close       },
     {N2_SOL_OPEN,               vval_n2_sol_open        },
+    {ETH_SOL_CLOSE,      vval_eth_sol_close      },
+    {ETH_SOL_OPEN,       vval_eth_sol_open       },
 };
 
-static cmd_command_t eth_vent_valve_commands[] = {
-    {ETH_SOL_CLOSE,      eval_eth_sol_close      },
-    {ETH_SOL_OPEN,       eval_eth_sol_open       },
+static cmd_command_t ox_vent_eth_main_valves_commands[] = {
+    {N2O_SOL_CLOSE,             ov_emval_n2o_sol_close},
+    {N2O_SOL_OPEN,              ov_emval_n2o_sol_open },
+    {ETH_VALVE_CLOSE,           ov_emval_eth_valve_close    },
+    {ETH_VALVE_OPEN,            ov_emval_eth_valve_open     },
 };
 
 
@@ -502,10 +502,10 @@ static cmd_command_t tanwa_commands[] = {
 static cmd_device_t devices[] = {
     {DEVICE_MCB,            mcb_commands,            SIZE_OF(mcb_commands)},
     {DEVICE_RECOVERY,       recovery_commands,       SIZE_OF(recovery_commands)},
-    {DEVICE_MAIN_VALVES,    main_valves_commands,    SIZE_OF(main_valves_commands)},
+    {DEVICE_N2_MAIN_VALVE,    n2_main_valve_commands,    SIZE_OF(n2_main_valve_commands)},
     {DEVICE_VENT_VALVES,    vent_valves_commands,    SIZE_OF(vent_valves_commands)},
     {DEVICE_OX_MAIN_VALVE,  ox_main_valve_commands,  SIZE_OF(ox_main_valve_commands)},
-    {DEVICE_ETH_VENT_VALVE, eth_vent_valve_commands, SIZE_OF(eth_vent_valve_commands)},
+    {DEVICE_OX_VENT_ETH_MAIN_VALVES, ox_vent_eth_main_valves_commands, SIZE_OF(ox_vent_eth_main_valves_commands)},
     {DEVICE_TANWA,          tanwa_commands,          SIZE_OF(tanwa_commands)},
 };
 

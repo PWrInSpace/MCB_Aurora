@@ -91,14 +91,14 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
 
     uint32_t valve_states_bitfield = 0;
     valve_states_bitfield |= (data.ox_main_valve.valve_1_state == 1 ? (1u << 0) : 0u);
-    valve_states_bitfield |= (data.main_valves.valve_1_state == 1 ? (1u << 1) : 0u);
-    valve_states_bitfield |= (data.main_valves.valve_2_state == 1 ? (1u << 2) : 0u);
-    valve_states_bitfield |= (data.tanwa.heatingTankState == 1 ? (1u << 3) : 0u);
-    valve_states_bitfield |= (data.eth_vent_valve.valve_1_state == 1 ? (1u << 4) : 0u);
+    valve_states_bitfield |= (data.n2_main_valve.valve_1_state == 1 ? (1u << 1) : 0u);
+    valve_states_bitfield |= (data.ox_vent_eth_main_valves.valve_1_state == 1 ? (1u << 2) : 0u);
+    valve_states_bitfield |= (data.ox_vent_eth_main_valves.valve_2_state == 1 ? (1u << 3) : 0u);
+    valve_states_bitfield |= (data.vent_valves.valve_1_state == 1 ? (1u << 4) : 0u);
     valve_states_bitfield |= (data.vent_valves.valve_2_state == 1 ? (1u << 5) : 0u);
 
-    frame->main_vent_flags.is_present = true;
-    frame->main_vent_flags.value = valve_states_bitfield;
+    frame->valve_flags.is_present = true;
+    frame->valve_flags.value = valve_states_bitfield;
 
     // main valve
     // mval bit data mapping not present in proto; skipping
@@ -109,17 +109,17 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     // eth vent valve bit data (uses eth_vent_valve struct)
     {
         uint32_t v = 0;
-        uint8_t temp_b = (uint8_t) (fminf(255.0f, roundf(data.eth_vent_valve.temperature_1)));
-        uint16_t press_temp = (uint16_t) (fmax(data.eth_vent_valve.pressure_1, 0) * 100);
+        uint8_t temp_b = (uint8_t) (fminf(255.0f, roundf(data.ox_vent_eth_main_valves.temperature_1)));
+        uint16_t press_temp = (uint16_t) (fmax(data.ox_vent_eth_main_valves.pressure_1, 0) * 100);
         uint8_t pres1_b = (uint8_t) ((press_temp >> 8) & 0xFF);
         uint8_t pres2_b = (uint8_t) ((press_temp) & 0xFF);
-        uint8_t batt_b = (uint8_t) (fminf(255.0f, data.eth_vent_valve.battery_voltage * 10.0f));
+        uint8_t batt_b = (uint8_t) (fminf(255.0f, data.ox_vent_eth_main_valves.battery_voltage * 10.0f));
         v |= ((uint32_t)temp_b << 24);
         v |= ((uint32_t)pres1_b << 16);
         v |= ((uint32_t)pres2_b << 8);
         v |= ((uint32_t)batt_b << 0);
-        frame->eth_vent_bit_data.is_present = true;
-        frame->eth_vent_bit_data.value = v;
+        frame->ox_vent_eth_main_bit_data.is_present = true;
+        frame->ox_vent_eth_main_bit_data.value = v;
     }
 
     // oxi main valve bit data (uses ox_main_valve struct)
@@ -150,24 +150,24 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         v |= ((uint32_t)pres1_b << 16);
         v |= ((uint32_t)pres2_b << 8);
         v |= ((uint32_t)batt_b << 0);
-        frame->oxi_n2_vent_bit_data.is_present = true;
-        frame->oxi_n2_vent_bit_data.value = v;
+        frame->eth_n2_vent_bit_data.is_present = true;
+        frame->eth_n2_vent_bit_data.value = v;
     }
 
     // eth + n2 mains bit data (uses main_valves struct for N2 mains)
     {
         uint32_t v = 0;
-        uint8_t temp_b = (uint8_t) (fminf(255.0f, roundf(data.main_valves.temperature_1)));
-        uint16_t press_temp = (uint16_t) (fmax(data.main_valves.pressure_1, 0) * 100);
+        uint8_t temp_b = (uint8_t) (fminf(255.0f, roundf(data.n2_main_valve.temperature_1)));
+        uint16_t press_temp = (uint16_t) (fmax(data.n2_main_valve.pressure_1, 0) * 100);
         uint8_t pres1_b = (uint8_t) ((press_temp >> 8) & 0xFF);
         uint8_t pres2_b = (uint8_t) ((press_temp) & 0xFF);
-        uint8_t batt_b = (uint8_t) (fminf(255.0f, data.main_valves.battery_voltage * 10.0f));
+        uint8_t batt_b = (uint8_t) (fminf(255.0f, data.n2_main_valve.battery_voltage * 10.0f));
         v |= ((uint32_t)temp_b << 24);
         v |= ((uint32_t)pres1_b << 16);
         v |= ((uint32_t)pres2_b << 8);
         v |= ((uint32_t)batt_b << 0);
-        frame->eth_n2_main_bit_data.is_present = true;
-        frame->eth_n2_main_bit_data.value = v;
+        frame->n2_main_bit_data.is_present = true;
+        frame->n2_main_bit_data.value = v;
     }
 
     // tanwa - map explicit fields from tanwa_data_t
@@ -246,10 +246,10 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         uint32_t conn = 0;
         conn |= (data.connected_dev.payload    ? (1u << 0) : 0u); // payload_connected
         conn |= (data.connected_dev.tanwa      ? (1u << 1) : 0u); // tanwa_connected
-        conn |= (data.connected_dev.eth_vent_valve ? (1u << 2) : 0u);
+        conn |= (data.connected_dev.ox_vent_eth_main_valves ? (1u << 2) : 0u);
         conn |= (data.connected_dev.ox_main_valve  ? (1u << 3) : 0u);
         conn |= (data.connected_dev.vent_valves    ? (1u << 4) : 0u);
-        conn |= (data.connected_dev.main_valves    ? (1u << 5) : 0u);
+        conn |= (data.connected_dev.n2_main_valve    ? (1u << 5) : 0u);
         conn |= (data.connected_dev.pitot          ? (1u << 6) : 0u);
         frame->espnow_connected_flags.is_present = true;
         frame->espnow_connected_flags.value = conn;
@@ -259,10 +259,10 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     {
         uint32_t wk = 0;
         wk |= (data.payload.waken_up           ? (1u << 0) : 0u);
-        wk |= (data.eth_vent_valve.waken_up   ? (1u << 1) : 0u);
+        wk |= (data.ox_vent_eth_main_valves.waken_up   ? (1u << 1) : 0u);
         wk |= (data.ox_main_valve.waken_up    ? (1u << 2) : 0u);
         wk |= (data.vent_valves.waken_up      ? (1u << 3) : 0u);
-        wk |= (data.main_valves.waken_up      ? (1u << 4) : 0u);
+        wk |= (data.n2_main_valve.waken_up      ? (1u << 4) : 0u);
         wk |= (data.pitot.waken_up            ? (1u << 5) : 0u);
         frame->espnow_wkup_flags.is_present = true;
         frame->espnow_wkup_flags.value = wk;

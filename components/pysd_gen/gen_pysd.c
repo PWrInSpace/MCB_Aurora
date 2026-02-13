@@ -13,29 +13,29 @@ size_t pysd_get_header_size(bool new_line_ending) {
         string_size = snprintf(NULL, 0,
             "mcb.state;mcb.uptime;mcb.flight_time;mcb.disconnect_timer;mcb.battery_voltage;mcb.sensor_placeholder;mcb.latitude;mcb.longitude;mcb.gps_altitude;mcb.satelites_in_view;mcb.acc_x;mcb.acc_y;mcb.acc_z;mcb_acc_vertical;mcb.gyr_x;mcb.gyr_y;mcb.gyr_z;mcb.mag_x;mcb.mag_y;mcb.mag_z;mcb.temperature;mcb.pressure;mcb.altitude;mcb.velocity;mcb.yaw;mcb.pitch;mcb.roll;"
             "vent_valves.waken_up;vent_valves.valve_1_state;vent_valves.valve_2_state;vent_valves.temperature_1;vent_valves.temperature_2;vent_valves.temperature_3;vent_valves.pressure_1;vent_valves.pressure_2;vent_valves.battery_voltage;"
-            "main_valves.waken_up;main_valves.valve_1_state;main_valves.valve_2_state;main_valves.temperature_1;main_valves.temperature_2;main_valves.temperature_3;main_valves.pressure_1;main_valves.pressure_2;main_valves.battery_voltage;"
-            "eth_vent_valve.waken_up;eth_vent_valve.valve_1_state;eth_vent_valve.valve_2_state;eth_vent_valve.temperature_1;eth_vent_valve.temperature_2;eth_vent_valve.temperature_3;eth_vent_valve.pressure_1;eth_vent_valve.pressure_2;eth_vent_valve.battery_voltage;"
+            "n2_main_valve.waken_up;n2_main_valve.valve_1_state;n2_main_valve.valve_2_state;n2_main_valve.temperature_1;n2_main_valve.temperature_2;n2_main_valve.temperature_3;n2_main_valve.pressure_1;n2_main_valve.pressure_2;n2_main_valve.battery_voltage;"
+            "ox_vent_eth_main_valves.waken_up;ox_vent_eth_main_valves.valve_1_state;ox_vent_eth_main_valves.valve_2_state;ox_vent_eth_main_valves.temperature_1;ox_vent_eth_main_valves.temperature_2;ox_vent_eth_main_valves.temperature_3;ox_vent_eth_main_valves.pressure_1;ox_vent_eth_main_valves.pressure_2;ox_vent_eth_main_valves.battery_voltage;"
             "ox_main_valve.waken_up;ox_main_valve.valve_1_state;ox_main_valve.valve_2_state;ox_main_valve.temperature_1;ox_main_valve.temperature_2;ox_main_valve.temperature_3;ox_main_valve.pressure_1;ox_main_valve.pressure_2;ox_main_valve.battery_voltage;"
             "recovery.isArmed;recovery.isTeleActive;recovery.easyMiniFirstStage;recovery.easyMiniSecondStage;recovery.telemetrumFirstStage;recovery.telemetrumSecondStage;recovery.firstStageDone;recovery.secondStageDone;recovery.firstStageContinouity;recovery.secondStageContinouity;recovery.separationSwitch1;recovery.separationSwitch2;recovery.pressure1;"
             "payload.waken_up;payload.vbat;"
             "tanwa.vbat;tanwa.tanWaState;tanwa.thrust_val;tanwa.tankWeight_val;tanwa.temperature_postFill;tanwa.temperature_Wall;tanwa.postFillN2O_pres;tanwa.cutoffN2O_pres;tanwa.droidN2O_press;tanwa.preRegulatorN2_pres;tanwa.postRegulatorN2_pres;tanwa.postFillN2_pres;tanwa.droidN2_press;tanwa.combChamber_pres;"
             "tanwa.soft_arm;tanwa.canWeighta_con;tanwa.canSensor_con;tanwa.canSolenoid_con;tanwa.canUtility_con;tanwa.canPower_con;tanwa.igniterContinouity_1;tanwa.igniterContinouity_2;tanwa.fillN2OState;tanwa.deprN2OState;tanwa.fillN2State;tanwa.deprN2State;tanwa.droidN2OState;tanwa.droidN2State;tanwa.heatingTankState;tanwa.heatingValveState;tanwa.abortButton;"
             "pitot.waken_up;pitot.dynamic_press;pitot.static_press;pitot.temperature;pitot.humid;pitot.vbat;pitot.speed;pitot.alt;pitot.pred_apogee;"
-            "connected_dev.main_valves;connected_dev.vent_valves;connected_dev.eth_vent_valve;connected_dev.ox_main_valve;connected_dev.pitot;connected_dev.payload;connected_dev.tanwa;"
+            "connected_dev.n2_main_valve;connected_dev.vent_valves;connected_dev.ox_vent_eth_main_valves;connected_dev.ox_main_valve;connected_dev.pitot;connected_dev.payload;connected_dev.tanwa;"
             "error_esp_now;error_memory;error_mcb;error_sensors;error_recovery;error_last_exception\n");
     } else {
         string_size = snprintf(NULL, 0,
             "mcb.state;mcb.uptime;mcb.flight_time;mcb.disconnect_timer;mcb.battery_voltage;mcb.sensor_placeholder;mcb.latitude;mcb.longitude;mcb.gps_altitude;mcb.satelites_in_view;mcb.acc_x;mcb.acc_y;mcb.acc_z;mcb_acc_vertical;mcb.gyr_x;mcb.gyr_y;mcb.gyr_z;mcb.mag_x;mcb.mag_y;mcb.mag_z;mcb.temperature;mcb.pressure;mcb.altitude;mcb.velocity;mcb.yaw;mcb.pitch;mcb.roll;"
             "vent_valves.waken_up;vent_valves.valve_1_state;vent_valves.valve_2_state;vent_valves.temperature_1;vent_valves.temperature_2;vent_valves.temperature_3;vent_valves.pressure_1;vent_valves.pressure_2;vent_valves.battery_voltage;"
-            "main_valves.waken_up;main_valves.valve_1_state;main_valves.valve_2_state;main_valves.temperature_1;main_valves.temperature_2;main_valves.temperature_3;main_valves.pressure_1;main_valves.pressure_2;main_valves.battery_voltage;"
-            "eth_vent_valve.waken_up;eth_vent_valve.valve_1_state;eth_vent_valve.valve_2_state;eth_vent_valve.temperature_1;eth_vent_valve.temperature_2;eth_vent_valve.temperature_3;eth_vent_valve.pressure_1;eth_vent_valve.pressure_2;eth_vent_valve.battery_voltage;"
+            "n2_main_valve.waken_up;n2_main_valve.valve_1_state;n2_main_valve.valve_2_state;n2_main_valve.temperature_1;n2_main_valve.temperature_2;n2_main_valve.temperature_3;n2_main_valve.pressure_1;n2_main_valve.pressure_2;n2_main_valve.battery_voltage;"
+            "ox_vent_eth_main_valves.waken_up;ox_vent_eth_main_valves.valve_1_state;ox_vent_eth_main_valves.valve_2_state;ox_vent_eth_main_valves.temperature_1;ox_vent_eth_main_valves.temperature_2;ox_vent_eth_main_valves.temperature_3;ox_vent_eth_main_valves.pressure_1;ox_vent_eth_main_valves.pressure_2;ox_vent_eth_main_valves.battery_voltage;"
             "ox_main_valve.waken_up;ox_main_valve.valve_1_state;ox_main_valve.valve_2_state;ox_main_valve.temperature_1;ox_main_valve.temperature_2;ox_main_valve.temperature_3;ox_main_valve.pressure_1;ox_main_valve.pressure_2;ox_main_valve.battery_voltage;"
             "recovery.isArmed;recovery.isTeleActive;recovery.easyMiniFirstStage;recovery.easyMiniSecondStage;recovery.telemetrumFirstStage;recovery.telemetrumSecondStage;recovery.firstStageDone;recovery.secondStageDone;recovery.firstStageContinouity;recovery.secondStageContinouity;recovery.separationSwitch1;recovery.separationSwitch2;recovery.pressure1;"
             "payload.waken_up;payload.vbat;"
             "tanwa.vbat;tanwa.tanWaState;tanwa.thrust_val;tanwa.tankWeight_val;tanwa.temperature_postFill;tanwa.temperature_Wall;tanwa.postFillN2O_pres;tanwa.cutoffN2O_pres;tanwa.droidN2O_press;tanwa.preRegulatorN2_pres;tanwa.postRegulatorN2_pres;tanwa.postFillN2_pres;tanwa.droidN2_press;tanwa.combChamber_pres;"
             "tanwa.soft_arm;tanwa.canWeighta_con;tanwa.canSensor_con;tanwa.canSolenoid_con;tanwa.canUtility_con;tanwa.canPower_con;tanwa.igniterContinouity_1;tanwa.igniterContinouity_2;tanwa.fillN2OState;tanwa.deprN2OState;tanwa.fillN2State;tanwa.deprN2State;tanwa.droidN2OState;tanwa.droidN2State;tanwa.heatingTankState;tanwa.heatingValveState;tanwa.abortButton;"
             "pitot.waken_up;pitot.dynamic_press;pitot.static_press;pitot.temperature;pitot.humid;pitot.vbat;pitot.speed;pitot.alt;pitot.pred_apogee;"
-            "connected_dev.main_valves;connected_dev.vent_valves;connected_dev.eth_vent_valve;connected_dev.ox_main_valve;connected_dev.pitot;connected_dev.payload;connected_dev.tanwa;"
+            "connected_dev.n2_main_valve;connected_dev.vent_valves;connected_dev.ox_vent_eth_main_valves;connected_dev.ox_main_valve;connected_dev.pitot;connected_dev.payload;connected_dev.tanwa;"
             "error_esp_now;error_memory;error_mcb;error_sensors;error_recovery;error_last_exception");
     }
 
@@ -102,26 +102,26 @@ size_t pysd_get_sd_frame_size(rocket_data_t pysd_main, bool new_line_ending) {
             pysd_main.vent_valves.pressure_1,
             pysd_main.vent_valves.pressure_2,
             pysd_main.vent_valves.battery_voltage,
-            /* main_valves */
-            (int)pysd_main.main_valves.waken_up,
-            (unsigned)pysd_main.main_valves.valve_1_state,
-            (unsigned)pysd_main.main_valves.valve_2_state,
-            pysd_main.main_valves.temperature_1,
-            pysd_main.main_valves.temperature_2,
-            pysd_main.main_valves.temperature_3,
-            pysd_main.main_valves.pressure_1,
-            pysd_main.main_valves.pressure_2,
-            pysd_main.main_valves.battery_voltage,
-            /* eth_vent_valve */
-            (int)pysd_main.eth_vent_valve.waken_up,
-            (unsigned)pysd_main.eth_vent_valve.valve_1_state,
-            (unsigned)pysd_main.eth_vent_valve.valve_2_state,
-            pysd_main.eth_vent_valve.temperature_1,
-            pysd_main.eth_vent_valve.temperature_2,
-            pysd_main.eth_vent_valve.temperature_3,
-            pysd_main.eth_vent_valve.pressure_1,
-            pysd_main.eth_vent_valve.pressure_2,
-            pysd_main.eth_vent_valve.battery_voltage,
+            /* n2_main_valve */
+            (int)pysd_main.n2_main_valve.waken_up,
+            (unsigned)pysd_main.n2_main_valve.valve_1_state,
+            (unsigned)pysd_main.n2_main_valve.valve_2_state,
+            pysd_main.n2_main_valve.temperature_1,
+            pysd_main.n2_main_valve.temperature_2,
+            pysd_main.n2_main_valve.temperature_3,
+            pysd_main.n2_main_valve.pressure_1,
+            pysd_main.n2_main_valve.pressure_2,
+            pysd_main.n2_main_valve.battery_voltage,
+            /* ox_vent_eth_main_valves */
+            (int)pysd_main.ox_vent_eth_main_valves.waken_up,
+            (unsigned)pysd_main.ox_vent_eth_main_valves.valve_1_state,
+            (unsigned)pysd_main.ox_vent_eth_main_valves.valve_2_state,
+            pysd_main.ox_vent_eth_main_valves.temperature_1,
+            pysd_main.ox_vent_eth_main_valves.temperature_2,
+            pysd_main.ox_vent_eth_main_valves.temperature_3,
+            pysd_main.ox_vent_eth_main_valves.pressure_1,
+            pysd_main.ox_vent_eth_main_valves.pressure_2,
+            pysd_main.ox_vent_eth_main_valves.battery_voltage,
             /* ox_main_valve */
             (int)pysd_main.ox_main_valve.waken_up,
             (unsigned)pysd_main.ox_main_valve.valve_1_state,
@@ -191,9 +191,9 @@ size_t pysd_get_sd_frame_size(rocket_data_t pysd_main, bool new_line_ending) {
             pysd_main.pitot.alt,
             pysd_main.pitot.pred_apogee,
             /* connected */
-            (int)pysd_main.connected_dev.main_valves,
+            (int)pysd_main.connected_dev.n2_main_valve,
             (int)pysd_main.connected_dev.vent_valves,
-            (int)pysd_main.connected_dev.eth_vent_valve,
+            (int)pysd_main.connected_dev.ox_vent_eth_main_valves,
             (int)pysd_main.connected_dev.ox_main_valve,
             (int)pysd_main.connected_dev.pitot,
             (int)pysd_main.connected_dev.payload,
@@ -255,26 +255,26 @@ size_t pysd_get_sd_frame_size(rocket_data_t pysd_main, bool new_line_ending) {
             pysd_main.vent_valves.pressure_1,
             pysd_main.vent_valves.pressure_2,
             pysd_main.vent_valves.battery_voltage,
-            /* main_valves */
-            (int)pysd_main.main_valves.waken_up,
-            (unsigned)pysd_main.main_valves.valve_1_state,
-            (unsigned)pysd_main.main_valves.valve_2_state,
-            pysd_main.main_valves.temperature_1,
-            pysd_main.main_valves.temperature_2,
-            pysd_main.main_valves.temperature_3,
-            pysd_main.main_valves.pressure_1,
-            pysd_main.main_valves.pressure_2,
-            pysd_main.main_valves.battery_voltage,
-            /* eth_vent_valve */
-            (int)pysd_main.eth_vent_valve.waken_up,
-            (unsigned)pysd_main.eth_vent_valve.valve_1_state,
-            (unsigned)pysd_main.eth_vent_valve.valve_2_state,
-            pysd_main.eth_vent_valve.temperature_1,
-            pysd_main.eth_vent_valve.temperature_2,
-            pysd_main.eth_vent_valve.temperature_3,
-            pysd_main.eth_vent_valve.pressure_1,
-            pysd_main.eth_vent_valve.pressure_2,
-            pysd_main.eth_vent_valve.battery_voltage,
+            /* n2_main_valve */
+            (int)pysd_main.n2_main_valve.waken_up,
+            (unsigned)pysd_main.n2_main_valve.valve_1_state,
+            (unsigned)pysd_main.n2_main_valve.valve_2_state,
+            pysd_main.n2_main_valve.temperature_1,
+            pysd_main.n2_main_valve.temperature_2,
+            pysd_main.n2_main_valve.temperature_3,
+            pysd_main.n2_main_valve.pressure_1,
+            pysd_main.n2_main_valve.pressure_2,
+            pysd_main.n2_main_valve.battery_voltage,
+            /* ox_vent_eth_main_valves */
+            (int)pysd_main.ox_vent_eth_main_valves.waken_up,
+            (unsigned)pysd_main.ox_vent_eth_main_valves.valve_1_state,
+            (unsigned)pysd_main.ox_vent_eth_main_valves.valve_2_state,
+            pysd_main.ox_vent_eth_main_valves.temperature_1,
+            pysd_main.ox_vent_eth_main_valves.temperature_2,
+            pysd_main.ox_vent_eth_main_valves.temperature_3,
+            pysd_main.ox_vent_eth_main_valves.pressure_1,
+            pysd_main.ox_vent_eth_main_valves.pressure_2,
+            pysd_main.ox_vent_eth_main_valves.battery_voltage,
             /* ox_main_valve */
             (int)pysd_main.ox_main_valve.waken_up,
             (unsigned)pysd_main.ox_main_valve.valve_1_state,
@@ -344,9 +344,9 @@ size_t pysd_get_sd_frame_size(rocket_data_t pysd_main, bool new_line_ending) {
             pysd_main.pitot.alt,
             pysd_main.pitot.pred_apogee,
             /* connected */
-            (int)pysd_main.connected_dev.main_valves,
+            (int)pysd_main.connected_dev.n2_main_valve,
             (int)pysd_main.connected_dev.vent_valves,
-            (int)pysd_main.connected_dev.eth_vent_valve,
+            (int)pysd_main.connected_dev.ox_vent_eth_main_valves,
             (int)pysd_main.connected_dev.ox_main_valve,
             (int)pysd_main.connected_dev.pitot,
             (int)pysd_main.connected_dev.payload,
@@ -386,7 +386,7 @@ size_t pysd_create_header(char *buffer, size_t size, bool new_line_ending) {
             "payload_waken_up;payload_vbat;"
             "tanwa_vbat;tanwa_state;tanwa_thrust_val;tanwa_tankWeight_val;tanwa_temperature_postFill;tanwa_temperature_Wall;tanwa_postFillN2O_pres;tanwa_cutoffN2O_pres;tanwa_droidN2O_press;tanwa_preRegulatorN2_pres;tanwa_postRegulatorN2_pres;tanwa_postFillN2_pres;tanwa_droidN2_press;tanwa_combChamber_pres;tanwa_soft_arm;tanwa_canWeighta_con;tanwa_canSensor_con;tanwa_canSolenoid_con;tanwa_canUtility_con;tanwa_canPower_con;tanwa_igniterContinouity_1;tanwa_igniterContinouity_2;tanwa_fillN2OState;tanwa_deprN2OState;tanwa_fillN2State;tanwa_deprN2State;tanwa_droidN2OState;tanwa_droidN2State;tanwa_heatingTankState;tanwa_heatingValveState;tanwa_abortButton;"
             "pitot_waken_up;pitot_dynamic_press;pitot_static_press;pitot_temperature;pitot_humid;pitot_vbat;pitot_speed;pitot_alt;pitot_pred_apogee;"
-            "connected_main_valves;connected_vent_valves;connected_eth_vent_valve;connected_ox_main_valve;connected_pitot;connected_payload;connected_tanwa;"
+            "connected_n2_main_valve;connected_vent_valves;connected_ox_vent_eth_main_valves;connected_ox_main_valve;connected_pitot;connected_payload;connected_tanwa;"
             "error_esp_now;error_memory;error_mcb;error_sensors;error_recovery;error_last_exception\n");
     } else {
         header_size = snprintf(buffer, size,
@@ -399,7 +399,7 @@ size_t pysd_create_header(char *buffer, size_t size, bool new_line_ending) {
             "payload_waken_up;payload_vbat;"
             "tanwa_vbat;tanwa_state;tanwa_thrust_val;tanwa_tankWeight_val;tanwa_temperature_postFill;tanwa_temperature_Wall;tanwa_postFillN2O_pres;tanwa_cutoffN2O_pres;tanwa_droidN2O_press;tanwa_preRegulatorN2_pres;tanwa_postRegulatorN2_pres;tanwa_postFillN2_pres;tanwa_droidN2_press;tanwa_combChamber_pres;tanwa_soft_arm;tanwa_canWeighta_con;tanwa_canSensor_con;tanwa_canSolenoid_con;tanwa_canUtility_con;tanwa_canPower_con;tanwa_igniterContinouity_1;tanwa_igniterContinouity_2;tanwa_fillN2OState;tanwa_deprN2OState;tanwa_fillN2State;tanwa_deprN2State;tanwa_droidN2OState;tanwa_droidN2State;tanwa_heatingTankState;tanwa_heatingValveState;tanwa_abortButton;"
             "pitot_waken_up;pitot_dynamic_press;pitot_static_press;pitot_temperature;pitot_humid;pitot_vbat;pitot_speed;pitot_alt;pitot_pred_apogee;"
-            "connected_main_valves;connected_vent_valves;connected_eth_vent_valve;connected_ox_main_valve;connected_pitot;connected_payload;connected_tanwa;"
+            "connected_n2_main_valve;connected_vent_valves;connected_ox_vent_eth_main_valves;connected_ox_main_valve;connected_pitot;connected_payload;connected_tanwa;"
             "error_esp_now;error_memory;error_mcb;error_sensors;error_recovery;error_last_exception");
     }
 
@@ -469,26 +469,26 @@ size_t pysd_create_sd_frame(char *buffer, size_t size, rocket_data_t pysd_main, 
             pysd_main.vent_valves.pressure_1,
             pysd_main.vent_valves.pressure_2,
             pysd_main.vent_valves.battery_voltage,
-            /* main_valves */
-            (int)pysd_main.main_valves.waken_up,
-            (unsigned)pysd_main.main_valves.valve_1_state,
-            (unsigned)pysd_main.main_valves.valve_2_state,
-            pysd_main.main_valves.temperature_1,
-            pysd_main.main_valves.temperature_2,
-            pysd_main.main_valves.temperature_3,
-            pysd_main.main_valves.pressure_1,
-            pysd_main.main_valves.pressure_2,
-            pysd_main.main_valves.battery_voltage,
-            /* eth_vent_valve */
-            (int)pysd_main.eth_vent_valve.waken_up,
-            (unsigned)pysd_main.eth_vent_valve.valve_1_state,
-            (unsigned)pysd_main.eth_vent_valve.valve_2_state,
-            pysd_main.eth_vent_valve.temperature_1,
-            pysd_main.eth_vent_valve.temperature_2,
-            pysd_main.eth_vent_valve.temperature_3,
-            pysd_main.eth_vent_valve.pressure_1,
-            pysd_main.eth_vent_valve.pressure_2,
-            pysd_main.eth_vent_valve.battery_voltage,
+            /* n2_main_valve */
+            (int)pysd_main.n2_main_valve.waken_up,
+            (unsigned)pysd_main.n2_main_valve.valve_1_state,
+            (unsigned)pysd_main.n2_main_valve.valve_2_state,
+            pysd_main.n2_main_valve.temperature_1,
+            pysd_main.n2_main_valve.temperature_2,
+            pysd_main.n2_main_valve.temperature_3,
+            pysd_main.n2_main_valve.pressure_1,
+            pysd_main.n2_main_valve.pressure_2,
+            pysd_main.n2_main_valve.battery_voltage,
+            /* ox_vent_eth_main_valves */
+            (int)pysd_main.ox_vent_eth_main_valves.waken_up,
+            (unsigned)pysd_main.ox_vent_eth_main_valves.valve_1_state,
+            (unsigned)pysd_main.ox_vent_eth_main_valves.valve_2_state,
+            pysd_main.ox_vent_eth_main_valves.temperature_1,
+            pysd_main.ox_vent_eth_main_valves.temperature_2,
+            pysd_main.ox_vent_eth_main_valves.temperature_3,
+            pysd_main.ox_vent_eth_main_valves.pressure_1,
+            pysd_main.ox_vent_eth_main_valves.pressure_2,
+            pysd_main.ox_vent_eth_main_valves.battery_voltage,
             /* ox_main_valve */
             (int)pysd_main.ox_main_valve.waken_up,
             (unsigned)pysd_main.ox_main_valve.valve_1_state,
@@ -558,9 +558,9 @@ size_t pysd_create_sd_frame(char *buffer, size_t size, rocket_data_t pysd_main, 
             pysd_main.pitot.alt,
             pysd_main.pitot.pred_apogee,
             /* connected */
-            (int)pysd_main.connected_dev.main_valves,
+            (int)pysd_main.connected_dev.n2_main_valve,
             (int)pysd_main.connected_dev.vent_valves,
-            (int)pysd_main.connected_dev.eth_vent_valve,
+            (int)pysd_main.connected_dev.ox_vent_eth_main_valves,
             (int)pysd_main.connected_dev.ox_main_valve,
             (int)pysd_main.connected_dev.pitot,
             (int)pysd_main.connected_dev.payload,
@@ -623,26 +623,26 @@ size_t pysd_create_sd_frame(char *buffer, size_t size, rocket_data_t pysd_main, 
             pysd_main.vent_valves.pressure_1,
             pysd_main.vent_valves.pressure_2,
             pysd_main.vent_valves.battery_voltage,
-            /* main_valves */
-            (int)pysd_main.main_valves.waken_up,
-            (unsigned)pysd_main.main_valves.valve_1_state,
-            (unsigned)pysd_main.main_valves.valve_2_state,
-            pysd_main.main_valves.temperature_1,
-            pysd_main.main_valves.temperature_2,
-            pysd_main.main_valves.temperature_3,
-            pysd_main.main_valves.pressure_1,
-            pysd_main.main_valves.pressure_2,
-            pysd_main.main_valves.battery_voltage,
-            /* eth_vent_valve */
-            (int)pysd_main.eth_vent_valve.waken_up,
-            (unsigned)pysd_main.eth_vent_valve.valve_1_state,
-            (unsigned)pysd_main.eth_vent_valve.valve_2_state,
-            pysd_main.eth_vent_valve.temperature_1,
-            pysd_main.eth_vent_valve.temperature_2,
-            pysd_main.eth_vent_valve.temperature_3,
-            pysd_main.eth_vent_valve.pressure_1,
-            pysd_main.eth_vent_valve.pressure_2,
-            pysd_main.eth_vent_valve.battery_voltage,
+            /* n2_main_valve */
+            (int)pysd_main.n2_main_valve.waken_up,
+            (unsigned)pysd_main.n2_main_valve.valve_1_state,
+            (unsigned)pysd_main.n2_main_valve.valve_2_state,
+            pysd_main.n2_main_valve.temperature_1,
+            pysd_main.n2_main_valve.temperature_2,
+            pysd_main.n2_main_valve.temperature_3,
+            pysd_main.n2_main_valve.pressure_1,
+            pysd_main.n2_main_valve.pressure_2,
+            pysd_main.n2_main_valve.battery_voltage,
+            /* ox_vent_eth_main_valves */
+            (int)pysd_main.ox_vent_eth_main_valves.waken_up,
+            (unsigned)pysd_main.ox_vent_eth_main_valves.valve_1_state,
+            (unsigned)pysd_main.ox_vent_eth_main_valves.valve_2_state,
+            pysd_main.ox_vent_eth_main_valves.temperature_1,
+            pysd_main.ox_vent_eth_main_valves.temperature_2,
+            pysd_main.ox_vent_eth_main_valves.temperature_3,
+            pysd_main.ox_vent_eth_main_valves.pressure_1,
+            pysd_main.ox_vent_eth_main_valves.pressure_2,
+            pysd_main.ox_vent_eth_main_valves.battery_voltage,
             /* ox_main_valve */
             (int)pysd_main.ox_main_valve.waken_up,
             (unsigned)pysd_main.ox_main_valve.valve_1_state,
@@ -712,9 +712,9 @@ size_t pysd_create_sd_frame(char *buffer, size_t size, rocket_data_t pysd_main, 
             pysd_main.pitot.alt,
             pysd_main.pitot.pred_apogee,
             /* connected */
-            (int)pysd_main.connected_dev.main_valves,
+            (int)pysd_main.connected_dev.n2_main_valve,
             (int)pysd_main.connected_dev.vent_valves,
-            (int)pysd_main.connected_dev.eth_vent_valve,
+            (int)pysd_main.connected_dev.ox_vent_eth_main_valves,
             (int)pysd_main.connected_dev.ox_main_valve,
             (int)pysd_main.connected_dev.pitot,
             (int)pysd_main.connected_dev.payload,

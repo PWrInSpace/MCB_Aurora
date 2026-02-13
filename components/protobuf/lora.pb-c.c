@@ -58,11 +58,11 @@ void obc_lo_ra_frame_init(
     self_p->pitot_wysokosc.is_present = false;
     self_p->pitot_predkosc.is_present = false;
     self_p->pitot_temperatura.is_present = false;
-    self_p->main_vent_flags.is_present = false;
-    self_p->eth_n2_main_bit_data.is_present = false;
-    self_p->oxi_n2_vent_bit_data.is_present = false;
+    self_p->valve_flags.is_present = false;
+    self_p->n2_main_bit_data.is_present = false;
+    self_p->eth_n2_vent_bit_data.is_present = false;
     self_p->oxi_main_bit_data.is_present = false;
-    self_p->eth_vent_bit_data.is_present = false;
+    self_p->ox_vent_eth_main_bit_data.is_present = false;
     self_p->tanwa_bateria.is_present = false;
     self_p->tanwa_state.is_present = false;
     self_p->tanwa_flags.is_present = false;
@@ -145,20 +145,20 @@ void obc_lo_ra_frame_encode_inner(
     if (self_p->tanwa_bateria.is_present) {
         pbtools_encoder_write_float_always(encoder_p, 24, self_p->tanwa_bateria.value);
     }
-    if (self_p->eth_vent_bit_data.is_present) {
-        pbtools_encoder_write_fixed32_always(encoder_p, 23, self_p->eth_vent_bit_data.value);
+    if (self_p->ox_vent_eth_main_bit_data.is_present) {
+        pbtools_encoder_write_fixed32_always(encoder_p, 23, self_p->ox_vent_eth_main_bit_data.value);
     }
     if (self_p->oxi_main_bit_data.is_present) {
         pbtools_encoder_write_fixed32_always(encoder_p, 22, self_p->oxi_main_bit_data.value);
     }
-    if (self_p->oxi_n2_vent_bit_data.is_present) {
-        pbtools_encoder_write_fixed32_always(encoder_p, 21, self_p->oxi_n2_vent_bit_data.value);
+    if (self_p->eth_n2_vent_bit_data.is_present) {
+        pbtools_encoder_write_fixed32_always(encoder_p, 21, self_p->eth_n2_vent_bit_data.value);
     }
-    if (self_p->eth_n2_main_bit_data.is_present) {
-        pbtools_encoder_write_fixed32_always(encoder_p, 20, self_p->eth_n2_main_bit_data.value);
+    if (self_p->n2_main_bit_data.is_present) {
+        pbtools_encoder_write_fixed32_always(encoder_p, 20, self_p->n2_main_bit_data.value);
     }
-    if (self_p->main_vent_flags.is_present) {
-        pbtools_encoder_write_fixed32_always(encoder_p, 19, self_p->main_vent_flags.value);
+    if (self_p->valve_flags.is_present) {
+        pbtools_encoder_write_fixed32_always(encoder_p, 19, self_p->valve_flags.value);
     }
     if (self_p->pitot_temperatura.is_present) {
         pbtools_encoder_write_int32_always(encoder_p, 18, self_p->pitot_temperatura.value);
@@ -316,18 +316,18 @@ void obc_lo_ra_frame_decode_inner(
             break;
 
         case 19:
-            self_p->main_vent_flags.is_present = true;
-            self_p->main_vent_flags.value = pbtools_decoder_read_fixed32(decoder_p, wire_type);
+            self_p->valve_flags.is_present = true;
+            self_p->valve_flags.value = pbtools_decoder_read_fixed32(decoder_p, wire_type);
             break;
 
         case 20:
-            self_p->eth_n2_main_bit_data.is_present = true;
-            self_p->eth_n2_main_bit_data.value = pbtools_decoder_read_fixed32(decoder_p, wire_type);
+            self_p->n2_main_bit_data.is_present = true;
+            self_p->n2_main_bit_data.value = pbtools_decoder_read_fixed32(decoder_p, wire_type);
             break;
 
         case 21:
-            self_p->oxi_n2_vent_bit_data.is_present = true;
-            self_p->oxi_n2_vent_bit_data.value = pbtools_decoder_read_fixed32(decoder_p, wire_type);
+            self_p->eth_n2_vent_bit_data.is_present = true;
+            self_p->eth_n2_vent_bit_data.value = pbtools_decoder_read_fixed32(decoder_p, wire_type);
             break;
 
         case 22:
@@ -336,8 +336,8 @@ void obc_lo_ra_frame_decode_inner(
             break;
 
         case 23:
-            self_p->eth_vent_bit_data.is_present = true;
-            self_p->eth_vent_bit_data.value = pbtools_decoder_read_fixed32(decoder_p, wire_type);
+            self_p->ox_vent_eth_main_bit_data.is_present = true;
+            self_p->ox_vent_eth_main_bit_data.value = pbtools_decoder_read_fixed32(decoder_p, wire_type);
             break;
 
         case 24:
