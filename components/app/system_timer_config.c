@@ -45,6 +45,7 @@ static void on_flash_data_timer(void *arg) {
 }
 
 static void on_ignition_timer(void *arg) {
+    ESP_LOGI("TIM", "Ignition timer callback");
     cmd_message_t mess = cmd_create_message(TANWA_FIRE, 0x00);
     ENA_send(&esp_now_tanwa, mess.raw, sizeof(mess.raw), 3);
 }
@@ -77,6 +78,19 @@ static void connected_dev(void *arg) {
     esp_now_get_connected_dev(&dev);
     rocket_data_update_connected_dev(&dev);
     esp_now_clear_connected_dev();
+    n2_main_valve_data_t n2_data = rocket_data_get_n2_main_valve();
+    n2_data.waken_up = false;
+    rocket_data_update_n2_main_valve(&n2_data);
+    vent_valves_data_t vent_data = rocket_data_get_vent_valves();
+    vent_data.waken_up = false;
+    rocket_data_update_vent_valves(&vent_data);
+    ox_main_valve_data_t ox_main_data = rocket_data_get_ox_main_valve();
+    ox_main_data.waken_up = false;
+    rocket_data_update_ox_main_valve(&ox_main_data);
+    ox_vent_eth_main_valves_data_t ox_vent_eth_main_data = rocket_data_get_ox_vent_eth_main_valves();
+    ox_vent_eth_main_data.waken_up = false;
+    rocket_data_update_ox_vent_eth_main_valves(&ox_vent_eth_main_data);
+    
 }
 
 static void debug_data(void *arg) {

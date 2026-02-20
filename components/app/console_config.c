@@ -371,7 +371,7 @@ static esp_console_cmd_t cmd[] = {
     {"recov_easymini_disarm", "disarm easymini recovery", NULL, recovery_easymini_disarm, NULL, NULL, NULL},
     {"recov_telemetrum_arm", "arm telemetrum recovery", NULL, recovery_telemetrum_arm, NULL, NULL, NULL},
     {"recov_telemetrum_disarm", "disarm telemetrum recovery", NULL, recovery_telemetrum_disarm, NULL, NULL, NULL},
-    {"get_data", "get mcb data", NULL, get_data, NULL, NULL, NULL},
+    {"get_data", "get mcb data", NULL, get_data, NULL, NULL, NULL}
 };
 
 static void console_register_task(void *arg) {

@@ -71,4 +71,6 @@ pitot_data_t rocket_data_get_pitot(void);
 
 bool rocket_data_woken_up(void);
 
+esp_now_connected_devices_t rocket_data_get_connected_dev(void);
+
 #endif

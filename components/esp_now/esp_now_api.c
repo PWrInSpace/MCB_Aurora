@@ -35,7 +35,7 @@ static struct {
         .receive_cb_queue = NULL};
 
 static void now_receive_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int data_len) {
-    ESP_LOGI(TAG, "Packet received, MAC: " MACSTR, MAC2STR(recv_info->src_addr));
+    //ESP_LOGI(TAG, "Packet received, MAC: " MACSTR, MAC2STR(recv_info->src_addr));
     if (recv_info->src_addr == NULL || data == NULL || data_len == 0) {
         ESP_LOGE(TAG, "Argument error :C");
         gb.error_fnc(ENA_REC);

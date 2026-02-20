@@ -102,7 +102,7 @@ static void callback_ox_vent_eth_main_valves(uint8_t *data, size_t size) {
 }
 
 static void callback_tanwa(uint8_t *data, size_t size) {
-    ESP_LOGI(TAG, "Tanwa receive, size %d", size);
+    //ESP_LOGI(TAG, "Tanwa receive, size %d", size);
     connected.tanwa = true;
     if (size == sizeof(tanwa_data_t)) {
         rocket_data_update_tanwa((tanwa_data_t *) data);

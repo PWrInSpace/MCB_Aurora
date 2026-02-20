@@ -60,7 +60,8 @@ static void TASK_init(void *arg) {
     size_t free_heap = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
     ESP_LOGI(TAG, "Free heap at init: %u bytes", (unsigned)free_heap);
 
-    CHECK_RESULT_ESP(settings_init(), "Change state");
+        //CHECK_RESULT_ESP(settings_init(), "Change state");
+    settings_init_default();
     Settings settings = settings_get_all();
 
     CHECK_RESULT_BOOL(rocket_data_init(), "data");
