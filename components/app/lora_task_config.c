@@ -68,6 +68,8 @@ static void lora_process(uint8_t* packet, size_t packet_size) {
     if (decoded_size > 0 && received->lora_dev_id.is_present && received->sys_dev_id.is_present &&
         received->command.is_present && received->payload.is_present) {
          cmd_message_t received_command = cmd_create_message(received->command.value, received->payload.value);
+         ESP_LOGI(TAG, "Received command from LoRa -> lora_dev_id: %d, sys_dev_id: %d, command: %d, payload: %d",
+                  received->lora_dev_id.value, received->sys_dev_id.value, received->command.value, received->payload.value);
         if (lora_cmd_process_command(received->lora_dev_id.value, received->sys_dev_id.value,
                                 &received_command) == false) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_COMMAND_NOT_FOUND, 200);
@@ -129,7 +131,7 @@ static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
     size_t data_size = obc_lo_ra_frame_encode(frame, buffer + prefix_size, max_payload);
     if (data_size == 0 || data_size > max_payload) return 0;
 
-    ESP_LOGI(TAG, "Data frame size: %zu", data_size);
+    //ESP_LOGI(TAG, "Data frame size: %zu", data_size);
 
     if(prefix_size + data_size > 255) {
         ESP_LOGE(TAG, "Data frame too large to send over LoRa");
@@ -145,12 +147,12 @@ static size_t lora_packet(uint8_t* buffer, size_t buffer_size) {
     if (settings_frame == true) {
         size = lora_create_settings_packet(buffer, buffer_size);
         settings_frame = false;
-        ESP_LOGI(TAG, "Transmiting settings frame");
+        //ESP_LOGI(TAG, "Transmiting settings frame");
     } else {
         size = lora_create_data_packet(buffer, buffer_size);
     }
 
-    ESP_LOGI(TAG, "Sending LoRa frame -> size: %d", size);
+    //ESP_LOGI(TAG, "Sending LoRa frame -> size: %d", size);
 
     return size;
 }

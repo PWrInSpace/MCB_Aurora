@@ -355,7 +355,7 @@ static esp_console_cmd_t cmd[] = {
     {"en_tanwa", "send command to tanwa", NULL, esp_now_send_tanwa, NULL, NULL, NULL},
     {"en_n2_mv", "send command to n2 main valve", NULL, esp_now_send_n2_main_valve, NULL, NULL, NULL},
     {"en_vv", "send command to vent valves", NULL, esp_now_send_vent_valves, NULL, NULL, NULL},
-    {"en_ox_mv_eth_vv", "send command to ox main, eth vent valves", NULL, esp_now_send_ox_vent_eth_main_valves, NULL, NULL, NULL},
+    {"en_ox_vv_eth_mv", "send command to ox main, eth vent valves", NULL, esp_now_send_ox_vent_eth_main_valves, NULL, NULL, NULL},
     {"en_ox_mv", "send command to ox main valve", NULL, esp_now_send_ox_main_valve, NULL, NULL, NULL},
     {"settings_all", "get all settings", NULL, cli_settings_read_all, NULL, NULL, NULL},
     {"settings_init", "init settings default", NULL, cli_settings_init_default, NULL, NULL, NULL},

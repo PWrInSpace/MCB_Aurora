@@ -58,7 +58,7 @@ static void mcb_state_change(uint32_t command, int32_t payload, bool privilage) 
         }
     }
 
-    if (SM_change_state(payload) != SM_OK) {
+    if (SM_force_change_state(payload) != SM_OK) {
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 100);
         ESP_LOGE(TAG, "Unable to change state");
         return;
@@ -406,6 +406,7 @@ static void ov_emval_n2o_sol_open(uint32_t command, int32_t payload, bool privil
     // }
     int32_t command_tanwa = 0x70; // Open N2O valve command for TANWA
     send_command_esp_now(&esp_now_tanwa, command_tanwa, payload);
+    
     send_command_esp_now(&esp_now_ox_vent_eth_main_valves, command, payload);
 }
 
