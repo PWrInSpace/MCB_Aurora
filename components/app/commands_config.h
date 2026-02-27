@@ -69,7 +69,7 @@ typedef enum {
     RECOV_TELEMETRUM_DISARM = 0x04,
     RECOV_FORCE_FIRST_STAGE = 0xa5,
     RECOV_FORCE_SECOND_STAGE = 0x5a,
-    RECOV_RESET = 0xff,
+    RECOV_RESET = 0x43,
 } recovery_commands_t;
 
 typedef enum {

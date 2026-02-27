@@ -31,6 +31,7 @@ bool recovery_send_cmd(uint32_t command, int32_t payload) {
     bool leftStatus = true;
 
     leftStatus = i2c_com_write(RECOVERY_ADDRESS_LEFT, &message.raw[0],sizeof(message.raw));
+    // ESP_LOGI(TAG, "RECOV SEND %d", leftStatus);
     return leftStatus;
 }
 
