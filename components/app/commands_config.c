@@ -231,15 +231,16 @@ static void mcb_foramt_flash(uint32_t command, int32_t payload, bool privilage) 
 
 
 static void mcb_reset_dev(uint32_t command, int32_t payload, bool privilage) {
-    if (privilage == false) {
-        return;
-    }
+    // if (privilage == false) {
+    //     return;
+    // }
 
     states_t state = SM_get_current_state();
     if (state >= COUNTDOWN && state < ON_GROUND) {
         return;
     }
 
+    recovery_send_cmd(RECOV_RESET, 0);
     esp_restart();
 }
 
