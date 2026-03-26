@@ -7,8 +7,8 @@
 
 typedef struct {
     mcb_data_t mcb;
-    vent_valves_data_t vent_valves;
-    n2_main_valve_data_t n2_main_valve;
+    eth_vent_valve_data_t eth_vent_valve;
+    n2_vent_valve_data_t n2_vent_valve;
     ox_vent_eth_main_valves_data_t ox_vent_eth_main_valves;
     ox_main_valve_data_t ox_main_valve;
     recovery_data_t recovery;
@@ -28,9 +28,9 @@ bool rocket_data_init(void);
 
 void rocket_data_update_connected_dev(esp_now_connected_devices_t *data);
 
-void rocket_data_update_n2_main_valve(n2_main_valve_data_t *data);
+void rocket_data_update_n2_vent_valve(n2_vent_valve_data_t *data);
 
-void rocket_data_update_vent_valves(vent_valves_data_t *data);
+void rocket_data_update_eth_vent_valve(eth_vent_valve_data_t *data);
 
 void rocket_data_update_ox_vent_eth_main_valves(ox_vent_eth_main_valves_data_t *data);
 
@@ -53,9 +53,9 @@ void rocket_data_copy(rocket_data_t *out);
 
 mcb_data_t rocket_data_get_mcb(void);
 
-n2_main_valve_data_t rocket_data_get_n2_main_valve(void);
+n2_vent_valve_data_t rocket_data_get_n2_vent_valve(void);
 
-vent_valves_data_t rocket_data_get_vent_valves(void);
+eth_vent_valve_data_t rocket_data_get_eth_vent_valve(void);
 
 ox_vent_eth_main_valves_data_t rocket_data_get_ox_vent_eth_main_valves(void);
 

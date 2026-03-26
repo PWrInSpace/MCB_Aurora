@@ -6,8 +6,8 @@
 // #include "freertos/semphr.h"
 
 // static struct {
-//     n2_main_valve_data_t main_valves;
-//     vent_valves_data_t vent_valves;
+//     n2_vent_valve_data_t main_valves;
+//     eth_vent_valve_data_t eth_vent_valve;
 //     ox_vent_eth_main_valves_data_t eth_vent_valve;
 //     ox_main_valve_data_t ox_main_valve;
 //     recovery_data_t recovery;
@@ -28,16 +28,16 @@
 
 
 
-// void rocket_data_update_n2_main_valve(n2_main_valve_data_t *data) {
+// void rocket_data_update_n2_vent_valve(n2_vent_valve_data_t *data) {
 //     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
 //     memcpy(&gb.main_valves, data, sizeof(gb.main_valves));
 //     xSemaphoreGive(gb.data_mutex);
 // }
 
 
-// void rocket_data_update_vent_valves(vent_valves_data_t *data) {
+// void rocket_data_update_eth_vent_valve(eth_vent_valve_data_t *data) {
 //     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
-//     memcpy(&gb.vent_valves, data, sizeof(gb.vent_valves));
+//     memcpy(&gb.eth_vent_valve, data, sizeof(gb.eth_vent_valve));
 //     xSemaphoreGive(gb.data_mutex);
 // }
 
@@ -61,18 +61,18 @@
 // }
 
 
-// n2_main_valve_data_t rocket_data_get_n2_main_valve(void) {
-//     n2_main_valve_data_t tmp;
+// n2_vent_valve_data_t rocket_data_get_n2_vent_valve(void) {
+//     n2_vent_valve_data_t tmp;
 //     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
 //     tmp = gb.main_valves;
 //     xSemaphoreGive(gb.data_mutex);
 //     return tmp;
 // }
 
-// vent_valves_data_t rocket_data_get_vent_valves(void) {
-//     vent_valves_data_t tmp;
+// eth_vent_valve_data_t rocket_data_get_eth_vent_valve(void) {
+//     eth_vent_valve_data_t tmp;
 //     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
-//     tmp = gb.vent_valves;
+//     tmp = gb.eth_vent_valve;
 //     xSemaphoreGive(gb.data_mutex);
 //     return tmp;
 // }

@@ -6,8 +6,8 @@
 #include <stdbool.h>
 
 typedef struct {
-    bool n2_main_valve : 1;    
-    bool vent_valves : 1;
+    bool n2_vent_valve : 1;
+    bool eth_vent_valve : 1;
     bool ox_vent_eth_main_valves : 1;
     bool ox_main_valve : 1;
     bool pitot : 1;
@@ -19,6 +19,7 @@ typedef struct {
     bool waken_up : 1;
     bool dump_valve_arm : 1;
     bool dump_valve_cont: 1;
+    bool is_charging : 1;
     uint8_t valve_1_state : 2;
     uint8_t valve_2_state : 2;
     int16_t temperature_1;
@@ -27,12 +28,13 @@ typedef struct {
     float battery_voltage;
     float battery_consumption;
     float charger_temperature;
-} n2_main_valve_data_t;
+} n2_vent_valve_data_t;
 
 typedef struct {
     bool waken_up : 1;
     bool dump_valve_arm : 1;
     bool dump_valve_cont: 1;
+    bool is_charging : 1;
     uint8_t valve_1_state : 2;
     uint8_t valve_2_state : 2;
     int16_t temperature_1;
@@ -41,12 +43,13 @@ typedef struct {
     float battery_voltage;
     float battery_consumption;
     float charger_temperature;
-} vent_valves_data_t;
+} eth_vent_valve_data_t;
 
 typedef struct {
     bool waken_up : 1;
     bool dump_valve_arm : 1;
     bool dump_valve_cont: 1;
+    bool is_charging : 1;
     uint8_t valve_1_state : 2;
     uint8_t valve_2_state : 2;
     int16_t temperature_1;
@@ -61,6 +64,7 @@ typedef struct {
     bool waken_up : 1;
     bool dump_valve_arm : 1;
     bool dump_valve_cont: 1;
+    bool is_charging : 1;
     uint8_t valve_1_state : 2;
     uint8_t valve_2_state : 2;
     int16_t temperature_1;
@@ -151,7 +155,7 @@ typedef struct{
     bool heatingTankState : 1;
     bool heatingValveState : 1;
     bool abortButton : 1;
-}tanwa_data_t;
+} tanwa_data_t;
 
 typedef struct {
     bool waken_up;

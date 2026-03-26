@@ -346,7 +346,7 @@ static void n2val_n2_valve_close(uint32_t command, int32_t payload, bool privile
     //     return;
     // }
 
-    send_command_esp_now(&esp_now_n2_main_valve, command, payload);
+    send_command_esp_now(&esp_now_n2_vent_valve, command, payload);
 }
 
 static void n2val_n2_valve_open(uint32_t command, int32_t payload, bool privilege) {
@@ -354,7 +354,7 @@ static void n2val_n2_valve_open(uint32_t command, int32_t payload, bool privileg
     //     return;
     // }
 
-    send_command_esp_now(&esp_now_n2_main_valve, command, payload);
+    send_command_esp_now(&esp_now_n2_vent_valve, command, payload);
 }
 
 static void oval_n2o_valve_close(uint32_t command, int32_t payload, bool privilege) {
@@ -402,7 +402,7 @@ static void ovel_n2o_dump_valve_fire(uint32_t command, int32_t payload, bool pri
     send_command_esp_now(&esp_now_ox_main_valve, command, payload);
 }
 
-static cmd_command_t n2_main_valve_commands[] = {
+static cmd_command_t n2_vent_valve_commands[] = {
     {N2_VALVE_CLOSE,            n2val_n2_valve_close},
     {N2_VALVE_OPEN,             n2val_n2_valve_open},
 };
@@ -442,7 +442,7 @@ static void vval_n2_sol_close(uint32_t command, int32_t payload, bool privilege)
     //     return;
     // }
 
-    send_command_esp_now(&esp_now_vent_valves, command, payload);
+    send_command_esp_now(&esp_now_eth_vent_valve, command, payload);
 }
 
 static void vval_n2_sol_open(uint32_t command, int32_t payload, bool privilege) {
@@ -450,7 +450,7 @@ static void vval_n2_sol_open(uint32_t command, int32_t payload, bool privilege) 
     //     return;
     // }
 
-    send_command_esp_now(&esp_now_vent_valves, command, payload);
+    send_command_esp_now(&esp_now_eth_vent_valve, command, payload);
 }
 
 static void vval_eth_sol_close(uint32_t command, int32_t payload, bool privilege) {
@@ -458,7 +458,7 @@ static void vval_eth_sol_close(uint32_t command, int32_t payload, bool privilege
     //     return;
     // }
 
-    send_command_esp_now(&esp_now_vent_valves, command, payload);
+    send_command_esp_now(&esp_now_eth_vent_valve, command, payload);
 }
 
 static void vval_eth_sol_open(uint32_t command, int32_t payload, bool privilege) {
@@ -466,10 +466,10 @@ static void vval_eth_sol_open(uint32_t command, int32_t payload, bool privilege)
     //     return;
     // }
 
-    send_command_esp_now(&esp_now_vent_valves, command, payload);
+    send_command_esp_now(&esp_now_eth_vent_valve, command, payload);
 }
 
-static cmd_command_t vent_valves_commands[] = {
+static cmd_command_t eth_vent_valve_commands[] = {
     {N2_SOL_CLOSE,                      vval_n2_sol_close},
     {N2_SOL_OPEN,                        vval_n2_sol_open},
     {ETH_SOL_CLOSE,                    vval_eth_sol_close},
@@ -528,8 +528,8 @@ static cmd_command_t tanwa_commands[] = {
 static cmd_device_t devices[] = {
     {DEVICE_MCB,            mcb_commands,            SIZE_OF(mcb_commands)},
     {DEVICE_RECOVERY,       recovery_commands,       SIZE_OF(recovery_commands)},
-    {DEVICE_N2_MAIN_VALVE,    n2_main_valve_commands,    SIZE_OF(n2_main_valve_commands)},
-    {DEVICE_VENT_VALVES,    vent_valves_commands,    SIZE_OF(vent_valves_commands)},
+    {DEVICE_N2_VENT_VALVE,    n2_vent_valve_commands,    SIZE_OF(n2_vent_valve_commands)},
+    {DEVICE_ETH_VENT_VALVE,    eth_vent_valve_commands,    SIZE_OF(eth_vent_valve_commands)},
     {DEVICE_OX_MAIN_VALVE,  ox_main_valve_commands,  SIZE_OF(ox_main_valve_commands)},
     {DEVICE_OX_VENT_ETH_MAIN_VALVES, ox_vent_eth_main_valves_commands, SIZE_OF(ox_vent_eth_main_valves_commands)},
     {DEVICE_TANWA,          tanwa_commands,          SIZE_OF(tanwa_commands)},

@@ -4,7 +4,7 @@
 #include "data_to_protobuf.h"
 #include "errors_config.h"
 #include "esp_log.h"
-#include "lora.pb-c.h"
+#include "lora.pb-c.h.bk"
 #include "lora_hw_config.h"
 #include "sdkconfig.h"
 #include "system_timer_config.h"
@@ -133,7 +133,7 @@ static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
 
     //ESP_LOGI(TAG, "Data frame size: %zu", data_size);
 
-    if(prefix_size + data_size > 255) {
+    if (prefix_size + data_size > 255) {
         ESP_LOGE(TAG, "Data frame too large to send over LoRa");
         return 0;
     }

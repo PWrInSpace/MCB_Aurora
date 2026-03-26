@@ -1,11 +1,10 @@
-#include "slave_structs.h"
-#include "lora.pb-c.h"
-#include "rocket_data.h"
 #include "errors_config.h"
 #include "esp_log.h"
-#include "settings_mem.h"
-
+#include "lora.pb-c.h"
 #include "math.h"
+#include "rocket_data.h"
+#include "settings_mem.h"
+#include "slave_structs.h"
 
 #define TAG "PBF"
 
@@ -91,14 +90,13 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
 
     uint32_t valve_states_bitfield = 0;
     valve_states_bitfield |= (data.ox_main_valve.valve_1_state == 1 ? (1u << 0) : 0u);
-    valve_states_bitfield |= (data.n2_main_valve.valve_1_state == 1 ? (1u << 1) : 0u);
     valve_states_bitfield |= (data.ox_vent_eth_main_valves.valve_1_state == 1 ? (1u << 2) : 0u);
     valve_states_bitfield |= (data.ox_vent_eth_main_valves.valve_2_state == 1 ? (1u << 3) : 0u);
-    valve_states_bitfield |= (data.vent_valves.valve_1_state == 1 ? (1u << 4) : 0u);
-    valve_states_bitfield |= (data.vent_valves.valve_2_state == 1 ? (1u << 5) : 0u);
+    valve_states_bitfield |= (data.eth_vent_valve.valve_1_state == 1 ? (1u << 4) : 0u);
+    valve_states_bitfield |= (data.n2_vent_valve.valve_1_state == 1 ? (1u << 5) : 0u);
 
-    frame->valve_flags.is_present = true;
-    frame->valve_flags.value = valve_states_bitfield;
+    frame->main_vent_flags.is_present = true;
+    frame->main_vent_flags.value = valve_states_bitfield;
 
     // main valve
     // mval bit data mapping not present in proto; skipping
@@ -106,68 +104,101 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     // Pack valve bit-data fields using lowest-index sensors as requested:
     // Byte layout: [temp1 (8b)] [pressure1 high byte (8b)] [pressure2 high byte (8b)] [battery scaled (8b)]
 
-    // eth vent valve bit data (uses eth_vent_valve struct)
+    // ox vent eth main bit data (uses ox_vent_eth_main_valves struct)
     {
         uint32_t v = 0;
-        uint8_t temp_b = (uint8_t) (fminf(255.0f, roundf(data.ox_vent_eth_main_valves.temperature_1)));
-        uint16_t press_temp = (uint16_t) (fmax(data.ox_vent_eth_main_valves.pressure_1, 0) * 100);
-        uint8_t pres1_b = (uint8_t) ((press_temp >> 8) & 0xFF);
-        uint8_t pres2_b = (uint8_t) ((press_temp) & 0xFF);
-        uint8_t batt_b = (uint8_t) (fminf(255.0f, data.ox_vent_eth_main_valves.battery_voltage * 10.0f));
-        v |= ((uint32_t)temp_b << 24);
-        v |= ((uint32_t)pres1_b << 16);
-        v |= ((uint32_t)pres2_b << 8);
-        v |= ((uint32_t)batt_b << 0);
-        frame->ox_vent_eth_main_bit_data.is_present = true;
-        frame->ox_vent_eth_main_bit_data.value = v;
+        uint16_t pressure = (uint16_t) (fmax(data.ox_vent_eth_main_valves.pressure_1, 0) * 100);
+        v |= ((uint32_t) pressure << 16);
+        // uint8_t pres1_b = (uint8_t) ((press_temp >> 8) & 0xFF);
+        // uint8_t pres2_b = (uint8_t) ((press_temp) & 0xFF);
+        // uint8_t temp_b = (uint8_t) (fminf(255.0f, roundf(data.ox_vent_eth_main_valves.temperature_1)));
+        uint8_t battery_voltage = (uint8_t) (fminf(255.0f, data.ox_vent_eth_main_valves.battery_voltage * 10.0f));
+        v |= ((uint32_t) battery_voltage << 8);
+        uint8_t battery_consumption = (uint8_t) (fminf(255.0f, data.ox_vent_eth_main_valves.battery_consumption * 10.0f));
+        v |= ((uint32_t) battery_consumption << 0);
+        frame->ox_vent_eth_main_bit_data_a.is_present = true;
+        frame->ox_vent_eth_main_bit_data_a.value = v;
     }
 
-    // oxi main valve bit data (uses ox_main_valve struct)
     {
         uint32_t v = 0;
-        uint8_t temp_b = (uint8_t) (fminf(255.0f, roundf(data.ox_main_valve.temperature_1)));
-        uint16_t press_temp = (uint16_t) (fmax(data.ox_main_valve.pressure_1, 0) * 100);
-        uint8_t pres1_b = (uint8_t) ((press_temp >> 8) & 0xFF);
-        uint8_t pres2_b = (uint8_t) ((press_temp) & 0xFF);
-        uint8_t batt_b = (uint8_t) (fminf(255.0f, data.ox_main_valve.battery_voltage * 10.0f));
-        v |= ((uint32_t)temp_b << 24);
-        v |= ((uint32_t)pres1_b << 16);
-        v |= ((uint32_t)pres2_b << 8);
-        v |= ((uint32_t)batt_b << 0);
-        frame->oxi_main_bit_data.is_present = true;
-        frame->oxi_main_bit_data.value = v;
+        v |= ((uint32_t) data.ox_vent_eth_main_valves.is_charging << 31);
+        uint8_t charger_temperature = (uint8_t) (fminf(255.0f, roundf(data.ox_vent_eth_main_valves.charger_temperature))));
+        v |= ((uint32_t) charger_temperature << 23);
+        frame->ox_vent_eth_main_bit_data_b.is_present = true;
+        frame->ox_vent_eth_main_bit_data_b.value = v;
     }
 
-    // oxi + n2 vents bit data (uses vent_valves struct for N2 vents)
+    // ox main bit data (uses ox_main_valve struct)
     {
         uint32_t v = 0;
-        uint8_t temp_b = (uint8_t) (fminf(255.0f, roundf(data.vent_valves.temperature_1)));
-        uint16_t press_temp = (uint16_t) (fmax(data.vent_valves.pressure_1, 0) * 100);
-        uint8_t pres1_b = (uint8_t) ((press_temp >> 8) & 0xFF);
-        uint8_t pres2_b = (uint8_t) ((press_temp) & 0xFF);
-        uint8_t batt_b = (uint8_t) (fminf(255.0f, data.vent_valves.battery_voltage * 10.0f));
-        v |= ((uint32_t)temp_b << 24);
-        v |= ((uint32_t)pres1_b << 16);
-        v |= ((uint32_t)pres2_b << 8);
-        v |= ((uint32_t)batt_b << 0);
-        frame->eth_n2_vent_bit_data.is_present = true;
-        frame->eth_n2_vent_bit_data.value = v;
+        uint16_t pressure = (uint16_t) (fmax(data.ox_main_valve.pressure_1, 0) * 100);
+        v |= ((uint32_t) pressure << 16);
+        v |= ((uint32_t) data.ox_main_valve.dump_valve_arm << 15);
+        v |= ((uint32_t) data.ox_main_valve.dump_valve_cont << 14);
+        uint8_t temperature = (uint8_t) (fminf(255.0f, roundf(data.ox_main_valve.temperature_1)));
+        v |= ((uint32_t) temperature << 6);
+        // uint8_t pres1_b = (uint8_t) ((press_temp >> 8) & 0xFF);
+        // uint8_t pres2_b = (uint8_t) ((press_temp) & 0xFF);
+        frame->ox_main_bit_data_a.is_present = true;
+        frame->ox_main_bit_data_a.value = v;
     }
 
-    // eth + n2 mains bit data (uses main_valves struct for N2 mains)
     {
         uint32_t v = 0;
-        uint8_t temp_b = (uint8_t) (fminf(255.0f, roundf(data.n2_main_valve.temperature_1)));
-        uint16_t press_temp = (uint16_t) (fmax(data.n2_main_valve.pressure_1, 0) * 100);
-        uint8_t pres1_b = (uint8_t) ((press_temp >> 8) & 0xFF);
-        uint8_t pres2_b = (uint8_t) ((press_temp) & 0xFF);
-        uint8_t batt_b = (uint8_t) (fminf(255.0f, data.n2_main_valve.battery_voltage * 10.0f));
-        v |= ((uint32_t)temp_b << 24);
-        v |= ((uint32_t)pres1_b << 16);
-        v |= ((uint32_t)pres2_b << 8);
-        v |= ((uint32_t)batt_b << 0);
-        frame->n2_main_bit_data.is_present = true;
-        frame->n2_main_bit_data.value = v;
+        uint8_t battery_voltage = (uint8_t) (fminf(255.0f, data.ox_main_valve.battery_voltage * 10.0f));
+        v |= ((uint32_t) battery_voltage << 24);
+        uint8_t battery_consumption = (uint8_t) (fminf(255.0f, data.ox_main_valve.battery_consumption * 10.0f));
+        v |= ((uint32_t) battery_consumption << 16);
+        v |= ((uint32_t) data.ox_main_valve.is_charging << 15);
+        uint8_t charger_temperature = (uint8_t) (fminf(255.0f, roundf(data.ox_main_valve.charger_temperature)));
+        v |= ((uint32_t) charger_temperature << 7);
+        frame->ox_main_bit_data_b.is_present = true;
+        frame->ox_main_bit_data_b.value = v;
+    }
+
+    // n2 vent bit data (uses n2_vent_valve struct)
+    {
+        uint32_t v = 0;
+        uint16_t pressure_1 = (uint16_t) (fmax(data.n2_vent_valve.pressure_1, 0) * 100);
+        v |= ((uint32_t) pressure_1 << 16);
+        uint16_t pressure_2 = (uint16_t) (fmax(data.n2_vent_valve.pressure_2, 0) * 100);
+        v |= ((uint32_t) pressure_2 << 0);
+        frame->n2_vent_bit_data_a.is_present = true;
+        frame->n2_vent_bit_data_a.value = v;
+    }
+
+    {
+        uint32_t v = 0;
+        uint8_t battery_voltage = (uint8_t) (fminf(255.0f, data.n2_vent_valve.battery_voltage * 10.0f));
+        v |= ((uint32_t) battery_voltage << 24);
+        uint8_t battery_consumption = (uint8_t) (fminf(255.0f, data.n2_vent_valve.battery_consumption * 10.0f));
+        v |= ((uint32_t) battery_consumption << 16);
+        v |= ((uint32_t) data.n2_vent_valve.is_charging << 15);
+        uint8_t charger_temperature = (uint8_t) (fminf(255.0f, roundf(data.n2_vent_valve.charger_temperature)));
+        v |= ((uint32_t) charger_temperature << 7);
+        frame->n2_vent_bit_data_b.is_present = true;
+        frame->n2_vent_bit_data_b.value = v;
+    }
+
+    // eth vent bit data (uses eth_vent_valve struct)
+    {
+        uint32_t v = 0;
+        uint8_t battery_voltage = (uint8_t) (fminf(255.0f, data.eth_vent_valve.battery_voltage * 10.0f));
+        v |= ((uint32_t) battery_voltage << 24);
+        uint8_t battery_consumption = (uint8_t) (fminf(255.0f, data.eth_vent_valve.battery_consumption * 10.0f));
+        v |= ((uint32_t) battery_consumption << 16);
+        v |= ((uint32_t) data.eth_vent_valve.is_charging << 15);
+        uint8_t charger_temperature = (uint8_t) (fminf(255.0f, roundf(data.eth_vent_valve.charger_temperature)));
+        v |= ((uint32_t) charger_temperature << 7);
+        frame->eth_vent_bit_data_a.is_present = true;
+        frame->eth_vent_bit_data_a.value = v;
+    }
+
+    {
+        uint32_t v = 0;
+        frame->eth_vent_bit_data_b.is_present = true;
+        frame->eth_vent_bit_data_b.value = v;
     }
 
     // tanwa - map explicit fields from tanwa_data_t
@@ -246,10 +277,10 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         uint32_t conn = 0;
         conn |= (data.connected_dev.payload    ? (1u << 0) : 0u); // payload_connected
         conn |= (data.connected_dev.tanwa      ? (1u << 1) : 0u); // tanwa_connected
-        conn |= (data.connected_dev.ox_vent_eth_main_valves ? (1u << 2) : 0u);
+        conn |= (data.connected_dev.eth_vent_valve ? (1u << 2) : 0u);
         conn |= (data.connected_dev.ox_main_valve  ? (1u << 3) : 0u);
-        conn |= (data.connected_dev.vent_valves    ? (1u << 4) : 0u);
-        conn |= (data.connected_dev.n2_main_valve    ? (1u << 5) : 0u);
+        conn |= (data.connected_dev.ox_vent_eth_main_valves    ? (1u << 4) : 0u);
+        conn |= (data.connected_dev.n2_vent_valve    ? (1u << 5) : 0u);
         conn |= (data.connected_dev.pitot          ? (1u << 6) : 0u);
         frame->espnow_connected_flags.is_present = true;
         frame->espnow_connected_flags.value = conn;
@@ -259,10 +290,10 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     {
         uint32_t wk = 0;
         wk |= (data.payload.waken_up           ? (1u << 0) : 0u);
-        wk |= (data.ox_vent_eth_main_valves.waken_up   ? (1u << 1) : 0u);
+        wk |= (data.eth_vent_valve.waken_up   ? (1u << 1) : 0u);
         wk |= (data.ox_main_valve.waken_up    ? (1u << 2) : 0u);
-        wk |= (data.vent_valves.waken_up      ? (1u << 3) : 0u);
-        wk |= (data.n2_main_valve.waken_up      ? (1u << 4) : 0u);
+        wk |= (data.ox_vent_eth_main_valves.waken_up      ? (1u << 3) : 0u);
+        wk |= (data.n2_vent_valve.waken_up      ? (1u << 4) : 0u);
         wk |= (data.pitot.waken_up            ? (1u << 5) : 0u);
         frame->espnow_wkup_flags.is_present = true;
         frame->espnow_wkup_flags.value = wk;

@@ -4,18 +4,18 @@
 #include "buzzer_pwm.h"
 #include "console_config.h"
 #include "errors_config.h"
+#include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "esp_now_config.h"
 #include "esp_system.h"
 #include "esp_timer.h"
-#include "esp_heap_caps.h"
 #include "flash_task_config.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "gpio_expander.h"
 #include "gps_task_config.h"
 #include "i2c.h"
-#include "lora.pb-c.h"
+#include "lora.pb-c.h.bk"
 #include "lora_hw_config.h"
 #include "lora_task.h"
 #include "lora_task_config.h"
@@ -76,7 +76,9 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(
         uart_init(CONFIG_UART_PORT_NUM, CONFIG_UART_TX, CONFIG_UART_RX, CONFIG_UART_BAUDRATE),
         "UART init");
-
+    CHECK_RESULT_BOOL(
+        uart_init_logical(UART_LOGICAL_TELEMETRY, LORA_UART_PORT, LORA_UART_TX, LORA_UART_RX, LORA_UART_BAUDRATE),
+        "UART LORA");
     CHECK_RESULT_BOOL(gpioexp_init(), "GPIO Expander");
     CHECK_RESULT_BOOL(gpioexp_led_set_color(WHITE), "GPIO Expander change color");
 

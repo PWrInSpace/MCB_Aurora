@@ -78,19 +78,18 @@ static void connected_dev(void *arg) {
     esp_now_get_connected_dev(&dev);
     rocket_data_update_connected_dev(&dev);
     esp_now_clear_connected_dev();
-    n2_main_valve_data_t n2_data = rocket_data_get_n2_main_valve();
+    n2_vent_valve_data_t n2_data = rocket_data_get_n2_vent_valve();
     n2_data.waken_up = false;
-    rocket_data_update_n2_main_valve(&n2_data);
-    vent_valves_data_t vent_data = rocket_data_get_vent_valves();
+    rocket_data_update_n2_vent_valve(&n2_data);
+    eth_vent_valve_data_t vent_data = rocket_data_get_eth_vent_valve();
     vent_data.waken_up = false;
-    rocket_data_update_vent_valves(&vent_data);
+    rocket_data_update_eth_vent_valve(&vent_data);
     ox_main_valve_data_t ox_main_data = rocket_data_get_ox_main_valve();
     ox_main_data.waken_up = false;
     rocket_data_update_ox_main_valve(&ox_main_data);
     ox_vent_eth_main_valves_data_t ox_vent_eth_main_data = rocket_data_get_ox_vent_eth_main_valves();
     ox_vent_eth_main_data.waken_up = false;
     rocket_data_update_ox_vent_eth_main_valves(&ox_vent_eth_main_data);
-    
 }
 
 static void debug_data(void *arg) {

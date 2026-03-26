@@ -157,7 +157,7 @@ static int esp_now_send_tanwa(int argc, char **argv) {
     return 0;
 }
 
-static int esp_now_send_n2_main_valve(int argc, char **argv) {
+static int esp_now_send_n2_vent_valve(int argc, char **argv) {
     if (argc != 3) {
         return -1;
     }
@@ -166,11 +166,11 @@ static int esp_now_send_n2_main_valve(int argc, char **argv) {
     int payload = atoi(argv[2]);
 
     cmd_message_t msg = cmd_create_message(command, payload);
-    ENA_send(&esp_now_n2_main_valve, msg.raw, sizeof(msg.raw), 3);
+    ENA_send(&esp_now_n2_vent_valve, msg.raw, sizeof(msg.raw), 3);
     return 0;
 }
 
-static int esp_now_send_vent_valves(int argc, char **argv) {
+static int esp_now_send_eth_vent_valve(int argc, char **argv) {
     if (argc != 3) {
         return -1;
     }
@@ -179,7 +179,7 @@ static int esp_now_send_vent_valves(int argc, char **argv) {
     int payload = atoi(argv[2]);
 
     cmd_message_t msg = cmd_create_message(command, payload);
-    ENA_send(&esp_now_vent_valves, msg.raw, sizeof(msg.raw), 3);
+    ENA_send(&esp_now_eth_vent_valve, msg.raw, sizeof(msg.raw), 3);
     return 0;
 }
 
@@ -353,8 +353,8 @@ static esp_console_cmd_t cmd[] = {
     {"log-disable", "disable logs", NULL, disable_log, NULL, NULL, NULL},
     {"reset-dc", "reset disconnect timer", NULL, reset_dc_timer, NULL, NULL, NULL},
     {"en_tanwa", "send command to tanwa", NULL, esp_now_send_tanwa, NULL, NULL, NULL},
-    {"en_n2_mv", "send command to n2 main valve", NULL, esp_now_send_n2_main_valve, NULL, NULL, NULL},
-    {"en_vv", "send command to vent valves", NULL, esp_now_send_vent_valves, NULL, NULL, NULL},
+    {"en_n2_mv", "send command to n2 main valve", NULL, esp_now_send_n2_vent_valve, NULL, NULL, NULL},
+    {"en_vv", "send command to vent valves", NULL, esp_now_send_eth_vent_valve, NULL, NULL, NULL},
     {"en_ox_vv_eth_mv", "send command to ox main, eth vent valves", NULL, esp_now_send_ox_vent_eth_main_valves, NULL, NULL, NULL},
     {"en_ox_mv", "send command to ox main valve", NULL, esp_now_send_ox_main_valve, NULL, NULL, NULL},
     {"settings_all", "get all settings", NULL, cli_settings_read_all, NULL, NULL, NULL},

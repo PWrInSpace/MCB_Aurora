@@ -33,17 +33,17 @@ void rocket_data_update_connected_dev(esp_now_connected_devices_t *data) {
     }
     memcpy(&gb.rocket_data.connected_dev, data, sizeof(gb.rocket_data.connected_dev));
     //ESP_LOGI(TAG, "Connected dev - main:%d vent:%d eth_vent:%d ox_main:%d pitot:%d payload:%d tanwa:%d",
-            //  (int)data->n2_main_valve, (int)data->vent_valves, (int)data->ox_vent_eth_main_valves,
+            //  (int)data->n2_vent_valve, (int)data->eth_vent_valve, (int)data->ox_vent_eth_main_valves,
             //  (int)data->ox_main_valve, (int)data->pitot, (int)data->payload, (int)data->tanwa);
     xSemaphoreGive(gb.data_mutex);
 }
 
-void rocket_data_update_n2_main_valve(n2_main_valve_data_t *data) {
+void rocket_data_update_n2_vent_valve(n2_vent_valve_data_t *data) {
     if (xSemaphoreTake(gb.data_mutex, 1000) != pdTRUE) {
         ESP_LOGE(TAG, "Data semaphore errror :C");
         return;
     }
-    memcpy(&gb.rocket_data.n2_main_valve, data, sizeof(gb.rocket_data.n2_main_valve));
+    memcpy(&gb.rocket_data.n2_vent_valve, data, sizeof(gb.rocket_data.n2_vent_valve));
     //ESP_LOGI(TAG, "Main valves updated - waken_up:%d vbat:%f valve1:%d valve2:%d temp1:%d temp2:%d temp3:%d pres1:%d pres2:%d",
     //         (int)data->waken_up, data->battery_voltage, (int)data->valve_1_state, (int)data->valve_2_state,
     //         (int)data->temperature_1, (int)data->temperature_2, (int)data->temperature_3,
@@ -52,12 +52,12 @@ void rocket_data_update_n2_main_valve(n2_main_valve_data_t *data) {
 }
 
 
-void rocket_data_update_vent_valves(vent_valves_data_t *data) {
+void rocket_data_update_eth_vent_valve(eth_vent_valve_data_t *data) {
     if (xSemaphoreTake(gb.data_mutex, 1000) != pdTRUE) {
         ESP_LOGE(TAG, "Data semaphore errror :C");
         return;
     }
-    memcpy(&gb.rocket_data.vent_valves, data, sizeof(gb.rocket_data.vent_valves));
+    memcpy(&gb.rocket_data.eth_vent_valve, data, sizeof(gb.rocket_data.eth_vent_valve));
     //ESP_LOGI(TAG, "Vent valves updated - waken_up:%d valve1:%d valve2:%d temp1:%d temp2:%d temp3:%d pres1:%f pres2:%d vbat:%f",
     //         (int)data->waken_up, (int)data->valve_1_state, (int)data->valve_2_state,
     //         (int)data->temperature_1, (int)data->temperature_2, (int)data->temperature_3,
@@ -191,26 +191,26 @@ mcb_data_t rocket_data_get_mcb(void) {
     return tmp;
 }
 
-n2_main_valve_data_t rocket_data_get_n2_main_valve(void) {
-    n2_main_valve_data_t tmp = {0};
+n2_vent_valve_data_t rocket_data_get_n2_vent_valve(void) {
+    n2_vent_valve_data_t tmp = {0};
     if (xSemaphoreTake(gb.data_mutex, 1000) != pdTRUE) {
         ESP_LOGE(TAG, "Data semaphore errror :C");
         return tmp;
     }
-    tmp = gb.rocket_data.n2_main_valve;
+    tmp = gb.rocket_data.n2_vent_valve;
 
     xSemaphoreGive(gb.data_mutex);
 
     return tmp;
 }
 
-vent_valves_data_t rocket_data_get_vent_valves(void) {
-    vent_valves_data_t tmp = {0};
+eth_vent_valve_data_t rocket_data_get_eth_vent_valve(void) {
+    eth_vent_valve_data_t tmp = {0};
     if (xSemaphoreTake(gb.data_mutex, 1000) != pdTRUE) {
         ESP_LOGE(TAG, "Data semaphore errror :C");
         return tmp;
     }
-    tmp = gb.rocket_data.vent_valves;
+    tmp = gb.rocket_data.eth_vent_valve;
 
     xSemaphoreGive(gb.data_mutex);
     return tmp;
@@ -288,8 +288,8 @@ bool rocket_data_woken_up(void) {
         ESP_LOGE(TAG, "Data semaphore errror :C");
         return false;
     }
-    if (gb.rocket_data.n2_main_valve.waken_up == false ||
-        gb.rocket_data.vent_valves.waken_up == false ||
+    if (gb.rocket_data.n2_vent_valve.waken_up == false ||
+        gb.rocket_data.eth_vent_valve.waken_up == false ||
         gb.rocket_data.ox_vent_eth_main_valves.waken_up == false ||
         gb.rocket_data.ox_main_valve.waken_up == false) {
             result = false;
