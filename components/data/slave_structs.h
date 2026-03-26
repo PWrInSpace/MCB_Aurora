@@ -16,51 +16,59 @@ typedef struct {
 } esp_now_connected_devices_t;
 
 typedef struct {
-    bool waken_up :1;
+    bool waken_up : 1;
+    bool dump_valve_arm : 1;
+    bool dump_valve_cont: 1;
     uint8_t valve_1_state : 2;
     uint8_t valve_2_state : 2;
     int16_t temperature_1;
-    int16_t temperature_2;
-    int16_t temperature_3;
     float pressure_1;
     float pressure_2;
     float battery_voltage;
+    float battery_consumption;
+    float charger_temperature;
 } n2_main_valve_data_t;
 
 typedef struct {
-     bool waken_up :1;
+    bool waken_up : 1;
+    bool dump_valve_arm : 1;
+    bool dump_valve_cont: 1;
     uint8_t valve_1_state : 2;
     uint8_t valve_2_state : 2;
     int16_t temperature_1;
-    int16_t temperature_2;
-    int16_t temperature_3;
     float pressure_1;
     float pressure_2;
     float battery_voltage;
+    float battery_consumption;
+    float charger_temperature;
 } vent_valves_data_t;
 
 typedef struct {
-     bool waken_up :1;
+    bool waken_up : 1;
+    bool dump_valve_arm : 1;
+    bool dump_valve_cont: 1;
     uint8_t valve_1_state : 2;
     uint8_t valve_2_state : 2;
     int16_t temperature_1;
-    int16_t temperature_2;
-    int16_t temperature_3;
     float pressure_1;
     float pressure_2;
     float battery_voltage;
+    float battery_consumption;
+    float charger_temperature;
 } ox_vent_eth_main_valves_data_t;
 
 typedef struct {
-    bool waken_up :1;
+    bool waken_up : 1;
+    bool dump_valve_arm : 1;
+    bool dump_valve_cont: 1;
     uint8_t valve_1_state : 2;
     uint8_t valve_2_state : 2;
     int16_t temperature_1;
-    int16_t temperature_2;
-    int16_t temperature_3;
     float pressure_1;
     float pressure_2;
     float battery_voltage;
+    float battery_consumption;
+    float charger_temperature;
 } ox_main_valve_data_t;
 
 typedef struct {
