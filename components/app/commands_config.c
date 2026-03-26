@@ -41,18 +41,17 @@ static void send_command_esp_now(const ENA_device_t *dev, uint32_t command, int3
     cmd_message_t mess = cmd_create_message(command, payload);
     if (ENA_send(dev, mess.raw, sizeof(mess), 3) != ESP_OK) {
         ESP_LOGI(TAG, "Unable to send command %d, %d", command, payload);
-        return;
     }
 }
 
-static void tanwa_process_command(uint32_t command, int32_t payload, bool privilage) {
+static void tanwa_process_command(uint32_t command, int32_t payload, bool privilege) {
     send_command_esp_now(&esp_now_tanwa, command, payload);
 }
 
-static void mcb_state_change(uint32_t command, int32_t payload, bool privilage) {
+static void mcb_state_change(uint32_t command, int32_t payload, bool privilege) {
     ESP_LOGI(TAG, "Changing state to -> %d", payload);
 
-    if (payload == COUNTDOWN && privilage == false) {
+    if (payload == COUNTDOWN && privilege == false) {
         if (state_change_check_countdown() == false) {
             return;
         }
@@ -67,9 +66,9 @@ static void mcb_state_change(uint32_t command, int32_t payload, bool privilage) 
     ESP_LOGI(TAG, "STATE CHANGED");
 }
 
-static void mcb_abort(uint32_t command, int32_t payload, bool privilage) {
+static void mcb_abort(uint32_t command, int32_t payload, bool privilege) {
     states_t state = SM_get_current_state();
-    if (state == FLIGHT && privilage == false) {
+    if (state == FLIGHT && privilege == false) {
         ESP_LOGW(TAG, "Abort skipped state == FLIGHT");
         return;
     }
@@ -83,7 +82,7 @@ static void mcb_abort(uint32_t command, int32_t payload, bool privilage) {
     ESP_LOGI(TAG, "ABORT");
 }
 
-static void mcb_hold_in(uint32_t command, int32_t payload, bool privilage) {
+static void mcb_hold_in(uint32_t command, int32_t payload, bool privilege) {
     states_t state = SM_get_current_state();
     if (state == ABORT) {
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 100);
@@ -100,7 +99,7 @@ static void mcb_hold_in(uint32_t command, int32_t payload, bool privilage) {
     gpioexp_camera_turn_off();
 }
 
-static void mcb_hold_out(uint32_t command, int32_t payload, bool privilage) {
+static void mcb_hold_out(uint32_t command, int32_t payload, bool privilege) {
     states_t state = SM_get_current_state();
 
     if (state != HOLD) {
@@ -118,7 +117,7 @@ static void mcb_hold_out(uint32_t command, int32_t payload, bool privilage) {
     sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT);
 }
 
-static void mcb_change_lora_frequency_khz(uint32_t command, int32_t payload, bool privilage) {
+static void mcb_change_lora_frequency_khz(uint32_t command, int32_t payload, bool privilege) {
     if (payload < 4e5 || payload > 1e6) {
         ESP_LOGE(TAG, "Invalid frequency");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
@@ -137,8 +136,8 @@ static void mcb_change_lora_frequency_khz(uint32_t command, int32_t payload, boo
     ESP_LOGI(TAG, "Change frequency");
 }
 
-static void mcb_change_lora_transmiting_period(uint32_t command, int32_t payload, bool privilage) {
-    ESP_LOGI(TAG, "Transmiting time");
+static void mcb_change_lora_transmitting_period(uint32_t command, int32_t payload, bool privilege) {
+    ESP_LOGI(TAG, "Transmitting time");
     if (payload <= 500) {
         ESP_LOGE(TAG, "Invalid period");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
@@ -154,18 +153,18 @@ static void mcb_change_lora_transmiting_period(uint32_t command, int32_t payload
     settings_save(SETTINGS_LORA_TRANSMIT_MS, payload);
     settings_read_all();
 
-    ESP_LOGI(TAG, "Tranismiting period change to %d ms", payload);
+    ESP_LOGI(TAG, "Transmitting period change to %d ms", payload);
 }
 
-static void mcb_change_countdown_time(uint32_t command, int32_t payload, bool privilage) {
+static void mcb_change_countdown_time(uint32_t command, int32_t payload, bool privilege) {
     Settings settings = settings_get_all();
     if (payload > settings.ignitTime || payload > -10000) {
-        ESP_LOGE(TAG, "Unable to set coundown time");
+        ESP_LOGE(TAG, "Unable to set countdown time");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
     }
 
     if (settings_save(SETTINGS_COUNTDOWN_TIME, payload) != ESP_OK) {
-        ESP_LOGE(TAG, "Unable to set coundown time");
+        ESP_LOGE(TAG, "Unable to set countdown time");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_OPTION_VALUE, 100);
     }
     settings_read_all();
@@ -174,7 +173,7 @@ static void mcb_change_countdown_time(uint32_t command, int32_t payload, bool pr
     liquid_mission_timer_set_disable_val(settings.countdownTime);
 }
 
-static void mcb_change_ignition_time(uint32_t command, int32_t payload, bool privilage) {
+static void mcb_change_ignition_time(uint32_t command, int32_t payload, bool privilege) {
     Settings settings = settings_get_all();
     if (payload < settings.countdownTime || payload > 0) {
         ESP_LOGE(TAG, "Unable to set ignition time");
@@ -189,7 +188,7 @@ static void mcb_change_ignition_time(uint32_t command, int32_t payload, bool pri
     settings_read_all();
 }
 
-static void mcb_flash_enable(uint32_t command, int32_t payload, bool privilage) {
+static void mcb_flash_enable(uint32_t command, int32_t payload, bool privilege) {
     if (payload != 0) {
         settings_save(SETTINGS_FLASH_ON, 1);
     } else {
@@ -199,7 +198,7 @@ static void mcb_flash_enable(uint32_t command, int32_t payload, bool privilage) 
     settings_read_all();
 }
 
-static void mcb_buzzer_enable(uint32_t command, int32_t payload, bool privilage) {
+static void mcb_buzzer_enable(uint32_t command, int32_t payload, bool privilege) {
     if (payload != 0) {
         settings_save(SETTINGS_BUZZER_ON, 1);
         sys_timer_start(TIMER_BUZZER, 2000, TIMER_TYPE_PERIODIC);
@@ -212,15 +211,15 @@ static void mcb_buzzer_enable(uint32_t command, int32_t payload, bool privilage)
     settings_read_all();
 }
 
-static void mcb_settings_frame(uint32_t command, int32_t payload, bool privilage) {
+static void mcb_settings_frame(uint32_t command, int32_t payload, bool privilege) {
     lora_send_settings_frame();
 }
 
-static void mcb_reset_errors(uint32_t command, int32_t payload, bool privilage) {
+static void mcb_reset_errors(uint32_t command, int32_t payload, bool privilege) {
     errors_reset_all(1000);
 }
 
-static void mcb_foramt_flash(uint32_t command, int32_t payload, bool privilage) {
+static void mcb_foramt_flash(uint32_t command, int32_t payload, bool privilege) {
     if (SM_get_current_state() > RDY_TO_LAUNCH) {
         return;
     }
@@ -230,8 +229,8 @@ static void mcb_foramt_flash(uint32_t command, int32_t payload, bool privilage) 
 }
 
 
-static void mcb_reset_dev(uint32_t command, int32_t payload, bool privilage) {
-    // if (privilage == false) {
+static void mcb_reset_dev(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
     //     return;
     // }
 
@@ -245,7 +244,7 @@ static void mcb_reset_dev(uint32_t command, int32_t payload, bool privilage) {
 }
 
 
-static void mcb_reset_disconnect_timer(uint32_t command, int32_t payload, bool privilage) {
+static void mcb_reset_disconnect_timer(uint32_t command, int32_t payload, bool privilege) {
     if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
         ESP_LOGE(TAG, "Unable to restart timer");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_DISCONNECT_TIMER, 100);
@@ -258,7 +257,7 @@ static cmd_command_t mcb_commands[] = {
     {MCB_HOLD_IN,                   mcb_hold_in},
     {MCB_HOLD_OUT,                  mcb_hold_out},
     {MCB_CHANGE_LORA_FREQ,          mcb_change_lora_frequency_khz},
-    {MCB_CHANGE_TX_PERIOD,          mcb_change_lora_transmiting_period},
+    {MCB_CHANGE_TX_PERIOD,          mcb_change_lora_transmitting_period},
     {MCB_CHANGE_COUNTODWN_TIME,     mcb_change_countdown_time},
     {MCB_CHANGE_IGNITION_TIME,      mcb_change_ignition_time},
     {MCB_FLASH_ENABLE,              mcb_flash_enable},
@@ -272,7 +271,7 @@ static cmd_command_t mcb_commands[] = {
 
 // RECOVERY
 
-static void send_command_recovery(uint32_t command, int32_t payload, bool privilage) {
+static void send_command_recovery(uint32_t command, int32_t payload, bool privilege) {
 
     if (recovery_send_cmd(command, payload) == false) {
         errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
@@ -283,28 +282,28 @@ static void send_command_recovery(uint32_t command, int32_t payload, bool privil
     }
 }
 
-static void recov_easymini_arm(uint32_t command, int32_t payload, bool privilage) {
-    send_command_recovery(command, payload, privilage);
+static void recov_easymini_arm(uint32_t command, int32_t payload, bool privilege) {
+    send_command_recovery(command, payload, privilege);
 }
 
-static void recov_easymini_disarm(uint32_t command, int32_t payload, bool privilage) {
-    send_command_recovery(command, payload, privilage);
+static void recov_easymini_disarm(uint32_t command, int32_t payload, bool privilege) {
+    send_command_recovery(command, payload, privilege);
 }
 
-static void recov_telemetrum_arm(uint32_t command, int32_t payload, bool privilage) {
-    send_command_recovery(command, payload, privilage);
+static void recov_telemetrum_arm(uint32_t command, int32_t payload, bool privilege) {
+    send_command_recovery(command, payload, privilege);
 }
 
-static void recov_telemetrum_disarm(uint32_t command, int32_t payload, bool privilage) {
-    send_command_recovery(command, payload, privilage);
+static void recov_telemetrum_disarm(uint32_t command, int32_t payload, bool privilege) {
+    send_command_recovery(command, payload, privilege);
 }
 
-static void recov_force_first_separation(uint32_t command, int32_t payload, bool privilage) {
-    send_command_recovery(command, payload, privilage);
+static void recov_force_first_separation(uint32_t command, int32_t payload, bool privilege) {
+    send_command_recovery(command, payload, privilege);
 }
 
-static void recov_force_second_separation(uint32_t command, int32_t payload, bool privilage) {
-    send_command_recovery(command, payload, privilage);
+static void recov_force_second_separation(uint32_t command, int32_t payload, bool privilege) {
+    send_command_recovery(command, payload, privilege);
 }
 
 static cmd_command_t recovery_commands[] = {
@@ -320,8 +319,8 @@ static cmd_command_t recovery_commands[] = {
 // MAIN VALVE
 
 
-static void ov_emval_eth_valve_close(uint32_t command, int32_t payload, bool privilage) {
-    // if (privilage == false) {
+static void ov_emval_eth_valve_close(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
     //     return;
     // }
 
@@ -333,15 +332,15 @@ static void ov_emval_eth_valve_close(uint32_t command, int32_t payload, bool pri
     send_command_esp_now(&esp_now_ox_vent_eth_main_valves, command, payload);
 }
 
-static void ov_emval_eth_valve_open(uint32_t command, int32_t payload, bool privilage) {
-    // if (privilage == false) {
+static void ov_emval_eth_valve_open(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
     //     return;
     // }
 
     send_command_esp_now(&esp_now_ox_vent_eth_main_valves, command, payload);
 }
 
-static void n2val_n2_valve_close(uint32_t command, int32_t payload, bool privilage) {
+static void n2val_n2_valve_close(uint32_t command, int32_t payload, bool privilege) {
     state_id state = SM_get_current_state();
     // if (state > RDY_TO_LAUNCH && state < HOLD) {
     //     return;
@@ -350,16 +349,16 @@ static void n2val_n2_valve_close(uint32_t command, int32_t payload, bool privila
     send_command_esp_now(&esp_now_n2_main_valve, command, payload);
 }
 
-static void n2val_n2_valve_open(uint32_t command, int32_t payload, bool privilage) {
-    // if (privilage == false) {
+static void n2val_n2_valve_open(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
     //     return;
     // }
 
     send_command_esp_now(&esp_now_n2_main_valve, command, payload);
 }
 
-static void oval_n2o_valve_close(uint32_t command, int32_t payload, bool privilage) {
-    // if (privilage == false) {
+static void oval_n2o_valve_close(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
     //     return;
     // }
 
@@ -371,8 +370,32 @@ static void oval_n2o_valve_close(uint32_t command, int32_t payload, bool privila
     send_command_esp_now(&esp_now_ox_main_valve, command, payload);
 }
 
-static void oval_n2o_valve_open(uint32_t command, int32_t payload, bool privilage) {
-    // if (privilage == false) {
+static void oval_n2o_valve_open(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
+    //     return;
+    // }
+
+    send_command_esp_now(&esp_now_ox_main_valve, command, payload);
+}
+
+static void oval_n2o_dump_valve_arm(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
+    //     return;
+    // }
+
+    send_command_esp_now(&esp_now_ox_main_valve, command, payload);
+}
+
+static void oval_n2o_dump_valve_disarm(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
+    //     return;
+    // }
+
+    send_command_esp_now(&esp_now_ox_main_valve, command, payload);
+}
+
+static void ovel_n2o_dump_valve_fire(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
     //     return;
     // }
 
@@ -380,19 +403,22 @@ static void oval_n2o_valve_open(uint32_t command, int32_t payload, bool privilag
 }
 
 static cmd_command_t n2_main_valve_commands[] = {
-    {N2_VALVE_CLOSE,            n2val_n2_valve_close     },
-    {N2_VALVE_OPEN,             n2val_n2_valve_open      },
+    {N2_VALVE_CLOSE,            n2val_n2_valve_close},
+    {N2_VALVE_OPEN,             n2val_n2_valve_open},
 };
 
 static cmd_command_t ox_main_valve_commands[] = {
-    {N2O_VALVE_CLOSE,       oval_n2o_valve_close     },
-    {N2O_VALVE_OPEN,        oval_n2o_valve_open      },
+    {N2O_VALVE_CLOSE,       oval_n2o_valve_close},
+    {N2O_VALVE_OPEN,        oval_n2o_valve_open},
+    {OX_MAIN_DUMP_VALVE_SOFT_ARM, oval_n2o_dump_valve_arm},
+    {OX_MAIN_DUMP_VALVE_SOFT_DISARM, oval_n2o_dump_valve_disarm},
+    {OX_MAIN_DUMP_VALVE_FIRE, ovel_n2o_dump_valve_fire},
 };
 
 // VENT VALVE
 
-static void ov_emval_n2o_sol_close(uint32_t command, int32_t payload, bool privilage) {
-    // if (privilage == false) {
+static void ov_emval_n2o_sol_close(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
     //     return;
     // }
 
@@ -401,8 +427,8 @@ static void ov_emval_n2o_sol_close(uint32_t command, int32_t payload, bool privi
     send_command_esp_now(&esp_now_ox_vent_eth_main_valves, command, payload);
 }
 
-static void ov_emval_n2o_sol_open(uint32_t command, int32_t payload, bool privilage) {
-    // if (privilage == false) {
+static void ov_emval_n2o_sol_open(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
     //     return;
     // }
     int32_t command_tanwa = 0x70; // Open N2O valve command for TANWA
@@ -411,32 +437,32 @@ static void ov_emval_n2o_sol_open(uint32_t command, int32_t payload, bool privil
     send_command_esp_now(&esp_now_ox_vent_eth_main_valves, command, payload);
 }
 
-static void vval_n2_sol_close(uint32_t command, int32_t payload, bool privilage) {
-    // if (privilage == false) {
+static void vval_n2_sol_close(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
     //     return;
     // }
 
     send_command_esp_now(&esp_now_vent_valves, command, payload);
 }
 
-static void vval_n2_sol_open(uint32_t command, int32_t payload, bool privilage) {
-    // if (privilage == false) {
+static void vval_n2_sol_open(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
     //     return;
     // }
 
     send_command_esp_now(&esp_now_vent_valves, command, payload);
 }
 
-static void vval_eth_sol_close(uint32_t command, int32_t payload, bool privilage) {
-    // if (privilage == false) {
+static void vval_eth_sol_close(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
     //     return;
     // }
 
     send_command_esp_now(&esp_now_vent_valves, command, payload);
 }
 
-static void vval_eth_sol_open(uint32_t command, int32_t payload, bool privilage) {
-    // if (privilage == false) {
+static void vval_eth_sol_open(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
     //     return;
     // }
 
@@ -444,20 +470,18 @@ static void vval_eth_sol_open(uint32_t command, int32_t payload, bool privilage)
 }
 
 static cmd_command_t vent_valves_commands[] = {
-    {N2_SOL_CLOSE,              vval_n2_sol_close       },
-    {N2_SOL_OPEN,               vval_n2_sol_open        },
-    {ETH_SOL_CLOSE,      vval_eth_sol_close      },
-    {ETH_SOL_OPEN,       vval_eth_sol_open       },
+    {N2_SOL_CLOSE,                      vval_n2_sol_close},
+    {N2_SOL_OPEN,                        vval_n2_sol_open},
+    {ETH_SOL_CLOSE,                    vval_eth_sol_close},
+    {ETH_SOL_OPEN,                      vval_eth_sol_open},
 };
 
 static cmd_command_t ox_vent_eth_main_valves_commands[] = {
-    {N2O_SOL_CLOSE,             ov_emval_n2o_sol_close},
-    {N2O_SOL_OPEN,              ov_emval_n2o_sol_open },
-    {ETH_VALVE_CLOSE,           ov_emval_eth_valve_close    },
-    {ETH_VALVE_OPEN,            ov_emval_eth_valve_open     },
+    {N2O_SOL_CLOSE,                ov_emval_n2o_sol_close},
+    {N2O_SOL_OPEN,                  ov_emval_n2o_sol_open},
+    {ETH_VALVE_CLOSE,            ov_emval_eth_valve_close},
+    {ETH_VALVE_OPEN,              ov_emval_eth_valve_open},
 };
-
-
 
 static cmd_command_t tanwa_commands[] = {
     {TANWA_STATE_CHANGE,            tanwa_process_command},

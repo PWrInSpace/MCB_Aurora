@@ -81,7 +81,7 @@ static void recovery_process_data(void) {
     recovery_data_t copy = gb.recovery_data;
 
     if (recovery_read_data(&gb.recovery_data, sizeof(gb.recovery_data)) == false) {
-        ESP_LOGE(TAG, "RECOVERY RECEIVE ERROR");
+        // ESP_LOGE(TAG, "RECOVERY RECEIVE ERROR");
         errors_set(ERROR_TYPE_RECOVERY, ERROR_RECOV_RECEIVE, 100);
         gb.recovery_data = copy;
     }

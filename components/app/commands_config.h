@@ -126,6 +126,10 @@ typedef enum {
     N2_SOL_CLOSE = 0x14,
     N2_SOL_OPEN = 0x15,
 
+    OX_MAIN_DUMP_VALVE_SOFT_ARM = 0x20,
+    OX_MAIN_DUMP_VALVE_SOFT_DISARM = 0x21,
+    OX_MAIN_DUMP_VALVE_FIRE = 0x22,
+
     VALVE_DZIDA = 0x69,
 
 } valve_commands_t;

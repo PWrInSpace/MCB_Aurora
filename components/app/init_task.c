@@ -100,8 +100,8 @@ static void TASK_init(void *arg) {
 
     CHECK_RESULT_BOOL(initialize_lora(settings.loraFreq_KHz, settings.lora_transmit_ms), "LORA");
 
-    CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 100, TIMER_TYPE_PERIODIC), "SD TIMER");
+    // CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
+    // CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 100, TIMER_TYPE_PERIODIC), "SD TIMER");
     CHECK_RESULT_ESP(init_console(), "CLI");
     // esp_log_level_set("*", ESP_LOG_DEBUG);
 
