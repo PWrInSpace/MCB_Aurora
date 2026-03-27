@@ -123,7 +123,7 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     {
         uint32_t v = 0;
         v |= ((uint32_t) data.ox_vent_eth_main_valves.is_charging << 31);
-        uint8_t charger_temperature = (uint8_t) (fminf(255.0f, roundf(data.ox_vent_eth_main_valves.charger_temperature))));
+        uint8_t charger_temperature = (uint8_t) (fminf(255.0f, roundf(data.ox_vent_eth_main_valves.charger_temperature)));
         v |= ((uint32_t) charger_temperature << 23);
         frame->ox_vent_eth_main_bit_data_b.is_present = true;
         frame->ox_vent_eth_main_bit_data_b.value = v;

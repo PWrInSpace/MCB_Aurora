@@ -8,9 +8,9 @@
 
 #define PACKET_PREFIX "SP3MIK"
 #define LORA_UART_PORT 1
-#define LORA_UART_RX 1
-#define LORA_UART_TX 1
-#define LORA_UART_BAUDRATE 1
+#define LORA_UART_RX 9
+#define LORA_UART_TX 10
+#define LORA_UART_BAUDRATE 115200
 
 /**
  * @brief Initialize lora api and run lora task
