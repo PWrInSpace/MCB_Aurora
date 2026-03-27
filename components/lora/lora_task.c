@@ -101,8 +101,8 @@ static void transmint_packet(void) {
     }
 
     gb.tx_buffer_size = gb.get_tx_packet_fnc(gb.tx_buffer, sizeof(gb.tx_buffer));
-    uart_write_logical(UART_LOGICAL_TELEMETRY, gb.tx_buffer, gb.tx_buffer_size);
-    // lora_send_packet(&gb.lora, gb.tx_buffer, gb.tx_buffer_size);
+    // uart_write_logical(UART_LOGICAL_TELEMETRY, gb.tx_buffer, gb.tx_buffer_size);
+    lora_send_packet(&gb.lora, gb.tx_buffer, gb.tx_buffer_size);
 }
 
 static void on_lora_transmit() {

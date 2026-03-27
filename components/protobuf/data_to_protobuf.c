@@ -195,12 +195,6 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         frame->eth_vent_bit_data_a.value = v;
     }
 
-    {
-        uint32_t v = 0;
-        frame->eth_vent_bit_data_b.is_present = true;
-        frame->eth_vent_bit_data_b.value = v;
-    }
-
     // tanwa - map explicit fields from tanwa_data_t
     frame->tanwa_bateria.is_present = true;
     frame->tanwa_bateria.value = data.tanwa.vbat;

@@ -10,7 +10,7 @@
 #define LORA_UART_PORT 1
 #define LORA_UART_RX 9
 #define LORA_UART_TX 10
-#define LORA_UART_BAUDRATE 115200
+#define LORA_UART_BAUDRATE 9600
 
 /**
  * @brief Initialize lora api and run lora task
