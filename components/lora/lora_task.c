@@ -10,13 +10,14 @@
 #include "freertos/timers.h"
 #include "uart.h"
 
+#include <string.h>
+
 #define TAG "LORA_T"
 
 static struct {
-    lora_struct_t lora;
     lora_task_process_rx_packet process_packet_fnc;
     lora_task_get_tx_packet get_tx_packet_fnc;
-    lora_state_t lora_state;
+    uint8_t lora_state;
     uint8_t tx_buffer[512];
     size_t tx_buffer_size;
 
@@ -54,8 +55,8 @@ static void lora_change_state_to_receive() {
         return;
     }
 
-    lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_RXDONE);
-    lora_set_receive_mode(&gb.lora);
+    // lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_RXDONE);
+    // lora_set_receive_mode(&gb.lora);
     gb.lora_state = LORA_RECEIVE;
 }
 
@@ -86,12 +87,24 @@ void turn_of_receive_window_timer(void) {
 static size_t on_lora_receive(uint8_t *rx_buffer, size_t buffer_len) {
     size_t len = 0;
     turn_of_receive_window_timer();
-    lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_TXDONE);
-    if (lora_received(&gb.lora) == LORA_OK) {
-        len = lora_receive_packet(&gb.lora, rx_buffer, buffer_len);
-        rx_buffer[len] = '\0';
-        ESP_LOGD(TAG, "Received %s, len %d", rx_buffer, len);
-    }
+    // lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_TXDONE);
+    // if (lora_received(&gb.lora) == LORA_OK) {
+    //     len = lora_receive_packet(&gb.lora, rx_buffer, buffer_len);
+    //     rx_buffer[len] = '\0';
+    //     ESP_LOGD(TAG, "Received %s, len %d", rx_buffer, len);
+    // }
+    // uhci_event_t evt;
+    // if (xQueueReceive(ctx->uhci_queue, &evt, portMAX_DELAY) == pdTRUE) {
+    //     if (evt == UHCI_EVT_EOF) {
+    //         len = ctx->receive_size;
+    //         strcpy((char *)rx_buffer, (char *)ctx->receive_buffer);
+
+    //     } else if (evt == UHCI_EVT_PARTIAL_DATA) {
+    //         // do nothing, just wait for the next event
+    //     }
+    // }
+    uart_read_logical(UART_LOGICAL_TELEMETRY, rx_buffer, buffer_len, &len);
+    ESP_LOGD(TAG, "Received %s, len %d", rx_buffer, len);
     return len;
 }
 
@@ -101,8 +114,18 @@ static void transmint_packet(void) {
     }
 
     gb.tx_buffer_size = gb.get_tx_packet_fnc(gb.tx_buffer, sizeof(gb.tx_buffer));
-    // uart_write_logical(UART_LOGICAL_TELEMETRY, gb.tx_buffer, gb.tx_buffer_size);
-    lora_send_packet(&gb.lora, gb.tx_buffer, gb.tx_buffer_size);
+    uint8_t cmd_size = sizeof("CMD:LORATX:") - 1;
+    if (gb.tx_buffer_size + cmd_size > sizeof(gb.tx_buffer)) {
+        ESP_LOGE(TAG, "TX buffer too small");
+        return;
+    }
+    uint8_t command_buffer[512];
+    memset(command_buffer, 0, sizeof(command_buffer));
+    strcpy((char *)command_buffer, "CMD:LORATX:");
+    strcat((char *)command_buffer, (char *)gb.tx_buffer);
+    uart_write_logical(UART_LOGICAL_TELEMETRY, command_buffer, gb.tx_buffer_size + cmd_size);
+
+    //lora_send_packet(&gb.lora, gb.tx_buffer, gb.tx_buffer_size);
 }
 
 static void on_lora_transmit() {
@@ -150,17 +173,17 @@ bool lora_task_init(lora_api_config_t *cfg) {
 
     gb.process_packet_fnc = cfg->process_rx_packet_fnc;
     gb.get_tx_packet_fnc = cfg->get_tx_packet_fnc;
-    memcpy(&gb.lora, cfg->lora, sizeof(lora_struct_t));
+    //memcpy(&gb.lora, cfg->lora, sizeof(lora_struct_t));
 
-    lora_init(&gb.lora);
-    lora_set_frequency(&gb.lora, cfg->frequency_khz * 1e3);
-    lora_set_bandwidth(&gb.lora, LORA_TASK_BANDWIDTH);
-    lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_RXDONE);
-    if (LORA_TASK_CRC_ENABLE) {
-        lora_enable_crc(&gb.lora);
-    } else {
-        lora_disable_crc(&gb.lora);
-    }
+    // lora_init(&gb.lora);
+    // lora_set_frequency(&gb.lora, cfg->frequency_khz * 1e3);
+    // lora_set_bandwidth(&gb.lora, LORA_TASK_BANDWIDTH);
+    // lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_RXDONE);
+    // if (LORA_TASK_CRC_ENABLE) {
+    //     lora_enable_crc(&gb.lora);
+    // } else {
+    //     lora_disable_crc(&gb.lora);
+    // }
 
     gb.irq_notification = xSemaphoreCreateBinary();
     // init_irq_norification();
@@ -201,9 +224,9 @@ bool lora_change_frequency(uint32_t frequency_khz) {
         return false;
     }
 
-    if (lora_set_frequency(&gb.lora, frequency_khz * 1000) != LORA_OK) {
-        return false;
-    }
+    memset(&gb.tx_buffer, 0, sizeof(gb.tx_buffer));
+    sprintf((char *)gb.tx_buffer, "CMD:FREQ:%d", frequency_khz * 1000);
+    uart_write_logical(UART_LOGICAL_TELEMETRY, gb.tx_buffer, strlen((char *)gb.tx_buffer));
 
     // on_lora_transmit();
     return true;

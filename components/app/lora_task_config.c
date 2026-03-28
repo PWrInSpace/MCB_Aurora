@@ -9,6 +9,7 @@
 #include "sdkconfig.h"
 #include "system_timer_config.h"
 #include "utils.h"
+#include "uart.h"
 
 #define TAG "LORA_C"
 
@@ -158,25 +159,26 @@ static size_t lora_packet(uint8_t* buffer, size_t buffer_size) {
 }
 
 bool initialize_lora(uint32_t frequency_khz, uint32_t transmiting_period) {
-    RETURN_ON_FALSE(lora_hw_spi_add_device(VSPI_HOST));
-    RETURN_ON_FALSE(lora_hw_set_gpio());
-    RETURN_ON_FALSE(lora_hw_attach_d0_interrupt(lora_task_irq_notify));
-    lora_struct_t lora = {._spi_transmit = lora_hw_spi_transmit,
-                          ._delay = lora_hw_delay,
-                          ._gpio_set_level = lora_hw_gpio_set_level,
-                          .log = lora_hw_log,
-                          .rst_gpio_num = CONFIG_LORA_RS,
-                          .cs_gpio_num = CONFIG_LORA_CS,
-                          .d0_gpio_num = CONFIG_LORA_D0,
-                          .implicit_header = 0,
-                          .frequency = 0};
+    // RETURN_ON_FALSE(lora_hw_spi_add_device(VSPI_HOST));
+    // RETURN_ON_FALSE(lora_hw_set_gpio());
+    // RETURN_ON_FALSE(lora_hw_attach_d0_interrupt(lora_task_irq_notify));
+    // lora_struct_t lora = {._spi_transmit = lora_hw_spi_transmit,
+    //                       ._delay = lora_hw_delay,
+    //                       ._gpio_set_level = lora_hw_gpio_set_level,
+    //                       .log = lora_hw_log,
+    //                       .rst_gpio_num = CONFIG_LORA_RS,
+    //                       .cs_gpio_num = CONFIG_LORA_CS,
+    //                       .d0_gpio_num = CONFIG_LORA_D0,
+    //                       .implicit_header = 0,
+    //                       .frequency = 0};
     lora_api_config_t cfg = {
-        .lora = &lora,
         .process_rx_packet_fnc = lora_process,
         .get_tx_packet_fnc = lora_packet,
         .frequency_khz = frequency_khz,
         .transmiting_period = transmiting_period,
     };
+
+    RETURN_ON_FALSE(uart_init_logical(UART_LOGICAL_TELEMETRY, UART_NUM_2, 115200U, LORA_UART_RX, LORA_UART_TX));
     RETURN_ON_FALSE(lora_task_init(&cfg));
     return true;
 }
