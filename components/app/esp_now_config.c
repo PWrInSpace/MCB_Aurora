@@ -89,6 +89,10 @@ static void callback_ox_main_valve(uint8_t *data, size_t size) {
     connected.ox_main_valve = true;
     ESP_LOGI(TAG, "Ox Main receive, size %d", size);
     if (size == sizeof(ox_main_valve_data_t)) {
+        ESP_LOGI(TAG, "valve 1 status: %d", ((ox_main_valve_data_t *) data)->valve_1_state);
+        ESP_LOGI(TAG, "valve 2 status: %d", ((ox_main_valve_data_t *) data)->valve_2_state);
+        ESP_LOGI(TAG, "pressure 1: %f", ((ox_main_valve_data_t *) data)->pressure_1);
+        ESP_LOGI(TAG, "pressure 2: %f", ((ox_main_valve_data_t *) data)->pressure_2);
         rocket_data_update_ox_main_valve((ox_main_valve_data_t *) data);
     }
 }
