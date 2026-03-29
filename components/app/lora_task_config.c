@@ -131,6 +131,17 @@ static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
     size_t data_size = obc_lo_ra_frame_encode(frame, buffer + prefix_size, max_payload);
     if (data_size == 0 || data_size > max_payload) return 0;
 
+    // DEBUG: Log the ox_vent_eth_main_bit_data_b value before and after encoding
+    ESP_LOGI(TAG, "Frame ox_vent_eth_main_bit_data_b BEFORE encode: 0x%08lx (%lu)",
+             frame->ox_vent_eth_main_bit_data_b.value, frame->ox_vent_eth_main_bit_data_b.value);
+    
+    // Show the raw bytes in the buffer (field #23 = ox_vent_eth_main_bit_data_b)
+    // In protobuf, after encoding, find where this field is
+    ESP_LOGI(TAG, "Encoded data first 60 bytes (hex): ");
+    for (int i = 0; i < (data_size < 60 ? data_size : 60); i++) {
+        ESP_LOGI(TAG, "%02x ", buffer[prefix_size + i]);
+    }
+
     //ESP_LOGI(TAG, "Data frame size: %zu", data_size);
 
     if (prefix_size + data_size > 255) {

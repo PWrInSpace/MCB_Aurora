@@ -8,6 +8,24 @@
 
 #define TAG "PBF"
 
+// DEBUG: Helper function to verify packing
+static void debug_verify_ox_vent_eth_main_b_packing(uint32_t packed_value) {
+    ESP_LOGI(TAG, "=== VERIFY OX_VENT_ETH_MAIN_B PACKING ===");
+    ESP_LOGI(TAG, "Packed value: 0x%08lx (%lu)", packed_value, packed_value);
+    ESP_LOGI(TAG, "Packed value (binary): ");
+    
+    uint32_t is_charging = (packed_value >> 31) & 0x1;
+    uint32_t charger_temp = (packed_value >> 23) & 0xFF;
+    uint32_t pressure = (packed_value >> 7) & 0xFFFF;
+    uint32_t unused_bits = (packed_value & 0x7F);
+    
+    ESP_LOGI(TAG, "  Bit 31 (is_charging): %lu", is_charging);
+    ESP_LOGI(TAG, "  Bits 23-30 (temp): 0x%02lx (%lu)", charger_temp, charger_temp);
+    ESP_LOGI(TAG, "  Bits 7-22 (pressure): 0x%04lx (%lu)", pressure, pressure);
+    ESP_LOGI(TAG, "  Bits 0-6 (unused): 0x%02lx (%lu)", unused_bits, unused_bits);
+    ESP_LOGI(TAG, "====================================");
+}
+
 void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     rocket_data_t data = rocket_data_get();
     error_data_t errors[MAX_NUMBER_OF_ERRORS];
@@ -122,14 +140,29 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
 
     {
         uint32_t v = 0;
-        v |= ((uint32_t) data.ox_vent_eth_main_valves.is_charging << 31);
+        uint32_t is_charging_bit = ((uint32_t) data.ox_vent_eth_main_valves.is_charging << 31);
+        v |= is_charging_bit;
         uint8_t charger_temperature = (uint8_t) (fminf(255.0f, roundf(data.ox_vent_eth_main_valves.charger_temperature)));
-        v |= ((uint32_t) charger_temperature << 23);
+        uint32_t temp_bits = ((uint32_t) charger_temperature << 23);
+        v |= temp_bits;
         uint16_t pressure = (uint16_t) (fmax(data.ox_vent_eth_main_valves.pressure_2, 0) * 100);
-        v |= ((uint32_t) ((uint32_t) pressure) << 7);
-        ESP_LOGI(TAG, "Pressure 2 packed: %d", pressure);
+        uint32_t pressure_bits = ((uint32_t) ((uint32_t) pressure) << 7);
+        v |= pressure_bits;
+        
+        ESP_LOGI(TAG, "OX_VENT_ETH_MAIN_B Debug - is_charging: %u, temp: %u, pressure: %u", 
+                 data.ox_vent_eth_main_valves.is_charging, charger_temperature, pressure);
+        ESP_LOGI(TAG, "OX_VENT_ETH_MAIN_B Bits - is_charging_bits: 0x%08lx, temp_bits: 0x%08lx, pressure_bits: 0x%08lx", 
+                 is_charging_bit, temp_bits, pressure_bits);
+        ESP_LOGI(TAG, "OX_VENT_ETH_MAIN_B Final packed value v: 0x%08lx (%lu)", v, v);
+        
         frame->ox_vent_eth_main_bit_data_b.is_present = true;
         frame->ox_vent_eth_main_bit_data_b.value = v;
+        
+        ESP_LOGI(TAG, "OX_VENT_ETH_MAIN_B After assignment frame value: 0x%08lx (%lu)", 
+                 frame->ox_vent_eth_main_bit_data_b.value, frame->ox_vent_eth_main_bit_data_b.value);
+        
+        // Verify the packing by decoding
+        debug_verify_ox_vent_eth_main_b_packing(frame->ox_vent_eth_main_bit_data_b.value);
     }
 
     // ox main bit data (uses ox_main_valve struct)
