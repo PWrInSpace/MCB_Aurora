@@ -125,6 +125,9 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         v |= ((uint32_t) data.ox_vent_eth_main_valves.is_charging << 31);
         uint8_t charger_temperature = (uint8_t) (fminf(255.0f, roundf(data.ox_vent_eth_main_valves.charger_temperature)));
         v |= ((uint32_t) charger_temperature << 23);
+        uint16_t pressure = (uint16_t) (fmax(data.ox_vent_eth_main_valves.pressure_2, 0) * 100);
+        v |= ((uint32_t) ((uint32_t) pressure) << 7);
+        ESP_LOGI(TAG, "Pressure 2 packed: %d", pressure);
         frame->ox_vent_eth_main_bit_data_b.is_present = true;
         frame->ox_vent_eth_main_bit_data_b.value = v;
     }
@@ -160,12 +163,10 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     // n2 vent bit data (uses n2_vent_valve struct)
     {
         uint32_t v = 0;
-        uint16_t pressure_1 = (uint16_t) (fmax(data.n2_vent_valve.pressure_1, 0) * 100);
+        uint16_t pressure_1 = (uint16_t) (fmax(data.eth_vent_valve.pressure_1, 0) * 100);
         v |= ((uint32_t) pressure_1 << 16);
-        uint16_t pressure_2 = (uint16_t) (fmax(data.n2_vent_valve.pressure_2, 0) * 100);
-        v |= ((uint32_t) pressure_2 << 0);
-        frame->n2_vent_bit_data_a.is_present = true;
-        frame->n2_vent_bit_data_a.value = v;
+        frame->eth_vent_bit_data_b.is_present = true;
+        frame->eth_vent_bit_data_b.value = v;
     }
 
     {
@@ -177,8 +178,8 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         v |= ((uint32_t) data.n2_vent_valve.is_charging << 15);
         uint8_t charger_temperature = (uint8_t) (fminf(255.0f, roundf(data.n2_vent_valve.charger_temperature)));
         v |= ((uint32_t) charger_temperature << 7);
-        frame->n2_vent_bit_data_b.is_present = true;
-        frame->n2_vent_bit_data_b.value = v;
+        frame->n2_vent_bit_data_a.is_present = true;
+        frame->n2_vent_bit_data_a.value = v;
     }
 
     // eth vent bit data (uses eth_vent_valve struct)

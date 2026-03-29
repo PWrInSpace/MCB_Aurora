@@ -48,8 +48,8 @@ message LoRaFrame {
     // bit5: N2_VENT_STATE
     optional fixed32 main_vent_flags = 19;
 
-    optional fixed32 n2_vent_bit_data_a = 20;
-    optional fixed32 n2_vent_bit_data_b = 21;
+    optional fixed32 eth_vent_bit_data_b = 20;
+    optional fixed32 n2_vent_bit_data_a = 21;
     optional fixed32 ox_vent_eth_main_bit_data_a = 22;
     optional fixed32 ox_vent_eth_main_bit_data_b = 23;
     optional fixed32 ox_main_bit_data_a = 24;
