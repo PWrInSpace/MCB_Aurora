@@ -1,17 +1,21 @@
 // Copyright 2022 PWrInSpace, Kuba
 #include "system_timer_config.h"
-#include "sd_task.h"
-#include "rocket_data.h"
-#include "esp_now_config.h"
+
+#include "buzzer_pwm.h"
 #include "commands.h"
+#include "commands_config.h"
+#include "errors_config.h"
+#include "esp_log.h"
+#include "esp_now_config.h"
+#include "flash_task.h"
+#include "gen_pysd.h"
+#include "rocket_data.h"
+#include "sd_task.h"
 #include "state_machine.h"
 #include "state_machine_config.h"
-#include "flash_task.h"
-#include "esp_log.h"
-#include "errors_config.h"
-#include "gen_pysd.h"
-#include "buzzer_pwm.h"
-#include "commands_config.h"
+#include "gpio_expander.h"
+
+#define TAG "TIM"
 
 void on_sd_timer(void *arg){
     rocket_data_t *p = malloc(sizeof(rocket_data_t));
@@ -59,8 +63,6 @@ static void on_liftoff_timer(void *arg) {
 static void on_disconnect_timer(void *arg) {
     SM_force_change_state(ABORT);
 }
-
-#define TAG "TIM"
 
 static void buzzer_timer(void *arg) {
     static uint8_t state = 1;
@@ -112,6 +114,16 @@ static void debug_data(void *arg) {
     free(buffer);
 }
 
+static void on_camera_timer(void *arg) {
+    ESP_LOGI(TAG, "Camera turned on");
+    gpioexp_camera_turn_on();
+}
+
+static void on_camera_off_timer(void *arg) {
+    ESP_LOGI(TAG, "Camera turned off");
+    gpioexp_camera_turn_off();
+}
+
 bool initialize_timers(void) {
     sys_timer_t timers[] = {
     {.timer_id = TIMER_SD_DATA,             .timer_callback_fnc = on_sd_timer,              .timer_arg = NULL},
@@ -123,6 +135,8 @@ bool initialize_timers(void) {
     {.timer_id = TIMER_DEBUG,               .timer_callback_fnc = debug_data,               .timer_arg = NULL},
     {.timer_id = TIMER_BUZZER,              .timer_callback_fnc = buzzer_timer,             .timer_arg = NULL},
     {.timer_id = TIMER_CONNECTED_DEV,       .timer_callback_fnc = connected_dev,            .timer_arg = NULL},
+    {.timer_id = TIMER_CAMERA_ON,           .timer_callback_fnc = on_camera_timer,          .timer_arg = NULL},
+    {.timer_id = TIMER_CAMERA_OFF,          .timer_callback_fnc = on_camera_off_timer,      .timer_arg = NULL},
 };
     return sys_timer_init(timers, sizeof(timers) / sizeof(timers[0]));
 }

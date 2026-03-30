@@ -16,6 +16,7 @@
 #include "processing_task_config.h"
 
 #define TAG "SMC"
+
 static void on_init(void *arg) {
     ESP_LOGI(TAG, "ON INIT");
 }
@@ -87,7 +88,6 @@ static void on_ready_to_lauch(void *arg) {
     ESP_LOGI(TAG, "ON READY_TO_LAUNCH");
     Settings settings = settings_get_all();
 
-    gpioexp_camera_turn_on();
     if (settings.flash_on != 0) {
         FT_start_loop();
         sys_timer_start(TIMER_FLASH_DATA, 500, TIMER_TYPE_PERIODIC);
@@ -111,6 +111,12 @@ static void on_countdown(void *arg) {
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_DISCONNECT_TIMER, 100);
         goto abort_countdown;
     }
+
+    int camera_countdown = -(settings.countdownTime + CAMERA_COUNTDOWN_TIME);
+    sys_timer_start(TIMER_CAMERA_ON, camera_countdown, TIMER_TYPE_ONE_SHOT);
+    ESP_LOGI(TAG, "Camera will turn on in %d seconds", -camera_countdown / 1000);
+    sys_timer_start(TIMER_CAMERA_OFF, camera_countdown + CAMERA_ABORT_TIME, TIMER_TYPE_ONE_SHOT);
+    ESP_LOGI(TAG, "Camera will turn off in %d seconds", -(camera_countdown + CAMERA_ABORT_TIME) / 1000);
 
     gpioexp_led_set_color(RED);
     return;
