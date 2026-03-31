@@ -42,15 +42,11 @@ static bool uart_setup_port(uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, in
     return true;
 }
 
-bool uart_init(uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, uint8_t baudrate) {
+bool uart_init(uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, int baudrate) {
     return uart_init_logical(UART_LOGICAL_GPS, port, tx_pin, rx_pin, baudrate);
 }
 
-bool uart_init_logical(uart_logical_port_t logical_port,
-                       uart_port_t port,
-                       uint8_t tx_pin,
-                       uint8_t rx_pin,
-                       uint8_t baudrate) {
+bool uart_init_logical(uart_logical_port_t logical_port, uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, int baudrate) {
     if (!uart_is_valid_logical_port(logical_port)) {
         return false;
     }

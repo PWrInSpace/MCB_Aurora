@@ -13,23 +13,14 @@ typedef enum {
 } uart_logical_port_t;
 
 // Backward-compatible init: initializes GPS logical port.
-bool uart_init(uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, uint8_t baudrate);
+bool uart_init(uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, int baudrate);
 
 // New API: select logical port explicitly.
-bool uart_init_logical(uart_logical_port_t logical_port,
-                       uart_port_t port,
-                       uint8_t tx_pin,
-                       uint8_t rx_pin,
-                       uint8_t baudrate);
+bool uart_init_logical(uart_logical_port_t logical_port, uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, int baudrate);
 
-int uart_read_logical(uart_logical_port_t logical_port,
-                      uint8_t *data,
-                      size_t data_size,
-                      TickType_t timeout_ticks);
+int uart_read_logical(uart_logical_port_t logical_port, uint8_t *data, size_t data_size, TickType_t timeout_ticks);
 
-int uart_write_logical(uart_logical_port_t logical_port,
-                       const uint8_t *data,
-                       size_t data_size);
+int uart_write_logical(uart_logical_port_t logical_port, const uint8_t *data, size_t data_size);
 
 int uart_flush_rx_logical(uart_logical_port_t logical_port);
 
