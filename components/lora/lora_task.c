@@ -98,17 +98,20 @@ static void transmint_packet(void) {
     }
 
     gb.tx_buffer_size = gb.get_tx_packet_fnc(gb.tx_buffer, sizeof(gb.tx_buffer));
-    uint8_t cmd_size = sizeof("CMD:LORATX:") - 1;
-    if (gb.tx_buffer_size + cmd_size > sizeof(gb.tx_buffer)) {
-        ESP_LOGE(TAG, "TX buffer too small");
-        return;
-    }
     uint8_t command_buffer[512];
-    memset(command_buffer, 0, sizeof(command_buffer));
-    strcpy((char *)command_buffer, "CMD:LORATX:");
-    strcat((char *)command_buffer, (char *)gb.tx_buffer);
+    size_t cmd_size = 11; // strlen("CMD:LORATX:")
 
-    uart_write_logical(UART_LOGICAL_TELEMETRY, command_buffer, gb.tx_buffer_size + cmd_size);
+    if(cmd_size + gb.tx_buffer_size > sizeof(command_buffer))
+        return;
+
+    memcpy(command_buffer, "CMD:LORATX:", cmd_size);
+    memcpy(&command_buffer[cmd_size], gb.tx_buffer, gb.tx_buffer_size);
+
+    uart_write_logical(
+        UART_LOGICAL_TELEMETRY,
+        command_buffer,
+        cmd_size + gb.tx_buffer_size
+    );
 }
 
 static void on_lora_transmit() {
@@ -142,6 +145,7 @@ static void lora_task(void *arg) {
         }
         // uart_read_logical(UART_LOGICAL_TELEMETRY, rx_buffer, sizeof(rx_buffer), 1000);
         // uart_write_logical(UART_LOGICAL_TELEMETRY, rx_buffer, sizeof(rx_buffer));
+        //uart_write_logical(UART_LOGICAL_TELEMETRY, (uint8_t*) "LORA LOOP", 10);
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 }

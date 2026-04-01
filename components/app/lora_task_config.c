@@ -178,7 +178,7 @@ bool initialize_lora(uint32_t frequency_khz, uint32_t transmiting_period) {
         .transmiting_period = transmiting_period,
     };
 
-    RETURN_ON_FALSE(uart_init_logical(UART_LOGICAL_TELEMETRY, UART_NUM_1, LORA_UART_TX, LORA_UART_RX, LORA_UART_BAUDRATE));
+    RETURN_ON_FALSE(uart_init_logical(UART_LOGICAL_TELEMETRY, UART_NUM_1, LORA_UART_RX, LORA_UART_TX, LORA_UART_BAUDRATE));
     uart_write_logical(UART_LOGICAL_TELEMETRY, (uint8_t*) "LORA INIT", 10);
     RETURN_ON_FALSE(lora_task_init(&cfg));
     return true;
