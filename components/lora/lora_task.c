@@ -27,65 +27,6 @@ static struct {
     TimerHandle_t receive_window_timer;
 } gb;
 
-// static bool wait_until_irq(void) {
-//     return ulTaskNotifyTake(pdTRUE, portMAX_DELAY) == pdTRUE ? true : false;
-// }
-//
-// void IRAM_ATTR lora_task_irq_notify(void *arg) {
-//     BaseType_t higher_priority_task_woken = pdFALSE;
-//     /* Defensive: ensure gb.task is valid before notifying from ISR. If it's NULL or corrupted,
-//        calling vTaskNotifyGiveFromISR may dereference invalid pointer and crash. */
-//     if (gb.task != NULL) {
-//         vTaskNotifyGiveFromISR(gb.task, &higher_priority_task_woken);
-//     }
-//     if (higher_priority_task_woken == pdTRUE) {
-//         portYIELD_FROM_ISR();
-//     }
-// }
-//
-// static void notify_end_of_rx_window(void) {
-//     xTaskNotifyGive(gb.task);
-//     ESP_LOGD(TAG, "END OF WINDOW");
-// }
-//
-// static void on_receive_window_timer(TimerHandle_t timer) {
-//     notify_end_of_rx_window();
-// }
-//
-// static void lora_change_state_to_receive() {
-//     ESP_LOGD(TAG, "Changing state to receive");
-//     if (gb.lora_state == LORA_RECEIVE) {
-//         return;
-//     }
-//
-//     gb.lora_state = LORA_RECEIVE;
-// }
-//
-// static void lora_change_state_to_transmit() {
-//     ESP_LOGD(TAG, "Changing state to transmit");
-//     if (gb.lora_state == LORA_TRANSMIT) {
-//         return;
-//     }
-//
-//     gb.lora_state = LORA_TRANSMIT;
-// }
-//
-// void turn_on_receive_window_timer(void) {
-//     if (xTimerIsTimerActive(gb.receive_window_timer) == pdTRUE) {
-//         xTimerReset(gb.receive_window_timer, portMAX_DELAY);
-//         //ESP_LOGE(TAG, "TIMER IS ACTIVE");
-//         return;
-//     }
-//     xTimerStart(gb.receive_window_timer, portMAX_DELAY);
-// }
-//
-// void turn_of_receive_window_timer(void) {
-//     if (xTimerIsTimerActive(gb.receive_window_timer) == pdTRUE) {
-//         xTimerStop(gb.receive_window_timer, portMAX_DELAY);
-//     }
-// }
-
-
 static void receive_packet(void) {
     // turn_of_receive_window_timer();
     if (gb.validate_packet_fnc == NULL) {
@@ -124,44 +65,6 @@ static void tx_task(void *arg) {
         vTaskDelay(pdMS_TO_TICKS(TRANSMIT_DELAY));
     }
 }
-
-// static void on_lora_transmit() {
-//     lora_change_state_to_receive();
-//     turn_of_receive_window_timer();
-//     turn_on_receive_window_timer();
-// }
-
-// static void lora_task(void *arg) {
-//     uint8_t rx_buffer[512];
-//     size_t rx_packet_size = 0;
-//
-//     while (true) {
-//         if (wait_until_irq() == true) {
-//             // on transmit
-//             if (gb.lora_state == LORA_TRANSMIT) {
-//                 //ESP_LOGI(TAG, "ON transmit");
-//                 on_lora_transmit();
-//             // on receive
-//             } else {
-//                 if (gb.validate_packet_fnc != NULL) {
-//                     rx_packet_size = on_lora_receive(rx_buffer, sizeof(rx_buffer));
-//                 }
-//                 if (rx_packet_size > 0 && gb.process_packet_fnc != NULL) {
-//                     gb.process_packet_fnc(rx_buffer, rx_packet_size);
-//                     vTaskDelay(pdMS_TO_TICKS(100));
-//                 }
-//                 lora_change_state_to_transmit();
-//                 transmit_packet();
-//                 // qucik fix
-//                 turn_on_receive_window_timer();
-//             }
-//         }
-//         // uart_read_logical(UART_LOGICAL_TELEMETRY, rx_buffer, sizeof(rx_buffer), 1000);
-//         // uart_write_logical(UART_LOGICAL_TELEMETRY, rx_buffer, sizeof(rx_buffer));
-//         //uart_write_logical(UART_LOGICAL_TELEMETRY, (uint8_t*) "LORA LOOP", 10);
-//         vTaskDelay(pdMS_TO_TICKS(10));
-//     }
-// }
 
 bool lora_task_init(lora_api_config_t *cfg) {
     assert(cfg != NULL);
