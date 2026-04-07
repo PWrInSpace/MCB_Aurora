@@ -89,22 +89,8 @@ static size_t on_lora_receive(uint8_t *rx_buffer, size_t buffer_len) {
     turn_of_receive_window_timer();
 
     uint8_t data_len = gb.validate_packet_fnc(rx_buffer, buffer_len);
+    ESP_LOGD(TAG, "Received %s, len %d", rx_buffer, data_len);
     return data_len;
-    // uint8_t incoming_byte;
-    // while (len < (buffer_len - 1)) {
-    //     int rx_byte = uart_read_logical(UART_LOGICAL_TELEMETRY, &incoming_byte, 1, pdMS_TO_TICKS(10));
-    //
-    //     if (rx_byte > 0) {
-    //         rx_buffer[len++] = incoming_byte;
-    //         if (incoming_byte == '\n') break;
-    //     } else break;
-    // }
-    // if (len > 0) {
-    //     rx_buffer[len] = '\0';
-    // }
-    //
-    // ESP_LOGD(TAG, "Received %s, len %d", rx_buffer, len);
-    // return len;
 }
 
 static void transmit_packet(void) {

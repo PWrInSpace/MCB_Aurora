@@ -21,28 +21,6 @@ void lora_send_settings_frame(void) {
     settings_frame = true;
 }
 
-static bool check_header(uint8_t* packet, size_t packet_size) {
-    if (packet_size < sizeof(PACKET_HEADER)) {
-        return false;
-    }
-
-    uint8_t header = PACKET_HEADER;
-    if (packet[0] != header) {
-        return false;
-    }
-
-    return true;
-}
-
-static uint8_t get_data_len(uint8_t* packet, size_t packet_size) {
-    if (packet_size < sizeof(PACKET_HEADER) + 1) {
-        return false;
-    }
-
-    uint8_t data_len = packet[sizeof(PACKET_HEADER)];
-    return data_len;
-}
-
 static uint16_t calculate_checksum(uint8_t* buffer, size_t size) {
     uint16_t sum = 0;
     for (size_t i = 0; i < size; ++i) {
@@ -87,19 +65,6 @@ static void lora_process(uint8_t* packet, size_t packet_size) {
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 100);
         return;
     }
-
-    // header już sprawdzony w validate packet
-    // if (check_header(packet, packet_size) == false) {
-    //     ESP_LOGE(TAG, "LoRa invalid prefix");
-    //     return;
-    // }
-
-    // checksum już sprawdzony w validate packet
-    // uint8_t header_size = sizeof(PACKET_HEADER);
-    // if (calculate_checksum(packet + header_size, packet_size - header_size - 1) != packet[packet_size - 1]) {
-    //     ESP_LOGE(TAG, "Invalid checksum");
-    //     return;
-    // }
 
     struct obc_lo_ra_command_t* received = obc_lo_ra_command_new(&workspace, sizeof(workspace));
 
@@ -157,13 +122,6 @@ static size_t lora_create_settings_packet(uint8_t* buffer, size_t size) {
     if (info_size == 0) return 0;
 
     return info_size + data_size;
-
-    // if (size <= prefix_size) return 0;
-    // size_t max_payload = size - prefix_size;
-    //
-    // if (data_size == 0 || data_size > max_payload) return 0;
-    //
-    // return prefix_size + data_size;
 }
 
 static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
@@ -179,25 +137,6 @@ static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
     if (info_size == 0) return 0;
 
     return info_size + data_size;
-
-    // size_t prefix_size = add_packet_info(buffer, size);
-    // if (prefix_size == 0) return 0; /* not enough room for prefix */
-    //
-    // /* reserve 2 bytes for checksum */
-    // if (size <= prefix_size) return 0;
-    // size_t max_payload = size - prefix_size;
-    //
-    // size_t data_size = obc_lo_ra_frame_encode(frame, buffer + prefix_size, max_payload);
-    // if (data_size == 0 || data_size > max_payload) return 0;
-    //
-    // //ESP_LOGI(TAG, "Data frame size: %zu", data_size);
-    //
-    // if (prefix_size + data_size > 255) {
-    //     ESP_LOGE(TAG, "Data frame too large to send over LoRa");
-    //     return 0;
-    // }
-    //
-    // return prefix_size + data_size;
 }
 
 static size_t lora_packet(uint8_t* buffer, size_t buffer_size) {
