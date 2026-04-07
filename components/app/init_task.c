@@ -15,8 +15,7 @@
 #include "gpio_expander.h"
 #include "gps_task_config.h"
 #include "i2c.h"
-#include "lora.pb-c.h.bk"
-#include "lora_hw_config.h"
+#include "lora.pb-c.h"
 #include "lora_task.h"
 #include "lora_task_config.h"
 #include "mission_timer_config.h"
@@ -29,7 +28,6 @@
 #include "state_machine_config.h"
 #include "system_timer_config.h"
 #include "uart.h"
-#include "utils.h"
 #include "vbat_wrapper.h"
 
 #define TAG "INIT"
@@ -102,8 +100,8 @@ static void TASK_init(void *arg) {
 
     CHECK_RESULT_BOOL(initialize_lora(settings.loraFreq_KHz, settings.lora_transmit_ms), "LORA");
 
-    // CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
-    // CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 100, TIMER_TYPE_PERIODIC), "SD TIMER");
+    CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 100, TIMER_TYPE_PERIODIC), "SD TIMER");
     CHECK_RESULT_ESP(init_console(), "CLI");
     // esp_log_level_set("*", ESP_LOG_DEBUG);
 

@@ -68,10 +68,7 @@ int uart_write_logical(uart_logical_port_t logical_port, const uint8_t *data, si
     return uart_write_bytes(gb.port[logical_port], (const char *) data, data_size);
 }
 
-int uart_read_logical(uart_logical_port_t logical_port,
-                      uint8_t *data,
-                      size_t data_size,
-                      TickType_t timeout_ticks) {
+int uart_read_logical(uart_logical_port_t logical_port, uint8_t *data, size_t data_size, TickType_t timeout_ticks) {
     if (!uart_is_valid_logical_port(logical_port) || !gb.ready[logical_port] || data == NULL || data_size == 0) {
         return -1;
     }

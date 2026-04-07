@@ -16,7 +16,7 @@ message LoRaFrame {
     optional float Euler_fi = 11;
     optional float Euler_psi = 12;
     optional float Euler_theta = 13;
-    // 49 bytes
+    // 52 bytes
 
     // === Recovery bitfield ===
     // bit0: separation_switch_1
@@ -55,7 +55,7 @@ message LoRaFrame {
     optional fixed32 ox_main_bit_data_a = 24;
     optional fixed32 ox_main_bit_data_b = 25;
     optional fixed32 eth_vent_bit_data_a = 26;
-    // 36 bytes
+    // 32 bytes
 
     // === Tanwa ===
     optional float Tanwa_bateria = 27;
@@ -124,7 +124,7 @@ message LoRaFrame {
     optional fixed32 errors = 45;
     // 16 bytes
 }
-// sum = 49 + 4 + 16 + 36 + 8 + 52 + 4 + 16 = 185 bytes
+// sum = 52 + 4 + 16 + 32 + 8 + 52 + 16 = 180 bytes
 
 message LoRaCommand {
     optional uint32 lora_dev_id = 1;
