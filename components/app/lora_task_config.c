@@ -37,30 +37,38 @@ static uint8_t lora_validate(uint8_t* buffer, size_t buffer_size) {
     }
 
     uint8_t header;
-    uart_read_logical(UART_LOGICAL_TELEMETRY, &header, 1, pdMS_TO_TICKS(10));
-    if (header != PACKET_HEADER) {
+    int rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, &header, 1, portMAX_DELAY);
+    if (header != PACKET_HEADER || rx_len <= 0) {
         ESP_LOGE(TAG, "Invalid packet header");
         return false;
     }
 
     uint8_t command;
-    uart_read_logical(UART_LOGICAL_TELEMETRY, &command, 1, pdMS_TO_TICKS(10));
-    if (command != CMD_LORA_TX) {
+    rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, &command, 1, pdMS_TO_TICKS(10));
+    if (command != CMD_LORA_TX || rx_len <= 0) {
         ESP_LOGE(TAG, "Invalid command");
         return false;
     }
 
     uint8_t data_len;
-    uart_read_logical(UART_LOGICAL_TELEMETRY, &data_len, 1, pdMS_TO_TICKS(10));
-    if (data_len == 0 || data_len > buffer_size) {
+    rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, &data_len, 1, pdMS_TO_TICKS(10));
+    if (data_len == 0 || data_len > buffer_size || rx_len <= 0) {
         ESP_LOGE(TAG, "Data length is too big, max: %d, received: %d", buffer_size, data_len);
         return false;
     }
 
-    uart_read_logical(UART_LOGICAL_TELEMETRY, buffer, data_len, pdMS_TO_TICKS(10));
+    rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, buffer, data_len, pdMS_TO_TICKS(10));
+    if (rx_len != data_len) {
+        ESP_LOGE(TAG, "Data length mismatch, expected: %d, received: %d", data_len, rx_len);
+        return false;
+    }
 
     uint16_t checksum;
-    uart_read_logical(UART_LOGICAL_TELEMETRY, (uint8_t*)&checksum, 2, pdMS_TO_TICKS(10));
+    rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, (uint8_t*)&checksum, 2, pdMS_TO_TICKS(10));
+    if (rx_len != 2) {
+            ESP_LOGE(TAG, "Checksum length mismatch, expected: 2, received: %d", rx_len);
+            return false;
+    }
     //todo dodać walidację checksum
 
     return data_len;
@@ -106,12 +114,13 @@ static size_t add_packet_info(uint8_t* buffer, size_t size, uint8_t data_size, o
     // dostępne miejsce
     if (size - data_size < info_size) return 0;
 
-    uint16_t checksum = calculate_checksum(buffer, size);
+    uint16_t checksum = calculate_checksum(buffer, data_size + info_size - CHECKSUM_LEN);
 
     buffer[0] = PACKET_HEADER;
     buffer[sizeof(PACKET_HEADER)] = command;
     buffer[sizeof(PACKET_HEADER) + sizeof(command)] = data_size;
-    buffer[sizeof(PACKET_HEADER) + sizeof(command) + DATA_SIZE_LEN + data_size] = checksum;
+    buffer[sizeof(PACKET_HEADER) + sizeof(command) + DATA_SIZE_LEN + data_size] = checksum & 0xFF;
+    buffer[sizeof(PACKET_HEADER) + sizeof(command) + DATA_SIZE_LEN + data_size + 1] = checksum >> 8 & 0xFF;
 
     return info_size;
 }
@@ -124,7 +133,7 @@ static size_t lora_create_settings_packet(uint8_t* buffer, size_t size) {
 
     struct obc_lo_ra_settings_t *frame = obc_lo_ra_settings_new(&workspace, sizeof(workspace));
     create_protobuf_settings_frame(frame);
-    size_t data_size = obc_lo_ra_settings_encode(frame, buffer + sizeof(PACKET_HEADER) + DATA_SIZE_LEN, size - info_size);
+    size_t data_size = obc_lo_ra_settings_encode(frame, buffer + sizeof(PACKET_HEADER) + sizeof(CMD_LORA_TX) + DATA_SIZE_LEN, size - info_size);
     if (data_size == 0) return 0;
 
     if (info_size != add_packet_info(buffer, size, data_size, CMD_LORA_TX)) return 0;
@@ -140,7 +149,7 @@ static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
 
     struct obc_lo_ra_frame_t *frame = obc_lo_ra_frame_new(&workspace, sizeof(workspace));
     create_protobuf_data_frame(frame);
-    size_t data_size = obc_lo_ra_frame_encode(frame, buffer + sizeof(PACKET_HEADER) + DATA_SIZE_LEN, size - info_size);
+    size_t data_size = obc_lo_ra_frame_encode(frame, buffer + sizeof(PACKET_HEADER) + sizeof(CMD_LORA_TX) + DATA_SIZE_LEN, size - info_size);
     if (data_size == 0) return 0;
 
     if (info_size != add_packet_info(buffer, size, data_size, CMD_LORA_TX)) return 0;

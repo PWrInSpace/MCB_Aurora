@@ -11,7 +11,6 @@
 #define LORA_TASK_PRIORITY CONFIG_LORA_TASK_PRIORITY
 #define LORA_TASK_STACK_DEPTH CONFIG_LORA_TASK_STACK_DEPTH
 #define LORA_TASK_CPU_NUM CONFIG_LORA_TASK_CORE_ID
-
 // #define LORA_TASK_CRC_ENABLE CONFIG_LORA_CRC_ENABLE
 // #define LORA_TASK_FREQUENCY_KHZ CONFIG_LORA_FREQUENCY_KHZ
 // #define LORA_TASK_BANDWIDTH CONFIG_LORA_BANDWIDTH
@@ -20,6 +19,7 @@
 
 #define PRIVILAGE_MASK 0x01
 #define BORADCAST_DEV_ID 0x00
+#define TRANSMIT_DELAY 1000
 
 typedef uint8_t lora_dev_id;
 typedef uint8_t (*lora_task_validate_rx_packet)(uint8_t *buffer, size_t buffer_size);
