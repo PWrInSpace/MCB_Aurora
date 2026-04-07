@@ -13,6 +13,22 @@
 #define LORA_UART_TX 9
 #define LORA_UART_BAUDRATE 115200
 
+typedef enum {
+    CMD_UNKNOWN = 0x00,
+    CMD_HELP = 0x01,
+    CMD_SX1280_FREQ = 0x02,
+    CMD_SX1280_PWR = 0x03,
+    CMD_RESET = 0x04,
+    CMD_STATUS = 0x05,
+    CMD_SX1280_TX = 0x06,
+    CMD_LORA_TX = 0x07,
+    CMD_LOG_ON = 0x08,
+    CMD_LOG_OFF = 0x09,
+    CMD_LOG_MUTE = 0x0A,
+    CMD_LOG_UNMUTE = 0x0B,
+    CMD_COUNT
+} obc_com_command_t;
+
 /**
  * @brief Initialize lora api and run lora task
  *q
