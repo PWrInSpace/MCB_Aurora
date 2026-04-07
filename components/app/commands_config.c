@@ -14,6 +14,7 @@
 #include "flash_task.h"
 #include "buzzer_pwm.h"
 #include "gpio_expander.h"
+#include "lora_task.h"
 
 #define TAG "CMD"
 // COMMANDS
