@@ -4,37 +4,47 @@
 #include "data_to_protobuf.h"
 #include "errors_config.h"
 #include "esp_log.h"
-#include "lora.pb-c.h.bk"
+#include "lora.pb-c.h"
 #include "lora_hw_config.h"
 #include "sdkconfig.h"
 #include "system_timer_config.h"
 #include "utils.h"
 #include "uart.h"
+#include "lora_task.h"
 
 #define TAG "LORA_C"
 
 static bool settings_frame = false;
 static uint8_t workspace[1024];
 
-void lora_send_settings_frame(void) { settings_frame = true; }
+void lora_send_settings_frame(void) {
+    settings_frame = true;
+}
 
-static bool check_prefix(uint8_t* packet, size_t packet_size) {
-    if (packet_size < sizeof(PACKET_PREFIX)) {
+static bool check_header(uint8_t* packet, size_t packet_size) {
+    if (packet_size < sizeof(PACKET_HEADER)) {
         return false;
     }
 
-    uint8_t prefix[] = PACKET_PREFIX;
-    for (int i = 0; i < sizeof(PACKET_PREFIX) - 1; ++i) {
-        if (packet[i] != prefix[i]) {
-            return false;
-        }
+    uint8_t header = PACKET_HEADER;
+    if (packet[0] != header) {
+        return false;
     }
 
     return true;
 }
 
-static uint8_t calculate_checksum(uint8_t* buffer, size_t size) {
-    uint8_t sum = 0;
+static uint8_t get_data_len(uint8_t* packet, size_t packet_size) {
+    if (packet_size < sizeof(PACKET_HEADER) + 1) {
+        return false;
+    }
+
+    uint8_t data_len = packet[sizeof(PACKET_HEADER)];
+    return data_len;
+}
+
+static uint16_t calculate_checksum(uint8_t* buffer, size_t size) {
+    uint16_t sum = 0;
     for (size_t i = 0; i < size; ++i) {
         sum += buffer[i];
     }
@@ -42,39 +52,72 @@ static uint8_t calculate_checksum(uint8_t* buffer, size_t size) {
     return sum;
 }
 
+static uint8_t lora_validate(uint8_t* buffer, size_t buffer_size) {
+    if (buffer == NULL || buffer_size == 0) {
+        ESP_LOGE(TAG, "Invalid buffer or buffer size");
+        return false;
+    }
+
+    uint8_t header;
+    uart_read_logical(UART_LOGICAL_TELEMETRY, &header, 1, pdMS_TO_TICKS(10));
+    if (header != PACKET_HEADER) {
+        ESP_LOGE(TAG, "Invalid packet header");
+        return false;
+    }
+
+    uint8_t data_len;
+    uart_read_logical(UART_LOGICAL_TELEMETRY, &data_len, 1, pdMS_TO_TICKS(10));
+    if (data_len == 0 || data_len > buffer_size) {
+        ESP_LOGE(TAG, "Data length is too big, max: %d, received: %d", buffer_size, data_len);
+        return false;
+    }
+
+    uart_read_logical(UART_LOGICAL_TELEMETRY, buffer, data_len, pdMS_TO_TICKS(10));
+
+    uint16_t checksum;
+    uart_read_logical(UART_LOGICAL_TELEMETRY, (uint8_t*)&checksum, 2, pdMS_TO_TICKS(10));
+    //todo dodać walidację checksum
+
+    return data_len;
+}
+
 static void lora_process(uint8_t* packet, size_t packet_size) {
     if (packet_size > 40) {
-        ESP_LOGE(TAG, "Recevied packet is too big");
+        ESP_LOGE(TAG, "Received packet is too big");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 100);
         return;
     }
 
-    if (check_prefix(packet, packet_size) == false) {
-        ESP_LOGE(TAG, "LoRa invalid prefix");
-        return;
-    }
+    // header już sprawdzony w validate packet
+    // if (check_header(packet, packet_size) == false) {
+    //     ESP_LOGE(TAG, "LoRa invalid prefix");
+    //     return;
+    // }
 
-
-    uint8_t prefix_size = sizeof(PACKET_PREFIX) - 1;
-    if (calculate_checksum(packet + prefix_size, packet_size - prefix_size - 1) != packet[packet_size - 1]) {
-        ESP_LOGE(TAG, "Invalid checksum");
-        return;
-    }
-
-       
+    // checksum już sprawdzony w validate packet
+    // uint8_t header_size = sizeof(PACKET_HEADER);
+    // if (calculate_checksum(packet + header_size, packet_size - header_size - 1) != packet[packet_size - 1]) {
+    //     ESP_LOGE(TAG, "Invalid checksum");
+    //     return;
+    // }
 
     struct obc_lo_ra_command_t* received = obc_lo_ra_command_new(&workspace, sizeof(workspace));
+
     size_t decoded_size = 0;
-    decoded_size = obc_lo_ra_command_decode(received, packet + prefix_size, packet_size - prefix_size - 1);
-    if (decoded_size > 0 && received->lora_dev_id.is_present && received->sys_dev_id.is_present &&
-        received->command.is_present && received->payload.is_present) {
-         cmd_message_t received_command = cmd_create_message(received->command.value, received->payload.value);
-         ESP_LOGI(TAG, "Received command from LoRa -> lora_dev_id: %d, sys_dev_id: %d, command: %d, payload: %d",
-                  received->lora_dev_id.value, received->sys_dev_id.value, received->command.value, received->payload.value);
-        if (lora_cmd_process_command(received->lora_dev_id.value, received->sys_dev_id.value,
-                                &received_command) == false) {
+    decoded_size = obc_lo_ra_command_decode(received, packet, packet_size);
+    if (decoded_size > 0 &&
+        received->lora_dev_id.is_present &&
+        received->sys_dev_id.is_present &&
+        received->command.is_present &&
+        received->payload.is_present) {
+        cmd_message_t received_command = cmd_create_message(received->command.value, received->payload.value);
+
+        ESP_LOGI(TAG, "Received command from LoRa -> lora_dev_id: %d, sys_dev_id: %d, command: %d, payload: %d",
+            received->lora_dev_id.value, received->sys_dev_id.value, received->command.value, received->payload.value);
+
+        if (lora_cmd_process_command(received->lora_dev_id.value, received->sys_dev_id.value, &received_command) == false) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_COMMAND_NOT_FOUND, 200);
-            ESP_LOGE(TAG, "Unable to prcess command :C");
+            ESP_LOGE(TAG, "Unable to process command :C");
             return;
         }
     } else {
@@ -86,14 +129,19 @@ static void lora_process(uint8_t* packet, size_t packet_size) {
     }
 }
 
-static size_t add_prefix(uint8_t* buffer, size_t size) {
-    if (size < 6) {
+static size_t add_packet_info(uint8_t* buffer, size_t size, uint8_t data_size) {
+    // dostępne miejsce
+    if (size - data_size < sizeof(PACKET_HEADER) + DATA_SIZE_LEN + CHECKSUM_LEN) {
         return 0;
     }
 
-    memcpy(buffer, PACKET_PREFIX, sizeof(PACKET_PREFIX) - 1);
+    uint16_t checksum = calculate_checksum(buffer + sizeof(PACKET_HEADER) + DATA_SIZE_LEN, data_size);
 
-    return sizeof(PACKET_PREFIX) - 1;
+    buffer[0] = PACKET_HEADER;
+    buffer[sizeof(PACKET_HEADER)] = data_size;
+    buffer[sizeof(PACKET_HEADER) + DATA_SIZE_LEN + data_size] = checksum;
+
+    return sizeof(PACKET_HEADER) + DATA_SIZE_LEN + CHECKSUM_LEN;
 }
 
 static size_t lora_create_settings_packet(uint8_t* buffer, size_t size) {
@@ -102,17 +150,20 @@ static size_t lora_create_settings_packet(uint8_t* buffer, size_t size) {
 
     struct obc_lo_ra_settings_t *frame = obc_lo_ra_settings_new(&workspace, sizeof(workspace));
     create_protobuf_settings_frame(frame);
+    size_t data_size = obc_lo_ra_settings_encode(frame, buffer + sizeof(PACKET_HEADER) + DATA_SIZE_LEN, size - sizeof(PACKET_HEADER) - DATA_SIZE_LEN - CHECKSUM_LEN);
+    if (data_size == 0) return 0;
 
-    size_t prefix_size = add_prefix(buffer, size);
-    if (prefix_size == 0) return 0;
+    size_t info_size = add_packet_info(buffer, size, data_size);
+    if (info_size == 0) return 0;
 
-    if (size <= prefix_size) return 0;
-    size_t max_payload = size - prefix_size;
+    return info_size + data_size;
 
-    size_t data_size = obc_lo_ra_settings_encode(frame, buffer + prefix_size, max_payload);
-    if (data_size == 0 || data_size > max_payload) return 0;
-
-    return prefix_size + data_size;
+    // if (size <= prefix_size) return 0;
+    // size_t max_payload = size - prefix_size;
+    //
+    // if (data_size == 0 || data_size > max_payload) return 0;
+    //
+    // return prefix_size + data_size;
 }
 
 static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
@@ -121,25 +172,32 @@ static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
 
     struct obc_lo_ra_frame_t *frame = obc_lo_ra_frame_new(&workspace, sizeof(workspace));
     create_protobuf_data_frame(frame);
+    size_t data_size = obc_lo_ra_frame_encode(frame, buffer + sizeof(PACKET_HEADER) + DATA_SIZE_LEN, size - sizeof(PACKET_HEADER) - DATA_SIZE_LEN - CHECKSUM_LEN);
+    if (data_size == 0) return 0;
 
-    size_t prefix_size = add_prefix(buffer, size);
-    if (prefix_size == 0) return 0; /* not enough room for prefix */
+    size_t info_size = add_packet_info(buffer, size, data_size);
+    if (info_size == 0) return 0;
 
-    /* reserve 1 byte for checksum */
-    if (size <= prefix_size) return 0;
-    size_t max_payload = size - prefix_size;
+    return info_size + data_size;
 
-    size_t data_size = obc_lo_ra_frame_encode(frame, buffer + prefix_size, max_payload);
-    if (data_size == 0 || data_size > max_payload) return 0;
-
-    //ESP_LOGI(TAG, "Data frame size: %zu", data_size);
-
-    if (prefix_size + data_size > 255) {
-        ESP_LOGE(TAG, "Data frame too large to send over LoRa");
-        return 0;
-    }
-
-    return prefix_size + data_size;
+    // size_t prefix_size = add_packet_info(buffer, size);
+    // if (prefix_size == 0) return 0; /* not enough room for prefix */
+    //
+    // /* reserve 2 bytes for checksum */
+    // if (size <= prefix_size) return 0;
+    // size_t max_payload = size - prefix_size;
+    //
+    // size_t data_size = obc_lo_ra_frame_encode(frame, buffer + prefix_size, max_payload);
+    // if (data_size == 0 || data_size > max_payload) return 0;
+    //
+    // //ESP_LOGI(TAG, "Data frame size: %zu", data_size);
+    //
+    // if (prefix_size + data_size > 255) {
+    //     ESP_LOGE(TAG, "Data frame too large to send over LoRa");
+    //     return 0;
+    // }
+    //
+    // return prefix_size + data_size;
 }
 
 static size_t lora_packet(uint8_t* buffer, size_t buffer_size) {
@@ -148,7 +206,7 @@ static size_t lora_packet(uint8_t* buffer, size_t buffer_size) {
     if (settings_frame == true) {
         size = lora_create_settings_packet(buffer, buffer_size);
         settings_frame = false;
-        //ESP_LOGI(TAG, "Transmiting settings frame");
+        //ESP_LOGI(TAG, "Transmitting settings frame");
     } else {
         size = lora_create_data_packet(buffer, buffer_size);
     }
@@ -158,7 +216,7 @@ static size_t lora_packet(uint8_t* buffer, size_t buffer_size) {
     return size;
 }
 
-bool initialize_lora(uint32_t frequency_khz, uint32_t transmiting_period) {
+bool initialize_lora(uint32_t frequency_khz, uint32_t transmitting_period) {
     // RETURN_ON_FALSE(lora_hw_spi_add_device(VSPI_HOST));
     // RETURN_ON_FALSE(lora_hw_set_gpio());
     // RETURN_ON_FALSE(lora_hw_attach_d0_interrupt(lora_task_irq_notify));
@@ -172,10 +230,11 @@ bool initialize_lora(uint32_t frequency_khz, uint32_t transmiting_period) {
     //                       .implicit_header = 0,
     //                       .frequency = 0};
     lora_api_config_t cfg = {
+        .validate_rx_packet_fnc = lora_validate,
         .process_rx_packet_fnc = lora_process,
         .get_tx_packet_fnc = lora_packet,
         .frequency_khz = frequency_khz,
-        .transmiting_period = transmiting_period,
+        .transmitting_period = transmitting_period,
     };
 
     RETURN_ON_FALSE(uart_init_logical(UART_LOGICAL_TELEMETRY, UART_NUM_1, LORA_UART_RX, LORA_UART_TX, LORA_UART_BAUDRATE));

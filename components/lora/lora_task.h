@@ -22,6 +22,7 @@
 #define BORADCAST_DEV_ID 0x00
 
 typedef uint8_t lora_dev_id;
+typedef uint8_t (*lora_task_validate_rx_packet)(uint8_t *buffer, size_t buffer_size);
 typedef void (*lora_task_process_rx_packet)(uint8_t *packet, size_t packet_size);
 typedef size_t (*lora_task_get_tx_packet)(uint8_t *buffer, size_t buffer_size);
 
@@ -33,10 +34,11 @@ typedef enum {
 } lora_state_t;
 
 typedef struct {
+    lora_task_validate_rx_packet validate_rx_packet_fnc;
     lora_task_process_rx_packet process_rx_packet_fnc;
     lora_task_get_tx_packet get_tx_packet_fnc;
     uint32_t frequency_khz;
-    uint32_t transmiting_period;
+    uint32_t transmitting_period;
 } lora_api_config_t;
 
 /**
