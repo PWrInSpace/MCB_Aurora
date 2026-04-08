@@ -36,35 +36,44 @@ static uint8_t lora_validate(uint8_t* buffer, size_t buffer_size) {
         return false;
     }
 
-    uint8_t header;
-    int rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, &header, 1, portMAX_DELAY);
-    if (header != PACKET_HEADER || rx_len <= 0) {
-        ESP_LOGE(TAG, "Invalid packet header");
+    uint8_t prefix[3];
+    int rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, prefix, sizeof(prefix), portMAX_DELAY);
+    if (rx_len < 3) {
+        ESP_LOGE(TAG, "Invalid packet prefix");
         return false;
     }
-
-    uint8_t command;
-    rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, &command, 1, pdMS_TO_TICKS(10));
-    if (command != CMD_LORA_TX || rx_len <= 0) {
-        ESP_LOGE(TAG, "Invalid command");
+    if (prefix[0] != PACKET_HEADER) {
+        ESP_LOGE(TAG, "Invalid packet header, expected: 0x%02X, received: 0x%02X", PACKET_HEADER, prefix[0]);
         return false;
     }
-
-    uint8_t data_len;
-    rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, &data_len, 1, pdMS_TO_TICKS(10));
-    if (data_len == 0 || data_len > buffer_size || rx_len <= 0) {
-        ESP_LOGE(TAG, "Data length is too big, max: %d, received: %d", buffer_size, data_len);
+    if (prefix[1] != CMD_LORA_TX) {
+        ESP_LOGE(TAG, "Invalid command, expected: 0x%02X, received: 0x%02X", CMD_LORA_TX, prefix[1]);
         return false;
     }
+    uint8_t data_len = prefix[2];
 
-    rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, buffer, data_len, pdMS_TO_TICKS(10));
+    // uint8_t command;
+    // rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, &command, 1, pdMS_TO_TICKS(10));
+    // if (command != CMD_LORA_TX || rx_len <= 0) {
+    //     ESP_LOGE(TAG, "Invalid command");
+    //     return false;
+    // }
+    //
+    // uint8_t data_len;
+    // rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, &data_len, 1, pdMS_TO_TICKS(10));
+    // if (data_len == 0 || data_len > buffer_size || rx_len <= 0) {
+    //     ESP_LOGE(TAG, "Data length is too big, max: %d, received: %d", buffer_size, data_len);
+    //     return false;+3
+    // }
+
+    rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, buffer, data_len, portMAX_DELAY);
     if (rx_len != data_len) {
         ESP_LOGE(TAG, "Data length mismatch, expected: %d, received: %d", data_len, rx_len);
         return false;
     }
 
     uint16_t checksum;
-    rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, (uint8_t*)&checksum, 2, pdMS_TO_TICKS(10));
+    rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, (uint8_t*)&checksum, 2, portMAX_DELAY);
     if (rx_len != 2) {
             ESP_LOGE(TAG, "Checksum length mismatch, expected: 2, received: %d", rx_len);
             return false;

@@ -79,24 +79,6 @@ bool lora_task_init(lora_api_config_t *cfg) {
     gb.validate_packet_fnc = cfg->validate_rx_packet_fnc;
     gb.process_packet_fnc = cfg->process_rx_packet_fnc;
     gb.get_tx_packet_fnc = cfg->get_tx_packet_fnc;
-    //memcpy(&gb.lora, cfg->lora, sizeof(lora_struct_t));
-
-    // lora_init(&gb.lora);
-    // lora_set_frequency(&gb.lora, cfg->frequency_khz * 1e3);
-    // lora_set_bandwidth(&gb.lora, LORA_TASK_BANDWIDTH);
-    // lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_RXDONE);
-    // if (LORA_TASK_CRC_ENABLE) {
-    //     lora_enable_crc(&gb.lora);
-    // } else {
-    //     lora_disable_crc(&gb.lora);
-    // }
-
-    // gb.receive_window_timer =
-    //     xTimerCreate("Transmit timer", pdMS_TO_TICKS(cfg->transmitting_period), pdFALSE, NULL,
-    //                  on_receive_window_timer);
-    // ESP_LOGD(TAG, "Starting timer");
-    // lora_change_state_to_receive();
-    // turn_on_receive_window_timer();
 
     xTaskCreatePinnedToCore(
         rx_task,
