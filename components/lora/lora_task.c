@@ -89,6 +89,8 @@ static size_t on_lora_receive(uint8_t *rx_buffer, size_t buffer_len) {
     turn_of_receive_window_timer();
 
     uint8_t data_len = gb.validate_packet_fnc(rx_buffer, buffer_len);
+    ESP_LOGD(TAG, "Received %s, len %d", rx_buffer, data_len);
+
     return data_len;
     // uint8_t incoming_byte;
     // while (len < (buffer_len - 1)) {
@@ -103,7 +105,6 @@ static size_t on_lora_receive(uint8_t *rx_buffer, size_t buffer_len) {
     //     rx_buffer[len] = '\0';
     // }
     //
-    // ESP_LOGD(TAG, "Received %s, len %d", rx_buffer, len);
     // return len;
 }
 
@@ -111,10 +112,12 @@ static void transmit_packet(void) {
     if (gb.get_tx_packet_fnc == NULL) {
         return;
     }
+    ESP_LOGI(TAG, "Transmit packet");
 
     gb.tx_buffer_size = gb.get_tx_packet_fnc(gb.tx_buffer, sizeof(gb.tx_buffer));
 
     uart_write_logical(UART_LOGICAL_TELEMETRY, gb.tx_buffer, gb.tx_buffer_size);
+    // ESP_LOGE(TAG, "Transmitting packet: %s, size: %d", gb.tx_buffer, gb.tx_buffer_size);
 }
 
 static void on_lora_transmit() {

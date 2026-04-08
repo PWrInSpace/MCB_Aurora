@@ -8,6 +8,8 @@
 #define PACKET_HEADER ((uint8_t)0x32)
 #define DATA_SIZE_LEN 1
 #define CHECKSUM_LEN 2
+#define CMD_LEN 1
+
 #define LORA_UART_PORT 1
 #define LORA_UART_RX 10
 #define LORA_UART_TX 9

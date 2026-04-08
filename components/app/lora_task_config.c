@@ -59,7 +59,10 @@ static uint8_t lora_validate(uint8_t* buffer, size_t buffer_size) {
     }
 
     uint8_t header;
-    uart_read_logical(UART_LOGICAL_TELEMETRY, &header, 1, pdMS_TO_TICKS(10));
+    int rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, &header, 1, pdMS_TO_TICKS(10));
+    if (rx_len <= 0) {
+        return false;
+    }
     if (header != PACKET_HEADER) {
         ESP_LOGE(TAG, "Invalid packet header");
         return false;
@@ -131,17 +134,19 @@ static void lora_process(uint8_t* packet, size_t packet_size) {
 
 static size_t add_packet_info(uint8_t* buffer, size_t size, uint8_t data_size) {
     // dostępne miejsce
-    if (size - data_size < sizeof(PACKET_HEADER) + DATA_SIZE_LEN + CHECKSUM_LEN) {
+    if (size - data_size < sizeof(PACKET_HEADER) + DATA_SIZE_LEN + CHECKSUM_LEN + CMD_LEN) {
         return 0;
     }
 
-    uint16_t checksum = calculate_checksum(buffer + sizeof(PACKET_HEADER) + DATA_SIZE_LEN, data_size);
+    uint8_t checksum[2] = {0, 0};
 
     buffer[0] = PACKET_HEADER;
-    buffer[sizeof(PACKET_HEADER)] = data_size;
-    buffer[sizeof(PACKET_HEADER) + DATA_SIZE_LEN + data_size] = checksum;
+    buffer[sizeof(PACKET_HEADER)] = 0x07;
+    buffer[sizeof(PACKET_HEADER) + CMD_LEN] = data_size;
+    buffer[sizeof(PACKET_HEADER) + CMD_LEN + DATA_SIZE_LEN + data_size] = checksum[0];
+    buffer[sizeof(PACKET_HEADER) + CMD_LEN + DATA_SIZE_LEN + data_size + 1] = checksum[1];
 
-    return sizeof(PACKET_HEADER) + DATA_SIZE_LEN + CHECKSUM_LEN;
+    return sizeof(PACKET_HEADER) + DATA_SIZE_LEN + CHECKSUM_LEN + CMD_LEN;
 }
 
 static size_t lora_create_settings_packet(uint8_t* buffer, size_t size) {
@@ -150,7 +155,7 @@ static size_t lora_create_settings_packet(uint8_t* buffer, size_t size) {
 
     struct obc_lo_ra_settings_t *frame = obc_lo_ra_settings_new(&workspace, sizeof(workspace));
     create_protobuf_settings_frame(frame);
-    size_t data_size = obc_lo_ra_settings_encode(frame, buffer + sizeof(PACKET_HEADER) + DATA_SIZE_LEN, size - sizeof(PACKET_HEADER) - DATA_SIZE_LEN - CHECKSUM_LEN);
+    size_t data_size = obc_lo_ra_settings_encode(frame, buffer + sizeof(PACKET_HEADER) + CMD_LEN + DATA_SIZE_LEN, size - sizeof(PACKET_HEADER) - DATA_SIZE_LEN - CHECKSUM_LEN - CMD_LEN);
     if (data_size == 0) return 0;
 
     size_t info_size = add_packet_info(buffer, size, data_size);
@@ -172,7 +177,7 @@ static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
 
     struct obc_lo_ra_frame_t *frame = obc_lo_ra_frame_new(&workspace, sizeof(workspace));
     create_protobuf_data_frame(frame);
-    size_t data_size = obc_lo_ra_frame_encode(frame, buffer + sizeof(PACKET_HEADER) + DATA_SIZE_LEN, size - sizeof(PACKET_HEADER) - DATA_SIZE_LEN - CHECKSUM_LEN);
+    size_t data_size = obc_lo_ra_frame_encode(frame, buffer + sizeof(PACKET_HEADER) + CMD_LEN + DATA_SIZE_LEN, size - sizeof(PACKET_HEADER) - DATA_SIZE_LEN - CHECKSUM_LEN - CMD_LEN);
     if (data_size == 0) return 0;
 
     size_t info_size = add_packet_info(buffer, size, data_size);
