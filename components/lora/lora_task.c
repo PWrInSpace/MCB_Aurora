@@ -86,17 +86,17 @@ void turn_of_receive_window_timer(void) {
 
 
 static size_t on_lora_receive(uint8_t *rx_buffer, size_t buffer_len) {
-    ESP_LOGI(TAG, "ON receive");
+    // ESP_LOGI(TAG, "ON receive");
     size_t len = 0;
     turn_of_receive_window_timer();
-    ESP_LOGI(TAG, "after window timer");
+    // ESP_LOGI(TAG, "after window timer");
     lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_TXDONE);
-    ESP_LOGI(TAG, "after interrupt");
+    // ESP_LOGI(TAG, "after interrupt");
     if (lora_received(&gb.lora) == LORA_OK) {
         ESP_LOGI(TAG, "Packet received");
         len = lora_receive_packet(&gb.lora, rx_buffer, buffer_len);
         // rx_buffer[len] = '\0';
-        ESP_LOGI(TAG, "Received %s, len %d", rx_buffer, len);
+        // ESP_LOGI(TAG, "Received %s, len %d", rx_buffer, len);
     }
     return len;
 }
