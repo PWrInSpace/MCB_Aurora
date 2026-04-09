@@ -5,7 +5,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/portmacro.h"
 #include "freertos/projdefs.h"
-#include "freertos/semphr.h"
 #include "freertos/task.h"
 #include "freertos/timers.h"
 #include "uart.h"
@@ -15,6 +14,7 @@
 #define TAG "LORA_T"
 
 static struct {
+    lora_struct_t lora;
     lora_task_validate_rx_packet validate_packet_fnc;
     lora_task_process_rx_packet process_packet_fnc;
     lora_task_get_tx_packet get_tx_packet_fnc;
@@ -86,37 +86,29 @@ void turn_of_receive_window_timer(void) {
 
 
 static size_t on_lora_receive(uint8_t *rx_buffer, size_t buffer_len) {
+    ESP_LOGI(TAG, "ON receive");
+    size_t len = 0;
     turn_of_receive_window_timer();
-
-    uint8_t data_len = gb.validate_packet_fnc(rx_buffer, buffer_len);
-    ESP_LOGD(TAG, "Received %s, len %d", rx_buffer, data_len);
-
-    return data_len;
-    // uint8_t incoming_byte;
-    // while (len < (buffer_len - 1)) {
-    //     int rx_byte = uart_read_logical(UART_LOGICAL_TELEMETRY, &incoming_byte, 1, pdMS_TO_TICKS(10));
-    //
-    //     if (rx_byte > 0) {
-    //         rx_buffer[len++] = incoming_byte;
-    //         if (incoming_byte == '\n') break;
-    //     } else break;
-    // }
-    // if (len > 0) {
-    //     rx_buffer[len] = '\0';
-    // }
-    //
-    // return len;
+    ESP_LOGI(TAG, "after window timer");
+    lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_TXDONE);
+    ESP_LOGI(TAG, "after interrupt");
+    if (lora_received(&gb.lora) == LORA_OK) {
+        ESP_LOGI(TAG, "Packet received");
+        len = lora_receive_packet(&gb.lora, rx_buffer, buffer_len);
+        // rx_buffer[len] = '\0';
+        ESP_LOGI(TAG, "Received %s, len %d", rx_buffer, len);
+    }
+    return len;
 }
 
 static void transmit_packet(void) {
     if (gb.get_tx_packet_fnc == NULL) {
         return;
     }
-    ESP_LOGI(TAG, "Transmit packet");
+    // ESP_LOGI(TAG, "Transmit packet");
 
     gb.tx_buffer_size = gb.get_tx_packet_fnc(gb.tx_buffer, sizeof(gb.tx_buffer));
-
-    uart_write_logical(UART_LOGICAL_TELEMETRY, gb.tx_buffer, gb.tx_buffer_size);
+    lora_send_packet(&gb.lora, gb.tx_buffer, gb.tx_buffer_size);
     // ESP_LOGE(TAG, "Transmitting packet: %s, size: %d", gb.tx_buffer, gb.tx_buffer_size);
 }
 
@@ -138,11 +130,14 @@ static void lora_task(void *arg) {
                 on_lora_transmit();
             // on receive
             } else {
+                rx_packet_size = on_lora_receive(rx_buffer, sizeof(rx_buffer));
+
                 if (gb.validate_packet_fnc != NULL) {
-                    rx_packet_size = on_lora_receive(rx_buffer, sizeof(rx_buffer));
+                    rx_packet_size = gb.validate_packet_fnc(rx_buffer, rx_packet_size);
                 }
+
                 if (rx_packet_size > 0 && gb.process_packet_fnc != NULL) {
-                    gb.process_packet_fnc(rx_buffer, rx_packet_size);
+                    gb.process_packet_fnc(&rx_buffer[3], rx_packet_size);
                     vTaskDelay(pdMS_TO_TICKS(100));
                 }
                 lora_change_state_to_transmit();
@@ -171,17 +166,17 @@ bool lora_task_init(lora_api_config_t *cfg) {
     gb.validate_packet_fnc = cfg->validate_rx_packet_fnc;
     gb.process_packet_fnc = cfg->process_rx_packet_fnc;
     gb.get_tx_packet_fnc = cfg->get_tx_packet_fnc;
-    //memcpy(&gb.lora, cfg->lora, sizeof(lora_struct_t));
+    memcpy(&gb.lora, cfg->lora, sizeof(lora_struct_t));
 
-    // lora_init(&gb.lora);
-    // lora_set_frequency(&gb.lora, cfg->frequency_khz * 1e3);
-    // lora_set_bandwidth(&gb.lora, LORA_TASK_BANDWIDTH);
-    // lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_RXDONE);
-    // if (LORA_TASK_CRC_ENABLE) {
-    //     lora_enable_crc(&gb.lora);
-    // } else {
-    //     lora_disable_crc(&gb.lora);
-    // }
+    lora_init(&gb.lora);
+    lora_set_frequency(&gb.lora, cfg->frequency_khz * 1e3);
+    lora_set_bandwidth(&gb.lora, LORA_TASK_BANDWIDTH);
+    lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_RXDONE);
+    if (LORA_TASK_CRC_ENABLE) {
+    lora_enable_crc(&gb.lora);
+    } else {
+    lora_disable_crc(&gb.lora);
+    }
 
     gb.receive_window_timer =
         xTimerCreate("Transmit timer", pdMS_TO_TICKS(cfg->transmitting_period), pdFALSE, NULL,

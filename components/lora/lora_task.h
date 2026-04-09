@@ -12,10 +12,10 @@
 #define LORA_TASK_STACK_DEPTH CONFIG_LORA_TASK_STACK_DEPTH
 #define LORA_TASK_CPU_NUM CONFIG_LORA_TASK_CORE_ID
 
-// #define LORA_TASK_CRC_ENABLE CONFIG_LORA_CRC_ENABLE
-// #define LORA_TASK_FREQUENCY_KHZ CONFIG_LORA_FREQUENCY_KHZ
-// #define LORA_TASK_BANDWIDTH CONFIG_LORA_BANDWIDTH
-// #define LORA_TASK_SPREADING_FACTOR CONFIG_LORA_SPREADING_FACTOR
+#define LORA_TASK_CRC_ENABLE CONFIG_LORA_CRC_ENABLE
+#define LORA_TASK_FREQUENCY_KHZ CONFIG_LORA_FREQUENCY_KHZ
+#define LORA_TASK_BANDWIDTH CONFIG_LORA_BANDWIDTH
+#define LORA_TASK_SPREADING_FACTOR CONFIG_LORA_SPREADING_FACTOR
 #define LORA_TASK_RECEIVE_WINDOW CONFIG_LORA_RECEIVE_WINDOW
 
 #define PRIVILAGE_MASK 0x01
@@ -34,6 +34,7 @@ typedef enum {
 } lora_state_t;
 
 typedef struct {
+    lora_struct_t *lora;
     lora_task_validate_rx_packet validate_rx_packet_fnc;
     lora_task_process_rx_packet process_rx_packet_fnc;
     lora_task_get_tx_packet get_tx_packet_fnc;

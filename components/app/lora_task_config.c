@@ -1,5 +1,6 @@
 #include "lora_task_config.h"
 
+
 #include "commands_config.h"
 #include "data_to_protobuf.h"
 #include "errors_config.h"
@@ -9,7 +10,6 @@
 #include "sdkconfig.h"
 #include "system_timer_config.h"
 #include "utils.h"
-#include "uart.h"
 #include "lora_task.h"
 
 #define TAG "LORA_C"
@@ -54,32 +54,50 @@ static uint16_t calculate_checksum(uint8_t* buffer, size_t size) {
 
 static uint8_t lora_validate(uint8_t* buffer, size_t buffer_size) {
     if (buffer == NULL || buffer_size == 0) {
-        ESP_LOGE(TAG, "Invalid buffer or buffer size");
+        // ESP_LOGE(TAG, "Invalid buffer or buffer size");
+        return false;
+    }
+    if (buffer_size < sizeof(PACKET_HEADER) + DATA_SIZE_LEN + CHECKSUM_LEN + CMD_LEN) {
+        ESP_LOGE(TAG, "Packet is too small, size: %d", buffer_size);
         return false;
     }
 
-    uint8_t header;
-    int rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, &header, 1, pdMS_TO_TICKS(10));
-    if (rx_len <= 0) {
-        return false;
-    }
+    uint8_t header = buffer[0];
     if (header != PACKET_HEADER) {
         ESP_LOGE(TAG, "Invalid packet header");
         return false;
     }
 
-    uint8_t data_len;
-    uart_read_logical(UART_LOGICAL_TELEMETRY, &data_len, 1, pdMS_TO_TICKS(10));
-    if (data_len == 0 || data_len > buffer_size) {
-        ESP_LOGE(TAG, "Data length is too big, max: %d, received: %d", buffer_size, data_len);
+    uint8_t cmd = buffer[sizeof(PACKET_HEADER)];
+    if (cmd != 0x07) {
+        ESP_LOGE(TAG, "Invalid command, expected: 0x07, received: 0x%02X", cmd);
         return false;
     }
 
-    uart_read_logical(UART_LOGICAL_TELEMETRY, buffer, data_len, pdMS_TO_TICKS(10));
+    uint8_t data_len = buffer[sizeof(PACKET_HEADER) + CMD_LEN];
 
-    uint16_t checksum;
-    uart_read_logical(UART_LOGICAL_TELEMETRY, (uint8_t*)&checksum, 2, pdMS_TO_TICKS(10));
-    //todo dodać walidację checksum
+    // uint8_t header;
+    // int rx_len = uart_read_logical(UART_LOGICAL_TELEMETRY, &header, 1, pdMS_TO_TICKS(10));
+    // if (rx_len <= 0) {
+    //     return false;
+    // }
+    // if (header != PACKET_HEADER) {
+    //     ESP_LOGE(TAG, "Invalid packet header");
+    //     return false;
+    // }
+    //
+    // uint8_t data_len;
+    // uart_read_logical(UART_LOGICAL_TELEMETRY, &data_len, 1, pdMS_TO_TICKS(10));
+    // if (data_len == 0 || data_len > buffer_size) {
+    //     ESP_LOGE(TAG, "Data length is too big, max: %d, received: %d", buffer_size, data_len);
+    //     return false;
+    // }
+    //
+    // uart_read_logical(UART_LOGICAL_TELEMETRY, buffer, data_len, pdMS_TO_TICKS(10));
+    //
+    // uint16_t checksum;
+    // uart_read_logical(UART_LOGICAL_TELEMETRY, (uint8_t*)&checksum, 2, pdMS_TO_TICKS(10));
+    // //todo dodać walidację checksum
 
     return data_len;
 }
@@ -222,19 +240,20 @@ static size_t lora_packet(uint8_t* buffer, size_t buffer_size) {
 }
 
 bool initialize_lora(uint32_t frequency_khz, uint32_t transmitting_period) {
-    // RETURN_ON_FALSE(lora_hw_spi_add_device(VSPI_HOST));
-    // RETURN_ON_FALSE(lora_hw_set_gpio());
-    // RETURN_ON_FALSE(lora_hw_attach_d0_interrupt(lora_task_irq_notify));
-    // lora_struct_t lora = {._spi_transmit = lora_hw_spi_transmit,
-    //                       ._delay = lora_hw_delay,
-    //                       ._gpio_set_level = lora_hw_gpio_set_level,
-    //                       .log = lora_hw_log,
-    //                       .rst_gpio_num = CONFIG_LORA_RS,
-    //                       .cs_gpio_num = CONFIG_LORA_CS,
-    //                       .d0_gpio_num = CONFIG_LORA_D0,
-    //                       .implicit_header = 0,
-    //                       .frequency = 0};
+    RETURN_ON_FALSE(lora_hw_spi_add_device(VSPI_HOST));
+    RETURN_ON_FALSE(lora_hw_set_gpio());
+    RETURN_ON_FALSE(lora_hw_attach_d0_interrupt(lora_task_irq_notify));
+    lora_struct_t lora = {._spi_transmit = lora_hw_spi_transmit,
+                          ._delay = lora_hw_delay,
+                          ._gpio_set_level = lora_hw_gpio_set_level,
+                          .log = lora_hw_log,
+                          .rst_gpio_num = CONFIG_LORA_RS,
+                          .cs_gpio_num = CONFIG_LORA_CS,
+                          .d0_gpio_num = CONFIG_LORA_D0,
+                          .implicit_header = 0,
+                          .frequency = 0};
     lora_api_config_t cfg = {
+        .lora = &lora,
         .validate_rx_packet_fnc = lora_validate,
         .process_rx_packet_fnc = lora_process,
         .get_tx_packet_fnc = lora_packet,
@@ -242,8 +261,6 @@ bool initialize_lora(uint32_t frequency_khz, uint32_t transmitting_period) {
         .transmitting_period = transmitting_period,
     };
 
-    RETURN_ON_FALSE(uart_init_logical(UART_LOGICAL_TELEMETRY, UART_NUM_1, LORA_UART_RX, LORA_UART_TX, LORA_UART_BAUDRATE));
-    uart_write_logical(UART_LOGICAL_TELEMETRY, (uint8_t*) "LORA INIT", 10);
     RETURN_ON_FALSE(lora_task_init(&cfg));
     return true;
 }
