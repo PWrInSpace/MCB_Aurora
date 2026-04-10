@@ -19,7 +19,7 @@
 
 #define PRIVILAGE_MASK 0x01
 #define BORADCAST_DEV_ID 0x00
-#define TRANSMIT_DELAY 250
+#define TRANSMIT_DELAY 5000
 
 typedef uint8_t lora_dev_id;
 typedef uint8_t (*lora_task_validate_rx_packet)(uint8_t *buffer, size_t buffer_size);
