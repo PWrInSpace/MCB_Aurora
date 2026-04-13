@@ -16,7 +16,8 @@ typedef enum {
 bool uart_init(uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, int baudrate);
 
 // New API: select logical port explicitly.
-bool uart_init_logical(uart_logical_port_t logical_port, uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, int baudrate);
+
+bool uart_init_logical(uart_logical_port_t logical_port, uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, int baudrate, QueueHandle_t *uart_queue);
 
 int uart_read_logical(uart_logical_port_t logical_port, uint8_t *data, size_t data_size, TickType_t timeout_ticks);
 

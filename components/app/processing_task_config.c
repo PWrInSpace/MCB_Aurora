@@ -80,25 +80,25 @@ static void sensors_read_data(void *data_buffer) {
 
 
 bool initialize_processing_task(void) {
-    if (bmi08_wrapper_init() == false) {
-        ESP_LOGE(TAG, "BMI08");
-        return false;
-    }
+    // if (bmi08_wrapper_init() == false) {
+    //     ESP_LOGE(TAG, "BMI08");
+    //     return false;
+    // }
 
-    if (bmp5_wrapper_init() == false) {
-        ESP_LOGE(TAG, "BMP5");
-        return false;
-    }
+    // if (bmp5_wrapper_init() == false) {
+    //     ESP_LOGE(TAG, "BMP5");
+    //     return false;
+    // }
 
-    if (bmp5_calculate_altitude_offset() == false) {
-        ESP_LOGE(TAG, "BMP5 calibration");
-        return false;
-    }
+    // if (bmp5_calculate_altitude_offset() == false) {
+    //     ESP_LOGE(TAG, "BMP5 calibration");
+    //     return false;
+    // }
 
-    if (mag_init() == false) {
-        ESP_LOGE(TAG, "MAG");
-        return false;
-    }
+    // if (mag_init() == false) {
+    //     ESP_LOGE(TAG, "MAG");
+    //     return false;
+    // }
 
     if (mag_set_continous_mode(FREQ_100HZ, PRD_500) == false) {
         ESP_LOGE(TAG, "BMAGMODE");

@@ -1,7 +1,10 @@
 #include "uart.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
+#include "esp_log.h"
+#include <string.h>
 
+#define TAG "UART"
 #define BUF_SIZE (1024)
 
 static struct {
@@ -16,7 +19,7 @@ static bool uart_is_valid_logical_port(uart_logical_port_t logical_port) {
     return logical_port >= UART_LOGICAL_GPS && logical_port < UART_LOGICAL_COUNT;
 }
 
-static bool uart_setup_port(uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, int baudrate) {
+static bool uart_setup_port(uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, int baudrate, QueueHandle_t *uart_queue) {
     uart_config_t uart_config = {
         .baud_rate = baudrate,
         .data_bits = UART_DATA_8_BITS,
@@ -25,33 +28,38 @@ static bool uart_setup_port(uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, in
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
         .source_clk = UART_SCLK_DEFAULT,
     };
-    int intr_alloc_flags = 0;
 
-    if (uart_driver_install(port, BUF_SIZE * 2, BUF_SIZE * 2, 0, NULL, intr_alloc_flags) != ESP_OK) {
+    // Instalacja sterownika z obsługą kolejki zdarzeń
+    // Jeśli uart_queue jest NULL, kolejka nie zostanie utworzona
+    if (uart_driver_install(port, BUF_SIZE * 2, BUF_SIZE * 2, 20, uart_queue, 0) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to install driver for port %d", port);
         return false;
     }
 
     if (uart_param_config(port, &uart_config) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to config parameters for port %d", port);
         return false;
     }
 
     if (uart_set_pin(port, tx_pin, rx_pin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set pins for port %d", port);
         return false;
     }
 
     return true;
 }
 
+// Funkcja kompatybilności wstecznej (np. dla GPS, gdzie nie potrzebujemy kolejki)
 bool uart_init(uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, int baudrate) {
-    return uart_init_logical(UART_LOGICAL_GPS, port, tx_pin, rx_pin, baudrate);
+    return uart_init_logical(UART_LOGICAL_GPS, port, tx_pin, rx_pin, baudrate, NULL);
 }
 
-bool uart_init_logical(uart_logical_port_t logical_port, uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, int baudrate) {
+bool uart_init_logical(uart_logical_port_t logical_port, uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, int baudrate, QueueHandle_t *uart_queue) {
     if (!uart_is_valid_logical_port(logical_port)) {
         return false;
     }
 
-    if (!uart_setup_port(port, tx_pin, rx_pin, baudrate)) {
+    if (!uart_setup_port(port, tx_pin, rx_pin, baudrate, uart_queue)) {
         return false;
     }
 

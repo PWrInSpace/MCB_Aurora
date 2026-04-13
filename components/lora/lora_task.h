@@ -7,6 +7,8 @@
 #include <stdbool.h>
 
 #include "lora.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 
 #define LORA_TASK_PRIORITY CONFIG_LORA_TASK_PRIORITY
 #define LORA_TASK_STACK_DEPTH CONFIG_LORA_TASK_STACK_DEPTH
@@ -19,7 +21,7 @@
 
 #define PRIVILAGE_MASK 0x01
 #define BORADCAST_DEV_ID 0x00
-#define TRANSMIT_DELAY 5000
+#define TRANSMIT_DELAY 750
 
 typedef uint8_t lora_dev_id;
 typedef uint8_t (*lora_task_validate_rx_packet)(uint8_t *buffer, size_t buffer_size);
@@ -60,5 +62,7 @@ void lora_task_irq_notify(void *arg);
 bool lora_change_receive_window_period(uint32_t period_ms);
 
 bool lora_change_frequency(uint32_t frequency_khz);
+
+QueueHandle_t* lora_task_get_uart_queue_ptr(void);
 
 #endif

@@ -25,6 +25,7 @@ static struct {
     TaskHandle_t rx_task;
     TaskHandle_t tx_task;
     TimerHandle_t receive_window_timer;
+    QueueHandle_t uart_queue;
 } gb;
 
 static void receive_packet(void) {
@@ -41,22 +42,45 @@ static void receive_packet(void) {
 }
 
 static void rx_task(void* arg) {
+    uart_event_t event;
     while (true) {
-        receive_packet();
+        // Task "zamarza" tutaj do momentu otrzymania danych
+        if (xQueueReceive(gb.uart_queue, (void *)&event, portMAX_DELAY)) {
+            switch (event.type) {
+                case UART_DATA:
+                    // Wywołaj swoją funkcję czytającą
+                    receive_packet();
+                    break;
 
-        vTaskDelay(pdMS_TO_TICKS(10));
+                case UART_FIFO_OVF:
+                    ESP_LOGE(TAG, "UART FIFO Overflow - MCB wysyła za szybko!");
+                    xQueueReset(gb.uart_queue);
+                    break;
+
+                default:
+                    // Inne zdarzenia (error, break itp.) ignorujemy
+                    break;
+            }
+        }
     }
+}
+
+QueueHandle_t* lora_task_get_uart_queue_ptr(void) {
+    return &gb.uart_queue;
 }
 
 static void transmit_packet(void) {
     if (gb.get_tx_packet_fnc == NULL) {
+        ESP_LOGE(TAG, "get_tx_packet_fnc is NULL");
         return;
     }
 
     gb.tx_buffer_size = gb.get_tx_packet_fnc(gb.tx_buffer, sizeof(gb.tx_buffer));
-
+    ESP_LOG_BUFFER_HEX(TAG, gb.tx_buffer, 16); // Wyświetli pierwsze 16 bajtów w HEX
     uart_write_logical(UART_LOGICAL_TELEMETRY, gb.tx_buffer, gb.tx_buffer_size);
+    return;
 }
+
 
 static void tx_task(void *arg) {
     while (true) {
@@ -80,28 +104,28 @@ bool lora_task_init(lora_api_config_t *cfg) {
     gb.process_packet_fnc = cfg->process_rx_packet_fnc;
     gb.get_tx_packet_fnc = cfg->get_tx_packet_fnc;
 
-    xTaskCreatePinnedToCore(
-        rx_task,
-        "LoRa task RX",
-        LORA_TASK_STACK_DEPTH,
-        NULL,
-        LORA_TASK_PRIORITY,
-        &gb.rx_task,
-        LORA_TASK_CPU_NUM
-        );
+    // xTaskCreatePinnedToCore(
+    //     rx_task,
+    //     "LoRa task RX",
+    //     LORA_TASK_STACK_DEPTH,
+    //     NULL,
+    //     LORA_TASK_PRIORITY,
+    //     &gb.rx_task,
+    //     LORA_TASK_CPU_NUM
+    //     );
 
     xTaskCreatePinnedToCore(
         tx_task,
         "LoRa task TX",
         LORA_TASK_STACK_DEPTH,
         NULL,
-        LORA_TASK_PRIORITY - 1,
+        LORA_TASK_PRIORITY,
         &gb.tx_task,
         LORA_TASK_CPU_NUM);
 
-    if (gb.rx_task == NULL || gb.tx_task == NULL) {
-        return false;
-    }
+        // if (gb.rx_task == NULL || gb.tx_task == NULL) {
+        //     return false;
+        // }
     {
         UBaseType_t high = uxTaskGetStackHighWaterMark(gb.rx_task);
         ESP_LOGI(TAG, "LoRa task %s stack high water mark: %u", pcTaskGetName(gb.rx_task), (unsigned)high);
