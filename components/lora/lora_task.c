@@ -28,32 +28,31 @@ static struct {
     QueueHandle_t uart_queue;
 } gb;
 
-static void receive_packet(void) {
-    // turn_of_receive_window_timer();
-    if (gb.validate_packet_fnc == NULL) {
+static void receive_packet(size_t size_to_read) {
+    int read_len = uart_read_bytes(UART_NUM_1, gb.rx_buffer, size_to_read, pdMS_TO_TICKS(100));
+
+    if (read_len <= 0) {
         return;
     }
+    gb.rx_buffer_size = gb.validate_packet_fnc(gb.rx_buffer, read_len);
 
-    gb.rx_buffer_size = gb.validate_packet_fnc(gb.rx_buffer, sizeof(gb.rx_buffer));
-    if (gb.rx_buffer_size > 0) {
+    if (gb.rx_buffer_size > 5) {
         gb.process_packet_fnc(gb.rx_buffer, gb.rx_buffer_size);
-        ESP_LOGD(TAG, "Received %s, len %d", gb.rx_buffer, gb.rx_buffer_size);
+        ESP_LOGI(TAG, "Valid packet received, len %d", gb.rx_buffer_size);
     }
 }
 
 static void rx_task(void* arg) {
     uart_event_t event;
     while (true) {
-        // Task "zamarza" tutaj do momentu otrzymania danych
         if (xQueueReceive(gb.uart_queue, (void *)&event, portMAX_DELAY)) {
             switch (event.type) {
                 case UART_DATA:
-                    // Wywołaj swoją funkcję czytającą
-                    receive_packet();
+                    receive_packet(event.size);
                     break;
 
                 case UART_FIFO_OVF:
-                    ESP_LOGE(TAG, "UART FIFO Overflow - MCB wysyła za szybko!");
+                    ESP_LOGE(TAG, "UART FIFO Overflow!");
                     xQueueReset(gb.uart_queue);
                     break;
 

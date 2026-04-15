@@ -81,10 +81,30 @@ static void lora_process(uint8_t* packet, size_t packet_size) {
         return;
     }
 
+    uint16_t expected_data_len_size = packet_size-5;
+    uint8_t actual_data_len = packet[2];
+    
+    if (actual_data_len > (packet_size - 5)) {
+    ESP_LOGE(TAG, "Buffer overflow protection triggered!");
+    return;
+}
+    uint8_t header = packet[0];
+    uint8_t command = packet[1];
+    if (header != PACKET_HEADER || command != 0xFE || actual_data_len != expected_data_len_size) {
+        ESP_LOGE(TAG, "Invalid packet header, command, or data length");
+        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 100);
+        //print hex message here
+        ESP_LOG_BUFFER_HEX(TAG, packet, packet_size);
+        return;
+    } 
+    uint8_t tmp_buff[actual_data_len];
+    memcpy(tmp_buff, packet + 3, actual_data_len);
+    ESP_LOG_BUFFER_HEX(TAG, tmp_buff, actual_data_len);
+
     struct obc_lo_ra_command_t* received = obc_lo_ra_command_new(&workspace, sizeof(workspace));
 
     size_t decoded_size = 0;
-    decoded_size = obc_lo_ra_command_decode(received, packet, packet_size);
+    decoded_size = obc_lo_ra_command_decode(received, tmp_buff, actual_data_len);
     if (decoded_size > 0 &&
         received->lora_dev_id.is_present &&
         received->sys_dev_id.is_present &&
@@ -181,7 +201,6 @@ static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
     }
     ESP_LOGI(TAG, "Encoded protobuf size: %d", encoded_data_size);
 
-    // Teraz wywołujemy Twoje add_packet_info, które uzupełni bajty 0, 1, 2 oraz CRC na końcu
     return add_packet_info(buffer, size, (uint8_t)encoded_data_size, CMD_LORA_TX);
 }
 
