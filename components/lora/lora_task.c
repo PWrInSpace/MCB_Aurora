@@ -104,15 +104,15 @@ bool lora_task_init(lora_api_config_t *cfg) {
     gb.process_packet_fnc = cfg->process_rx_packet_fnc;
     gb.get_tx_packet_fnc = cfg->get_tx_packet_fnc;
 
-    // xTaskCreatePinnedToCore(
-    //     rx_task,
-    //     "LoRa task RX",
-    //     LORA_TASK_STACK_DEPTH,
-    //     NULL,
-    //     LORA_TASK_PRIORITY,
-    //     &gb.rx_task,
-    //     LORA_TASK_CPU_NUM
-    //     );
+    xTaskCreatePinnedToCore(
+        rx_task,
+        "LoRa task RX",
+        LORA_TASK_STACK_DEPTH,
+        NULL,
+        LORA_TASK_PRIORITY,
+        &gb.rx_task,
+        LORA_TASK_CPU_NUM
+        );
 
     xTaskCreatePinnedToCore(
         tx_task,
