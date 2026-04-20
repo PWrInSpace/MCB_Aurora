@@ -15,7 +15,7 @@
 #include "gpio_expander.h"
 #include "gps_task_config.h"
 #include "i2c.h"
-#include "lora.pb-c.h.bk"
+#include "lora.pb-c.h"
 #include "lora_hw_config.h"
 #include "lora_task.h"
 #include "lora_task_config.h"
