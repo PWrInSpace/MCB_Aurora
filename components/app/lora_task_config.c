@@ -4,7 +4,7 @@
 #include "data_to_protobuf.h"
 #include "errors_config.h"
 #include "esp_log.h"
-#include "lora.pb-c.h.bk"
+#include "lora.pb-c.h"
 #include "lora_hw_config.h"
 #include "sdkconfig.h"
 #include "system_timer_config.h"
