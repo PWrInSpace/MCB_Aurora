@@ -20,10 +20,10 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     frame->stan_mcb.value = data.mcb.state;
 
     frame->uptime_disconnect_timer.is_present = true;
-    frame->uptime_disconnect_timer.value = (uint32_t) data.mcb.disconnect_timer;
+    frame->uptime_disconnect_timer.value = data.mcb.disconnect_timer;
 
     frame->czas_lotu.is_present = true;
-    frame->czas_lotu.value = (int32_t) data.mcb.flight_time;
+    frame->czas_lotu.value = data.mcb.flight_time;
 
     frame->mcb_batt.is_present = true;
     frame->mcb_batt.value = data.mcb.battery_voltage;
@@ -36,16 +36,16 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
 
     // gps_sat in proto is a bool — set true if number of satellites > 0
     frame->gps_sat.is_present = true;
-    frame->gps_sat.value = (data.mcb.satelites_in_view > 0);
+    frame->gps_sat.value = data.mcb.satelites_in_view > 0;
 
     frame->altitude.is_present = true;
-    frame->altitude.value = (int32_t) data.mcb.altitude;
+    frame->altitude.value = (int32_t)data.mcb.altitude;
 
     frame->velocity.is_present = true;
-    frame->velocity.value = (int32_t) data.mcb.velocity;
+    frame->velocity.value = (int32_t)data.mcb.velocity;
 
     frame->mcb_temperature.is_present = true;
-    frame->mcb_temperature.value = (int32_t) data.mcb.temperature;
+    frame->mcb_temperature.value = (int32_t)data.mcb.temperature;
 
     frame->euler_psi.is_present = true;
     frame->euler_psi.value = data.mcb.pitch;
@@ -59,16 +59,16 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     // recovery - pack various boolean fields into a single fixed32 recovery_flags
     {
         uint32_t recovery_flags = 0;
-        recovery_flags |= (data.recovery.separationSwitch1    ? (1u << 0) : 0u);
-        recovery_flags |= (data.recovery.separationSwitch2    ? (1u << 1) : 0u);
-        recovery_flags |= (data.recovery.firstStageDone        ? (1u << 2) : 0u);
-        recovery_flags |= (data.recovery.secondStageDone       ? (1u << 3) : 0u);
-        recovery_flags |= (data.recovery.telemetrumFirstStage  ? (1u << 4) : 0u);
-        recovery_flags |= (data.recovery.telemetrumSecondStage ? (1u << 5) : 0u);
-        recovery_flags |= (data.recovery.easyMiniFirstStage    ? (1u << 6) : 0u);
-        recovery_flags |= (data.recovery.easyMiniSecondStage   ? (1u << 7) : 0u);
-        recovery_flags |= (data.recovery.isTeleActive          ? (1u << 8) : 0u);
-        recovery_flags |= (data.recovery.isArmed               ? (1u << 9) : 0u);
+        recovery_flags |= data.recovery.separationSwitch1 ? 1u << 0 : 0u;
+        recovery_flags |= data.recovery.separationSwitch2 ? 1u << 1 : 0u;
+        recovery_flags |= data.recovery.firstStageDone ? 1u << 2 : 0u;
+        recovery_flags |= data.recovery.secondStageDone ? 1u << 3 : 0u;
+        recovery_flags |= data.recovery.telemetrumFirstStage ? 1u << 4 : 0u;
+        recovery_flags |= data.recovery.telemetrumSecondStage ? 1u << 5 : 0u;
+        recovery_flags |= data.recovery.easyMiniFirstStage ? 1u << 6 : 0u;
+        recovery_flags |= data.recovery.easyMiniSecondStage ? 1u << 7 : 0u;
+        recovery_flags |= data.recovery.isTeleActive ? 1u << 8 : 0u;
+        recovery_flags |= data.recovery.isArmed ? 1u << 9 : 0u;
         //ESP_LOGI(TAG, "arm status: %d", data.recovery.isArmed);
         //ESP_LOGI(TAG, "telemetry status: %d", data.recovery.isTeleActive);
         frame->recovery_flags.is_present = true;
@@ -80,20 +80,20 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     frame->pitot_bateria.value = data.pitot.vbat;
 
     frame->pitot_wysokosc.is_present = true;
-    frame->pitot_wysokosc.value = (int32_t) data.pitot.alt;
+    frame->pitot_wysokosc.value = (int32_t)data.pitot.alt;
 
     frame->pitot_predkosc.is_present = true;
-    frame->pitot_predkosc.value = (int32_t) data.pitot.speed;
+    frame->pitot_predkosc.value = (int32_t)data.pitot.speed;
 
     frame->pitot_temperatura.is_present = true;
-    frame->pitot_temperatura.value = (int32_t) data.pitot.temperature;
+    frame->pitot_temperatura.value = (int32_t)data.pitot.temperature;
 
     uint32_t valve_states_bitfield = 0;
-    valve_states_bitfield |= (data.ox_main_valve.valve_1_state == 1 ? (1u << 0) : 0u);
-    valve_states_bitfield |= (data.ox_vent_eth_main_valves.valve_1_state == 1 ? (1u << 2) : 0u);
-    valve_states_bitfield |= (data.ox_vent_eth_main_valves.valve_2_state == 1 ? (1u << 3) : 0u);
-    valve_states_bitfield |= (data.eth_vent_valve.valve_1_state == 1 ? (1u << 4) : 0u);
-    valve_states_bitfield |= (data.n2_vent_valve.valve_1_state == 1 ? (1u << 5) : 0u);
+    valve_states_bitfield |= data.ox_main_valve.valve_1_state == 1 ? 1u << 0 : 0u;
+    valve_states_bitfield |= data.ox_vent_eth_main_valves.valve_1_state == 1 ? 1u << 2 : 0u;
+    valve_states_bitfield |= data.ox_vent_eth_main_valves.valve_2_state == 1 ? 1u << 3 : 0u;
+    valve_states_bitfield |= data.eth_vent_valve.valve_1_state == 1 ? 1u << 4 : 0u;
+    valve_states_bitfield |= data.n2_vent_valve.valve_1_state == 1 ? 1u << 5 : 0u;
 
     frame->main_vent_flags.is_present = true;
     frame->main_vent_flags.value = valve_states_bitfield;
@@ -211,28 +211,28 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     frame->tanwa_temperature_filling_wall.value = data.tanwa.temperature_Wall;
 
     frame->tanwa_post_fill_n2_o_pres.is_present = true;
-    frame->tanwa_post_fill_n2_o_pres.value = (float) data.tanwa.postFillN2O_pres;
+    frame->tanwa_post_fill_n2_o_pres.value = data.tanwa.postFillN2O_pres;
 
     frame->tanwa_cutoff_n2_o_pres.is_present = true;
-    frame->tanwa_cutoff_n2_o_pres.value = (float) data.tanwa.cutoffN2O_pres;
+    frame->tanwa_cutoff_n2_o_pres.value = data.tanwa.cutoffN2O_pres;
 
     frame->tanwa_droid_n2_o_press.is_present = true;
-    frame->tanwa_droid_n2_o_press.value = (float) data.tanwa.droidN2O_press;
+    frame->tanwa_droid_n2_o_press.value = data.tanwa.droidN2O_press;
 
     frame->tanwa_pre_regulator_n2_pres.is_present = true;
-    frame->tanwa_pre_regulator_n2_pres.value = (float) data.tanwa.preRegulatorN2_pres;
+    frame->tanwa_pre_regulator_n2_pres.value = data.tanwa.preRegulatorN2_pres;
 
     frame->tanwa_post_regulator_n2_pres.is_present = true;
-    frame->tanwa_post_regulator_n2_pres.value = (float) data.tanwa.postRegulatorN2_pres;
+    frame->tanwa_post_regulator_n2_pres.value = data.tanwa.postRegulatorN2_pres;
 
     frame->tanwa_post_fill_n2_pres.is_present = true;
-    frame->tanwa_post_fill_n2_pres.value = (float) data.tanwa.postFillN2_pres;
+    frame->tanwa_post_fill_n2_pres.value = data.tanwa.postFillN2_pres;
 
     frame->tanwa_droid_n2_press.is_present = true;
-    frame->tanwa_droid_n2_press.value = (float) data.tanwa.droidN2_press;
+    frame->tanwa_droid_n2_press.value = data.tanwa.droidN2_press;
 
     frame->tanwa_comb_chamber_pres.is_present = true;
-    frame->tanwa_comb_chamber_pres.value = (float) data.tanwa.combChamber_pres;
+    frame->tanwa_comb_chamber_pres.value = data.tanwa.combChamber_pres;
 
     // tanwa flags - pack many boolean status bits into a single fixed32 tanwa_flags
     {
