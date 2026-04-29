@@ -15,7 +15,7 @@
 #include "gpio_expander.h"
 #include "gps_task_config.h"
 #include "i2c.h"
-#include "lora.pb-c.h.bk"
+#include "lora.pb-c.h"
 #include "lora_hw_config.h"
 #include "lora_task.h"
 #include "lora_task_config.h"
@@ -85,7 +85,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
     CHECK_RESULT_BOOL(initialize_esp_now(), "ESP_NOW");
     CHECK_RESULT_BOOL(initialize_flash_memory(), "FLASH");
-    CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
+    // CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
     CHECK_RESULT_BOOL(initialize_gps(), "Gps task");
     CHECK_RESULT_BOOL(initialize_recovery(), "Recovery task");
 

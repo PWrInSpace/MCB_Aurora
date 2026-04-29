@@ -104,7 +104,6 @@ static void on_countdown(void *arg) {
         goto abort_countdown;
     }
 
-
     Settings settings = settings_get_all();
     if (liquid_mission_timer_start(settings.countdownTime, settings.ignitTime) == false) {
         ESP_LOGE(TAG, "Mission timer error");

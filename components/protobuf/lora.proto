@@ -1,35 +1,16 @@
 syntax = "proto3";
 package obc;
 
-enum state {
-    INIT = 0;
-    IDLE = 1;
-    RECOVERY_ARM = 2;
-    FUELING = 3;
-    PRESSURIZING = 4;
-    ARMED_TO_LAUNCH = 5;
-    RDY_TO_LAUNCH = 6;
-    COUNTDOWN = 7;
-    LIFT_OFF = 8;
-    BURNOUT = 9;
-    FLIGHT = 10;
-    FIRST_STAGE_RECOVERY = 11;
-    SECOND_STAGE_RECOVERY = 12;
-    ON_GROUND = 13;
-    HOLD = 14;
-    ABORT = 15;
-}
-
 message LoRaFrame {
     // === MCB ===
-    optional state mcb_state = 1;
+    optional uint32 mcb_state = 1;
     optional uint32 uptime_ms = 2;
     optional uint32 flight_time_ms = 3;
     optional uint32 mcb_batt = 4;
     optional float gps_lat = 5;
     optional float gps_long = 6;
-    optional bool gps_sat = 7;
-    optional uint32 altitude_m = 8;
+    optional bool gps_sat_ok = 7;
+    optional sint32 altitude_m = 8;
     optional sint32 velocity_m_s = 9;
     optional sint32 mcb_temperature = 10;
     optional float euler_fi = 11;
@@ -53,8 +34,8 @@ message LoRaFrame {
 
     // === Pitot ===
     optional uint32 pitot_battery = 15;
-    optional uint32 pitot_altitude = 16;
-    optional uint32 pitot_velocity = 17;
+    optional sint32 pitot_altitude = 16;
+    optional sint32 pitot_velocity = 17;
     optional sint32 pitot_temperature = 18;
     // 16 bytes
 
@@ -78,7 +59,7 @@ message LoRaFrame {
 
     // === Tanwa ===
     optional uint32 tanwa_battery = 27;
-    optional state tanwa_state = 28;
+    optional uint32 tanwa_state = 28;
     // 8 bytes
 
     // === Tanwa CAN connections & status ===
@@ -108,14 +89,14 @@ message LoRaFrame {
 
     // Tanwa pressures as individual floats (previously packed pairs).
     // Use float to preserve fractional values; tags 34..41 reserved for these 8 pressures.
-    optional sint32 tanwa_post_fill_n2o_pres = 34;
-    optional sint32 tanwa_cutoff_n2o_pres = 35;
-    optional sint32 tanwa_droid_n2o_pres = 36;
-    optional sint32 tanwa_pre_reg_n2_pres = 37;
-    optional sint32 tanwa_post_reg_n2_pres = 38;
-    optional sint32 tanwa_post_fill_n2_pres = 39;
-    optional sint32 tanwa_droid_n2_pres = 40;
-    optional sint32 tanwa_comb_chamber_pres = 41;
+    optional uint32 tanwa_post_fill_n2o_pres = 34;
+    optional uint32 tanwa_cutoff_n2o_pres = 35;
+    optional uint32 tanwa_droid_n2o_pres = 36;
+    optional uint32 tanwa_pre_reg_n2_pres = 37;
+    optional uint32 tanwa_post_reg_n2_pres = 38;
+    optional uint32 tanwa_post_fill_n2_pres = 39;
+    optional uint32 tanwa_droid_n2_pres = 40;
+    optional uint32 tanwa_comb_chamber_pres = 41;
     // 52 bytes
 
     // === Payload ===
@@ -156,7 +137,7 @@ message LoRaSettings {
     optional int32 lora_freq_khz = 1;
     optional int32 lora_transmit_ms = 2;
     optional int32 countdown_time = 3;
-    optional int32 ingition_time = 4;
+    optional int32 ignition_time = 4;
     optional uint32 flash_enable = 5;
     optional uint32 buzzer_enable = 6;
 }

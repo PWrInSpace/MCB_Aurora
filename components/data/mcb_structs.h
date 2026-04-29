@@ -9,14 +9,14 @@
 typedef struct {
     uint8_t state;
     uint32_t uptime;
-    int32_t flight_time;
+    uint32_t flight_time;
     uint32_t disconnect_timer;
     float battery_voltage;
     int sensor_placeholder;
     float latitude;
     float longitude;
     float gps_altitude;
-    uint8_t satelites_in_view;
+    uint8_t satellites_in_view;
     float acc_x;
     float acc_y;
     float acc_z;
