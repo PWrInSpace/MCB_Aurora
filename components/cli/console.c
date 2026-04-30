@@ -51,7 +51,6 @@ esp_err_t console_register_commands(esp_console_cmd_t *commands, size_t number_o
     return ret;
 }
 
-
 esp_err_t console_deinit(void) {
     if (s_repl == NULL) {
         return ESP_ERR_INVALID_STATE;

@@ -251,6 +251,14 @@ static void mcb_reset_disconnect_timer(uint32_t command, int32_t payload, bool p
     }
 }
 
+static void mcb_cameras_on(uint32_t command, int32_t payload, bool privilege) {
+    gpioexp_camera_turn_on();
+}
+
+static void mcb_cameras_off(uint32_t command, int32_t payload, bool privilege) {
+    gpioexp_camera_turn_off();
+}
+
 static cmd_command_t mcb_commands[] = {
     {MCB_STATE_CHANGE,              mcb_state_change},
     {MCB_ABORT,                     mcb_abort},
@@ -265,6 +273,8 @@ static cmd_command_t mcb_commands[] = {
     {MCB_RESET_ERRORS,              mcb_reset_errors},
     {MCB_FORMAT_FLASH,              mcb_foramt_flash},
     {MCB_BUZZER_ENABLE,             mcb_buzzer_enable},
+    {MCB_CAMERAS_ON,                                    mcb_cameras_on},
+    {MCB_CAMERAS_OFF,               mcb_cameras_off},
     {MCB_RESET_DEV,                 mcb_reset_dev},
     {MCB_RESET_DISCONNECT_TIMER,    mcb_reset_disconnect_timer},
 };
@@ -543,9 +553,7 @@ bool lora_cmd_init(void) {
     return cmd_init_lora_mode(&commands);
 }
 
-bool lora_cmd_process_command(cmd_lora_dev_id lora_dev_id,
-                            cmd_sys_dev_id dev_id,
-                            cmd_message_t *message) {
+bool lora_cmd_process_command(cmd_lora_dev_id lora_dev_id, cmd_sys_dev_id dev_id, cmd_message_t *message) {
     return cmd_process_lora_command(&commands, lora_dev_id, dev_id, message);
 }
 

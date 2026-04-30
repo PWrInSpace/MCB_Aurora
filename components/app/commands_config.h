@@ -28,10 +28,7 @@
 //                             TANWA_message_t *message);
 
 
-bool lora_cmd_process_command(cmd_lora_dev_id lora_dev_id,
-                            cmd_sys_dev_id dev_id,
-                            cmd_message_t *message);
-
+bool lora_cmd_process_command(cmd_lora_dev_id lora_dev_id, cmd_sys_dev_id dev_id, cmd_message_t *message);
 
 typedef enum {
     DEVICE_MCB = 0x01,
@@ -58,6 +55,8 @@ typedef enum {
     MCB_RESET_ERRORS = 0x16,
     MCB_FORMAT_FLASH = 0x17,
     MCB_BUZZER_ENABLE = 0x18,
+    MCB_CAMERAS_ON = 0x19,
+    MCB_CAMERAS_OFF = 0x20,
     MCB_RESET_DEV = 0x82,
     MCB_RESET_DISCONNECT_TIMER = 0xFF,
 } mcb_commands_t;
@@ -131,7 +130,6 @@ typedef enum {
     OX_MAIN_DUMP_VALVE_SOFT_DISARM = 0x71,
 
     VALVE_DZIDA = 0x69,
-
 } valve_commands_t;
 
 #endif
