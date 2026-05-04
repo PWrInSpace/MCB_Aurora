@@ -126,10 +126,6 @@ struct obc_lo_ra_frame_t {
     struct {
         bool is_present;
         uint32_t value;
-    } eth_vent_bit_data_b;
-    struct {
-        bool is_present;
-        uint32_t value;
     } n2_vent_bit_data_a;
     struct {
         bool is_present;
@@ -142,6 +138,10 @@ struct obc_lo_ra_frame_t {
     struct {
         bool is_present;
         uint32_t value;
+    } ox_vent_eth_main_bit_data_c;
+    struct {
+        bool is_present;
+        uint32_t value;
     } ox_main_bit_data_a;
     struct {
         bool is_present;
@@ -151,6 +151,10 @@ struct obc_lo_ra_frame_t {
         bool is_present;
         uint32_t value;
     } eth_vent_bit_data_a;
+    struct {
+        bool is_present;
+        uint32_t value;
+    } eth_vent_bit_data_b;
     struct {
         bool is_present;
         float value;

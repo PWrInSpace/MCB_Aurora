@@ -129,6 +129,16 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         frame->ox_vent_eth_main_bit_data_b.value = v;
     }
 
+    {
+        uint32_t v = 0;
+        v |= (uint32_t)data.ox_vent_eth_main_valves.auto_vent_activated << 31;
+        v |= (uint32_t)data.ox_vent_eth_main_valves.auto_vent_triggered << 30;
+        int8_t ox_temperature = (int8_t)fminf(255.0f, roundf(data.ox_vent_eth_main_valves.ox_temperature));
+        v |= (uint32_t)ox_temperature << 22;
+        frame->ox_vent_eth_main_bit_data_c.is_present = true;
+        frame->ox_vent_eth_main_bit_data_c.value = v;
+    }
+
     // ox main bit data (uses ox_main_valve struct)
     {
         uint32_t v = 0;
