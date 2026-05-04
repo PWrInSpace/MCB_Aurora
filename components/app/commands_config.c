@@ -350,6 +350,22 @@ static void ov_emval_eth_valve_open(uint32_t command, int32_t payload, bool priv
     send_command_esp_now(&esp_now_ox_vent_eth_main_valves, command, payload);
 }
 
+static void ov_emval_auto_vent_set(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
+    //     return;
+    // }
+
+    send_command_esp_now(&esp_now_ox_vent_eth_main_valves, command, payload);
+}
+
+static void ov_emval_auto_vent_off(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
+    //     return;
+    // }
+
+    send_command_esp_now(&esp_now_ox_vent_eth_main_valves, command, payload);
+}
+
 static void n2val_n2_valve_close(uint32_t command, int32_t payload, bool privilege) {
     state_id state = SM_get_current_state();
     // if (state > RDY_TO_LAUNCH && state < HOLD) {
@@ -489,6 +505,8 @@ static cmd_command_t ox_vent_eth_main_valves_commands[] = {
     {N2O_SOL_OPEN,                  ov_emval_n2o_sol_open},
     {ETH_VALVE_CLOSE,            ov_emval_eth_valve_close},
     {ETH_VALVE_OPEN,              ov_emval_eth_valve_open},
+    {OX_VENT_AUTO_VENT_OFF,      ov_emval_auto_vent_off},
+    {OX_VENT_AUTO_VENT_SET,       ov_emval_auto_vent_set},
 };
 
 static cmd_command_t tanwa_commands[] = {
