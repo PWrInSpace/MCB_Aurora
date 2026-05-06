@@ -350,6 +350,24 @@ int cameras_off(int argc, char **argv) {
     return 0;
 }
 
+int auto_vent_off(int argc, char **argv) {
+    cmd_message_t command = cmd_create_message(OX_VENT_AUTO_VENT_OFF, 0);
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int auto_vent_set(int argc, char **argv) {
+    cmd_message_t command = cmd_create_message(OX_VENT_AUTO_VENT_SET, atoi(argv[1]));
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
+        return -1;
+    }
+
+    return 0;
+}
+
 static esp_console_cmd_t cmd[] = {
     {"flash-read", "Read data from flash memory", NULL, read_flash, NULL, NULL, NULL},
     {"reset-dev", "Restart device", NULL, reset_device, NULL, NULL, NULL},
@@ -384,6 +402,8 @@ static esp_console_cmd_t cmd[] = {
     {"get_data", "get mcb data", NULL, get_data, NULL, NULL, NULL},
     {"cameras_on", "turn on cameras", NULL, cameras_on, NULL, NULL, NULL},
     {"cameras_off", "turn off cameras", NULL, cameras_off, NULL, NULL, NULL},
+    {"auto_vent_off", "turn off auto vent", NULL, auto_vent_off, NULL, NULL, NULL},
+    {"auto_vent_set", "set auto vent value", NULL, auto_vent_set, NULL, NULL, NULL},
 };
 
 static void console_register_task(void *arg) {
