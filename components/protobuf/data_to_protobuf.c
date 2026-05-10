@@ -129,6 +129,16 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         frame->ox_vent_eth_main_bit_data_b.value = v;
     }
 
+    {
+        uint32_t v = 0;
+        frame->ox_vent_eth_main_bit_data_c.is_present = true;
+        frame->ox_vent_eth_main_bit_data_c.value = v;
+    }
+
+    frame->auto_vent_setting.is_present = true;
+    // ustawianie auto vent jak będzie
+    // todo
+
     // ox main bit data (uses ox_main_valve struct)
     {
         uint32_t v = 0;
