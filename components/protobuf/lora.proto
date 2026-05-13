@@ -59,11 +59,13 @@ message LoRaFrame {
 
     optional fixed32 eth_vent_bit_data_a = 26;
     optional fixed32 eth_vent_bit_data_b = 27;
+
+    optional fixed32 auto_vent_setting = 28;
     // 36 bytes
 
     // === Tanwa ===
-    optional float Tanwa_bateria = 28;
-    optional int32 Tanwa_state = 29;
+    optional float Tanwa_bateria = 29;
+    optional int32 Tanwa_state = 30;
     // 8 bytes
 
     // === Tanwa CAN connections & status ===
@@ -84,27 +86,27 @@ message LoRaFrame {
     // bit14: droid_N2_state
     // bit15: heating_tank_state
     // bit16: heating_valves_state
-    optional fixed32 tanwa_flags = 30;
+    optional fixed32 tanwa_flags = 31;
 
-    optional float Tanwa_thrust = 31;
-    optional float Tanwa_tank_weight = 32;
-    optional float Tanwa_temperature_post_N2O_fill = 33;
-    optional float Tanwa_temperature_filling_wall = 34;
+    optional float Tanwa_thrust = 32;
+    optional float Tanwa_tank_weight = 33;
+    optional float Tanwa_temperature_post_N2O_fill = 34;
+    optional float Tanwa_temperature_filling_wall = 35;
 
     // Tanwa pressures as individual floats (previously packed pairs).
     // Use float to preserve fractional values; tags 31..38 reserved for these 8 pressures.
-    optional float Tanwa_postFillN2O_pres      = 35;
-    optional float Tanwa_cutoffN2O_pres        = 36;
-    optional float Tanwa_droidN2O_press        = 37;
-    optional float Tanwa_preRegulatorN2_pres   = 38;
-    optional float Tanwa_postRegulatorN2_pres  = 39;
-    optional float Tanwa_postFillN2_pres       = 40;
-    optional float Tanwa_droidN2_press         = 41;
-    optional float Tanwa_combChamber_pres      = 42;
+    optional float Tanwa_postFillN2O_pres      = 36;
+    optional float Tanwa_cutoffN2O_pres        = 37;
+    optional float Tanwa_droidN2O_press        = 38;
+    optional float Tanwa_preRegulatorN2_pres   = 39;
+    optional float Tanwa_postRegulatorN2_pres  = 40;
+    optional float Tanwa_postFillN2_pres       = 41;
+    optional float Tanwa_droidN2_press         = 42;
+    optional float Tanwa_combChamber_pres      = 43;
     // 52 bytes
 
     // === Payload ===
-    optional float Payload_bateria = 43;
+    optional float Payload_bateria = 44;
 
     // === ESP-NOW connection bitfield ===
     // bit0: payload_connected
@@ -114,7 +116,7 @@ message LoRaFrame {
     // bit4: ox_vent_eth_main_connected
     // bit5: n2_vent_connected
     // bit6: pitot_connected
-    optional fixed32 espnow_connected_flags = 44;
+    optional fixed32 espnow_connected_flags = 45;
 
     // === ESP-NOW wake-up bitfield ===
     // bit0: payload_wkup
@@ -123,9 +125,9 @@ message LoRaFrame {
     // bit3: ox_vent_eth_main_wkup
     // bit4: n2_vent_wkup
     // bit5: pitot_wkup
-    optional fixed32 espnow_wkup_flags = 45;
+    optional fixed32 espnow_wkup_flags = 46;
 
-    optional fixed32 errors = 46;
+    optional fixed32 errors = 47;
     // 16 bytes
 }
 // sum = 49 + 4 + 16 + 36 + 8 + 52 + 4 + 16 = 185 bytes

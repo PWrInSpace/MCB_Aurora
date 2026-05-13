@@ -352,7 +352,7 @@ int cameras_off(int argc, char **argv) {
 
 int auto_vent_off(int argc, char **argv) {
     cmd_message_t command = cmd_create_message(OX_VENT_AUTO_VENT_OFF, 0);
-    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_OX_VENT_ETH_MAIN_VALVES, &command) == false) {
         return -1;
     }
 
@@ -361,7 +361,7 @@ int auto_vent_off(int argc, char **argv) {
 
 int auto_vent_set(int argc, char **argv) {
     cmd_message_t command = cmd_create_message(OX_VENT_AUTO_VENT_SET, atoi(argv[1]));
-    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_OX_VENT_ETH_MAIN_VALVES, &command) == false) {
         return -1;
     }
 

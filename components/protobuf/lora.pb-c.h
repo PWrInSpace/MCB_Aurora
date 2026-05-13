@@ -157,6 +157,10 @@ struct obc_lo_ra_frame_t {
     } eth_vent_bit_data_b;
     struct {
         bool is_present;
+        uint32_t value;
+    } auto_vent_setting;
+    struct {
+        bool is_present;
         float value;
     } tanwa_bateria;
     struct {

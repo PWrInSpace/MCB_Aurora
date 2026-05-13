@@ -89,11 +89,11 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     frame->pitot_temperatura.value = (int32_t) data.pitot.temperature;
 
     uint32_t valve_states_bitfield = 0;
-    valve_states_bitfield |= (data.ox_main_valve.valve_1_state == 1 ? (1u << 0) : 0u);
-    valve_states_bitfield |= (data.ox_vent_eth_main_valves.valve_1_state == 1 ? (1u << 2) : 0u);
-    valve_states_bitfield |= (data.ox_vent_eth_main_valves.valve_2_state == 1 ? (1u << 3) : 0u);
-    valve_states_bitfield |= (data.eth_vent_valve.valve_1_state == 1 ? (1u << 4) : 0u);
-    valve_states_bitfield |= (data.n2_vent_valve.valve_1_state == 1 ? (1u << 5) : 0u);
+    valve_states_bitfield |= data.ox_main_valve.valve_1_state == 1 ? 1u << 0 : 0u;
+    valve_states_bitfield |= data.ox_vent_eth_main_valves.valve_1_state == 1 ? 1u << 2 : 0u;
+    valve_states_bitfield |= data.ox_vent_eth_main_valves.valve_2_state == 1 ? 1u << 3 : 0u;
+    valve_states_bitfield |= data.eth_vent_valve.valve_1_state == 1 ? 1u << 4 : 0u;
+    valve_states_bitfield |= data.n2_vent_valve.valve_1_state == 1 ? 1u << 5 : 0u;
 
     frame->main_vent_flags.is_present = true;
     frame->main_vent_flags.value = valve_states_bitfield;
@@ -124,7 +124,7 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         v |= (uint32_t)charger_temperature << 23;
         uint16_t pressure = (uint16_t)(fmax(data.ox_vent_eth_main_valves.pressure_2, 0) * 100);
         v |= (uint32_t)pressure << 7;
-        ESP_LOGI(TAG, "Pressure 2 packed: %d", pressure);
+        // ESP_LOGI(TAG, "Pressure 2 packed: %d", pressure);
         frame->ox_vent_eth_main_bit_data_b.is_present = true;
         frame->ox_vent_eth_main_bit_data_b.value = v;
     }
@@ -138,6 +138,15 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         frame->ox_vent_eth_main_bit_data_c.is_present = true;
         frame->ox_vent_eth_main_bit_data_c.value = v;
     }
+
+    {
+        frame->auto_vent_setting.is_present = true;
+        frame->auto_vent_setting.value = data.ox_vent_eth_main_valves.auto_vent_pressure;
+    }
+
+    ESP_LOGI(TAG, "auto vent setting %d", data.ox_vent_eth_main_valves.auto_vent_pressure);
+    ESP_LOGE(TAG, "activated %d", data.ox_vent_eth_main_valves.auto_vent_activated);
+    ESP_LOGE(TAG, "trigger %d", data.ox_vent_eth_main_valves.auto_vent_triggered);
 
     // ox main bit data (uses ox_main_valve struct)
     {
@@ -205,8 +214,12 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     frame->tanwa_bateria.is_present = true;
     frame->tanwa_bateria.value = data.tanwa.vbat;
 
+    // ESP_LOGI(TAG, "Tanwa battery is %f", data.tanwa.vbat);
+
     frame->tanwa_state.is_present = true;
     frame->tanwa_state.value = data.tanwa.tanWaState;
+
+    // ESP_LOGI(TAG, "Tanwa state is %d", data.tanwa.tanWaState);
 
     frame->tanwa_thrust.is_present = true;
     frame->tanwa_thrust.value = data.tanwa.thrust_val;
@@ -298,7 +311,6 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         frame->espnow_wkup_flags.is_present = true;
         frame->espnow_wkup_flags.value = wk;
     }
-
 
     // errors - pack into single uint32 value as before
     frame->errors.is_present = true;

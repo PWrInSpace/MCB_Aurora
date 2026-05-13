@@ -52,6 +52,7 @@ typedef struct {
     bool is_charging : 1;
     bool auto_vent_activated: 1;
     bool auto_vent_triggered: 1;
+    int32_t auto_vent_pressure;
     int16_t ox_temperature;
     uint8_t valve_1_state : 2;
     uint8_t valve_2_state : 2;
