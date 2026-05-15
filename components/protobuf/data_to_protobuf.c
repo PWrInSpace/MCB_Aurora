@@ -117,6 +117,8 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         frame->ox_vent_eth_main_bit_data_a.value = v;
     }
 
+    ESP_LOGI(TAG, "Pressure 1 packed: %d", (uint16_t)(fmax(data.ox_vent_eth_main_valves.pressure_1, 0) * 100.0f));
+
     {
         uint32_t v = 0;
         v |= (uint32_t)data.ox_vent_eth_main_valves.is_charging << 31;
@@ -208,6 +210,9 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     frame->tanwa_state.is_present = true;
     frame->tanwa_state.value = data.tanwa.tanWaState;
 
+    ESP_LOGI(TAG, "Tanwa state: %d", data.tanwa.tanWaState);
+    ESP_LOGI(TAG, "Tanwa battery: %f", data.tanwa.vbat);
+
     frame->tanwa_thrust.is_present = true;
     frame->tanwa_thrust.value = (int32_t)(data.tanwa.thrust_val * 100.0f);
 
@@ -286,6 +291,8 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         frame->esp_now_connected_flags.value = conn;
     }
 
+    // ESP_LOGI(TAG, "Connected flags bitfield: %d", data.connected_dev.ox_vent_eth_main_valves);
+
     // ESP-NOW wakeup flags (bitfield) - pack waken_up booleans
     {
         uint32_t wk = 0;
@@ -299,6 +306,7 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         frame->esp_now_wkup_flags.value = wk;
     }
 
+    // ESP_LOGI(TAG, "Waken flags bitfield: %d", data.ox_vent_eth_main_valves.waken_up);
 
     // errors - pack into single uint32 value as before
     frame->errors.is_present = true;

@@ -100,13 +100,14 @@ static void callback_ox_main_valve(uint8_t *data, size_t size) {
 static void callback_ox_vent_eth_main_valves(uint8_t *data, size_t size) {
     ESP_LOGI(TAG, "OX vent, ETH main receive, size %d", size);
     connected.ox_vent_eth_main_valves = true;
+    ESP_LOGI(TAG, "sizeof %d", sizeof(ox_vent_eth_main_valves_data_t));
     if (size == sizeof(ox_vent_eth_main_valves_data_t)) {
         rocket_data_update_ox_vent_eth_main_valves((ox_vent_eth_main_valves_data_t *) data);
     }
 }
 
 static void callback_tanwa(uint8_t *data, size_t size) {
-    //ESP_LOGI(TAG, "Tanwa receive, size %d", size);
+    // ESP_LOGI(TAG, "Tanwa receive, size %d, size %d", size, sizeof(tanwa_data_t));
     connected.tanwa = true;
     if (size == sizeof(tanwa_data_t)) {
         rocket_data_update_tanwa((tanwa_data_t *) data);

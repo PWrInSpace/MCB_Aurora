@@ -50,6 +50,10 @@ typedef struct {
     bool dump_valve_arm : 1;
     bool dump_valve_cont: 1;
     bool is_charging : 1;
+    bool auto_vent_activated: 1;
+    bool auto_vent_triggered: 1;
+    int32_t auto_vent_pressure;
+    int16_t ox_temperature;
     uint8_t valve_1_state : 2;
     uint8_t valve_2_state : 2;
     int16_t temperature_1;
@@ -95,33 +99,6 @@ typedef struct {
     float vbat;
 } payload_data_t;
 
-// typedef struct {
-//     uint8_t tanWaState;
-//     uint16_t pressureSensor;
-//     uint16_t solenoid_fill; 
-//     uint16_t solenoid_depr; 
-//     bool abortButton : 1;
-//     bool igniterContinouity_1;
-//     bool igniterContinouity_2;
-//     uint8_t hxRequest_RCK;
-//     uint8_t hxRequest_TANK;
-//     float vbat;
-//     uint8_t motorState_1;
-//     uint8_t motorState_2;
-//     uint8_t motorState_3;
-//     uint8_t motorState_4;
-//     int rocketWeight_blink;
-//     float rocketWeight_temp;
-//     int tankWeight_blink;
-//     float tankWeight_temp;
-//     float rocketWeight_val;
-//     float tankWeight_val;
-//     uint32_t rocketWeightRaw_val;
-//     uint32_t tankWeightRaw_val;
-//     bool interface_rck;
-//     bool interface_tank;
-//     bool interface_mcu;
-// } tanwa_data_t_old;
 
 typedef struct{
     float vbat;
@@ -138,6 +115,11 @@ typedef struct{
     float postFillN2_pres;
     float droidN2_press;
     float combChamber_pres;
+    // tanwa power data
+    float tanwa_24v_sys_voltage;
+    float tanwa_24v_sys_current;
+    float tanwa_24v_sol_voltage;
+    float tanwa_24v_sol_current;
     bool soft_arm : 1;
     bool canWeights_con : 1;
     bool canSensor_con : 1;
