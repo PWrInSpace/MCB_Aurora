@@ -152,7 +152,7 @@ void obc_lo_ra_frame_encode_inner(
         pbtools_encoder_write_float_always(encoder_p, 29, self_p->tanwa_bateria.value);
     }
     if (self_p->auto_vent_setting.is_present) {
-        pbtools_encoder_write_fixed32_always(encoder_p, 28, self_p->auto_vent_setting.value);
+        pbtools_encoder_write_uint32_always(encoder_p, 28, self_p->auto_vent_setting.value);
     }
     if (self_p->eth_vent_bit_data_b.is_present) {
         pbtools_encoder_write_fixed32_always(encoder_p, 27, self_p->eth_vent_bit_data_b.value);
@@ -383,7 +383,7 @@ void obc_lo_ra_frame_decode_inner(
 
         case 28:
             self_p->auto_vent_setting.is_present = true;
-            self_p->auto_vent_setting.value = pbtools_decoder_read_fixed32(decoder_p, wire_type);
+            self_p->auto_vent_setting.value = pbtools_decoder_read_uint32(decoder_p, wire_type);
             break;
 
         case 29:

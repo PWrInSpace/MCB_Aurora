@@ -60,8 +60,7 @@ message LoRaFrame {
     optional fixed32 eth_vent_bit_data_a = 26;
     optional fixed32 eth_vent_bit_data_b = 27;
 
-    optional fixed32 auto_vent_setting = 28;
-    // 36 bytes
+    optional uint32 auto_vent_setting = 28;
 
     // === Tanwa ===
     optional float Tanwa_bateria = 29;
