@@ -57,7 +57,7 @@ struct obc_lo_ra_frame_t {
     } uptime_ms;
     struct {
         bool is_present;
-        uint32_t value;
+        int32_t value;
     } flight_time_ms;
     struct {
         bool is_present;

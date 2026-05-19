@@ -5,7 +5,7 @@ message LoRaFrame {
     // === MCB ===
     optional uint32 mcb_state = 1;
     optional uint32 uptime_ms = 2;
-    optional uint32 flight_time_ms = 3;
+    optional sint32 flight_time_ms = 3;
     optional uint32 mcb_batt = 4;
     optional float gps_lat = 5;
     optional float gps_long = 6;

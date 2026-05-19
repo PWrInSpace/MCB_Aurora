@@ -113,9 +113,9 @@ static void on_countdown(void *arg) {
 
     int camera_countdown = -(settings.countdownTime + CAMERA_COUNTDOWN_TIME);
     sys_timer_start(TIMER_CAMERA_ON, camera_countdown, TIMER_TYPE_ONE_SHOT);
-    ESP_LOGI(TAG, "Camera will turn on in %d seconds", -camera_countdown / 1000);
+    ESP_LOGI(TAG, "Camera will turn on in %d seconds", camera_countdown / 1000);
     sys_timer_start(TIMER_CAMERA_OFF, camera_countdown + CAMERA_ABORT_TIME, TIMER_TYPE_ONE_SHOT);
-    ESP_LOGI(TAG, "Camera will turn off in %d seconds", -(camera_countdown + CAMERA_ABORT_TIME) / 1000);
+    ESP_LOGI(TAG, "Camera will turn off in %d seconds", (camera_countdown + CAMERA_ABORT_TIME) / 1000);
 
     gpioexp_led_set_color(RED);
     return;

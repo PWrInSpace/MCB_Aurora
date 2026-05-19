@@ -7,7 +7,7 @@
 static struct {
     uint32_t t_zero_time;
     bool enable;
-    uint32_t disableValue;
+    int32_t disableValue;
     SemaphoreHandle_t time_mutex;
 } gb = {
     .t_zero_time = 0,
@@ -16,7 +16,7 @@ static struct {
     .time_mutex = NULL,
 };
 
-bool mission_timer_init(uint32_t timer_disable_value) {
+bool mission_timer_init(int32_t timer_disable_value) {
     gb.time_mutex = xSemaphoreCreateMutex();
     if (gb.time_mutex == NULL) {
         return false;
@@ -42,15 +42,15 @@ bool mission_timer_start(int32_t countdown_begin_time_ms) {
     return true;
 }
 
-uint32_t mission_timer_get_time() {
-    uint32_t ret = 0;
+int32_t mission_timer_get_time() {
+    int32_t ret = 0;
 
     if (xSemaphoreTake(gb.time_mutex, 100) != pdTRUE) {
         return gb.disableValue;
     }
 
     if (gb.enable == true) {
-        ret = get_uptime_ms() - gb.t_zero_time;
+        ret = (int32_t)get_uptime_ms() - gb.t_zero_time;
     } else {
         ret = gb.disableValue;
     }

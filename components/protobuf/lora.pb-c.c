@@ -226,7 +226,7 @@ void obc_lo_ra_frame_encode_inner(
         pbtools_encoder_write_uint32_always(encoder_p, 4, self_p->mcb_batt.value);
     }
     if (self_p->flight_time_ms.is_present) {
-        pbtools_encoder_write_uint32_always(encoder_p, 3, self_p->flight_time_ms.value);
+        pbtools_encoder_write_sint32_always(encoder_p, 3, self_p->flight_time_ms.value);
     }
     if (self_p->uptime_ms.is_present) {
         pbtools_encoder_write_uint32_always(encoder_p, 2, self_p->uptime_ms.value);
@@ -257,7 +257,7 @@ void obc_lo_ra_frame_decode_inner(
 
         case 3:
             self_p->flight_time_ms.is_present = true;
-            self_p->flight_time_ms.value = pbtools_decoder_read_uint32(decoder_p, wire_type);
+            self_p->flight_time_ms.value = pbtools_decoder_read_sint32(decoder_p, wire_type);
             break;
 
         case 4:

@@ -21,7 +21,6 @@ bool mcb_update_struct(mcb_data_t *mcb) {
     } else {
         mcb->disconnect_timer = (dc_timer_expire / 1000 - get_uptime_ms()) / 1000;
     }
-    // co to jest kurcze za getto napisać do Szymona, aby pomógł mmi to ogarnąć
 
     gps_positioning_t gps_position = gps_get_positioning();
     mcb->gps_altitude = gps_position.altitude;

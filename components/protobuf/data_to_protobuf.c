@@ -20,7 +20,7 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     frame->mcb_state.value = data.mcb.state;
 
     frame->uptime_ms.is_present = true;
-    frame->uptime_ms.value = data.mcb.disconnect_timer; // do ogarnięcia
+    frame->uptime_ms.value = data.mcb.disconnect_timer;
 
     frame->flight_time_ms.is_present = true;
     frame->flight_time_ms.value = data.mcb.flight_time;
@@ -123,7 +123,7 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         uint32_t v = 0;
         v |= (uint32_t)data.ox_vent_eth_main_valves.is_charging << 31;
         int8_t charger_temperature = (int8_t)fminf(255.0f, roundf(data.ox_vent_eth_main_valves.charger_temperature));
-        v |= (uint32_t)charger_temperature << 23;
+        v |= (uint32_t)(uint8_t)charger_temperature << 23;
         uint16_t pressure = (uint16_t)(fmax(data.ox_vent_eth_main_valves.pressure_2, 0) * 100);
         v |= (uint32_t)pressure << 7;
         // ESP_LOGI(TAG, "Pressure 2 packed: %d", pressure);
@@ -162,7 +162,7 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         v |= (uint32_t)battery_consumption << 16;
         v |= (uint32_t)data.ox_main_valve.is_charging << 15;
         int8_t charger_temperature = (int8_t)fminf(255.0f, roundf(data.ox_main_valve.charger_temperature));
-        v |= (uint32_t)charger_temperature << 7;
+        v |= (uint32_t)(uint8_t)charger_temperature << 7;
         frame->ox_main_bit_data_b.is_present = true;
         frame->ox_main_bit_data_b.value = v;
     }
@@ -184,7 +184,7 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         v |= (uint32_t)battery_consumption << 16;
         v |= (uint32_t)data.n2_vent_valve.is_charging << 15;
         int8_t charger_temperature = (int8_t)fminf(255.0f, roundf(data.n2_vent_valve.charger_temperature));
-        v |= (uint32_t)charger_temperature << 7;
+        v |= (uint32_t)(uint8_t)charger_temperature << 7;
         frame->n2_vent_bit_data_a.is_present = true;
         frame->n2_vent_bit_data_a.value = v;
     }
@@ -198,7 +198,7 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         v |= (uint32_t)battery_consumption << 16;
         v |= (uint32_t)data.eth_vent_valve.is_charging << 15;
         int8_t charger_temperature = (int8_t)fminf(255.0f, roundf(data.eth_vent_valve.charger_temperature));
-        v |= (uint32_t)charger_temperature << 7;
+        v |= (uint32_t)(uint8_t)charger_temperature << 7;
         frame->eth_vent_bit_data_a.is_present = true;
         frame->eth_vent_bit_data_a.value = v;
     }
