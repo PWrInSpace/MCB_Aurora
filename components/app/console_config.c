@@ -279,7 +279,6 @@ static int cli_change_lora_frequency(int argc, char **argv) {
 }
 
 int recovery_force_first_stage(int argc, char **argv) {
-
     cmd_message_t command = cmd_create_message(RECOV_FORCE_FIRST_STAGE, 0);
     lora_cmd_process_command(LORA_DEV_ID, DEVICE_RECOVERY, &command);
 
@@ -287,7 +286,6 @@ int recovery_force_first_stage(int argc, char **argv) {
 }
 
 int recovery_force_second_stage(int argc, char **argv) {
-
     cmd_message_t command = cmd_create_message(RECOV_FORCE_SECOND_STAGE, 0);
     lora_cmd_process_command(LORA_DEV_ID, DEVICE_RECOVERY, &command);
 
@@ -295,7 +293,6 @@ int recovery_force_second_stage(int argc, char **argv) {
 }
 
 int recovery_easymini_arm(int argc, char **argv) {
-
     cmd_message_t command = cmd_create_message(RECOV_EASYMINI_ARM, 0);
     lora_cmd_process_command(LORA_DEV_ID, DEVICE_RECOVERY, &command);
 
@@ -303,7 +300,6 @@ int recovery_easymini_arm(int argc, char **argv) {
 }
 
 int recovery_easymini_disarm(int argc, char **argv) {
-
     cmd_message_t command = cmd_create_message(RECOV_EASYMINI_DISARM, 0);
     lora_cmd_process_command(LORA_DEV_ID, DEVICE_RECOVERY, &command);
 
@@ -311,8 +307,6 @@ int recovery_easymini_disarm(int argc, char **argv) {
 }
 
 int recovery_telemetrum_arm(int argc, char **argv) {
-
-
     cmd_message_t command = cmd_create_message(RECOV_TELEMETRUM_ARM, 0);
     lora_cmd_process_command(LORA_DEV_ID, DEVICE_RECOVERY, &command);
 
@@ -320,8 +314,6 @@ int recovery_telemetrum_arm(int argc, char **argv) {
 }
 
 int recovery_telemetrum_disarm(int argc, char **argv) {
-    
-
     cmd_message_t command = cmd_create_message(RECOV_TELEMETRUM_DISARM, 0);
     lora_cmd_process_command(LORA_DEV_ID, DEVICE_RECOVERY, &command);
 
@@ -329,7 +321,6 @@ int recovery_telemetrum_disarm(int argc, char **argv) {
 }
 
 int get_data(int argc, char **argv) {
-    
     mcb_data_t data = rocket_data_get_mcb();
 
     CONSOLE_WRITE("State: %d", data.state);
@@ -337,6 +328,43 @@ int get_data(int argc, char **argv) {
     CONSOLE_WRITE("GPS altitude: %.2f", data.gps_altitude);    
     CONSOLE_WRITE("Altitude: %.2f", data.altitude);
     CONSOLE_WRITE("Velocity: %.2f", data.velocity);
+
+    return 0;
+}
+
+int cameras_on(int argc, char **argv) {
+    cmd_message_t command = cmd_create_message(MCB_CAMERAS_ON, 0);
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int cameras_off(int argc, char **argv) {
+    cmd_message_t command = cmd_create_message(MCB_CAMERAS_OFF, 0);
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int auto_vent_off(int argc, char **argv) {
+    cmd_message_t command = cmd_create_message(OX_VENT_AUTO_VENT_OFF, 0);
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_OX_VENT_ETH_MAIN_VALVES, &command) == false) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int auto_vent_set(int argc, char **argv) {
+    cmd_message_t command = cmd_create_message(OX_VENT_AUTO_VENT_SET, atoi(argv[1]));
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_OX_VENT_ETH_MAIN_VALVES, &command) == false) {
+        return -1;
+    }
+
     return 0;
 }
 
@@ -371,7 +399,11 @@ static esp_console_cmd_t cmd[] = {
     {"recov_easymini_disarm", "disarm easymini recovery", NULL, recovery_easymini_disarm, NULL, NULL, NULL},
     {"recov_telemetrum_arm", "arm telemetrum recovery", NULL, recovery_telemetrum_arm, NULL, NULL, NULL},
     {"recov_telemetrum_disarm", "disarm telemetrum recovery", NULL, recovery_telemetrum_disarm, NULL, NULL, NULL},
-    {"get_data", "get mcb data", NULL, get_data, NULL, NULL, NULL}
+    {"get_data", "get mcb data", NULL, get_data, NULL, NULL, NULL},
+    {"cameras_on", "turn on cameras", NULL, cameras_on, NULL, NULL, NULL},
+    {"cameras_off", "turn off cameras", NULL, cameras_off, NULL, NULL, NULL},
+    {"auto_vent_off", "turn off auto vent", NULL, auto_vent_off, NULL, NULL, NULL},
+    {"auto_vent_set", "set auto vent value", NULL, auto_vent_set, NULL, NULL, NULL},
 };
 
 static void console_register_task(void *arg) {

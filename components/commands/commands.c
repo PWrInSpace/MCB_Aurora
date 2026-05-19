@@ -66,10 +66,7 @@ static bool find_command_and_execute(
     return false;
 }
 
-static bool process_command(cmd_t *cmd,
-                            cmd_sys_dev_id dev_id,
-                            cmd_message_t *message,
-                            bool privilage) {
+static bool process_command(cmd_t *cmd, cmd_sys_dev_id dev_id, cmd_message_t *message, bool privilage) {
     size_t index = 0;
     if (get_device_index(cmd, dev_id, &index) == false) {
         return false;
@@ -94,11 +91,7 @@ static bool check_dev_id_privilage_mode(cmd_lora_dev_id dev_id) {
     return (dev_id & CMD_PRIVILAGE_MASK) > 0 ? true : false;
 }
 
-bool cmd_process_lora_command(
-                                cmd_t *cmd,
-                                cmd_lora_dev_id lora_dev_id,
-                                cmd_sys_dev_id dev_id,
-                                cmd_message_t *message){
+bool cmd_process_lora_command(cmd_t *cmd, cmd_lora_dev_id lora_dev_id, cmd_sys_dev_id dev_id, cmd_message_t *message) {
     if (cmd->lora_dev_id == CMD_BROADCAST_DEV_ID) {
         ESP_LOGE(TAG, "Library hasn't been initialized in LoRa mode");
         return false;

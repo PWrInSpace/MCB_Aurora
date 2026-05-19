@@ -354,7 +354,7 @@ static void on_abort(void *arg) {
         ESP_LOGE(TAG, "Unable to stop flash data timer");
     }
 
-    if(current_state == LIFT_OFF) {
+    if (current_state == LIFT_OFF) {
         ESP_LOGI(TAG, "Abort during LIFT_OFF");
 
         //in case of not lifting off close vents

@@ -133,13 +133,22 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
 
     {
         uint32_t v = 0;
+        v |= (uint32_t)data.ox_vent_eth_main_valves.auto_vent_activated << 31;
+        v |= (uint32_t)data.ox_vent_eth_main_valves.auto_vent_triggered << 30;
+        int8_t ox_temperature = (int8_t)fminf(255.0f, roundf(data.ox_vent_eth_main_valves.ox_temperature));
+        v |= (uint32_t)ox_temperature << 22;
         frame->ox_vent_eth_main_bit_data_c.is_present = true;
         frame->ox_vent_eth_main_bit_data_c.value = v;
     }
 
-    frame->auto_vent_setting.is_present = true;
-    // ustawianie auto vent jak będzie
-    // todo
+    {
+        frame->auto_vent_setting.is_present = true;
+        frame->auto_vent_setting.value = data.ox_vent_eth_main_valves.auto_vent_pressure;
+    }
+
+    ESP_LOGI(TAG, "auto vent setting %d", data.ox_vent_eth_main_valves.auto_vent_pressure);
+    ESP_LOGE(TAG, "activated %d", data.ox_vent_eth_main_valves.auto_vent_activated);
+    ESP_LOGE(TAG, "trigger %d", data.ox_vent_eth_main_valves.auto_vent_triggered);
 
     // ox main bit data (uses ox_main_valve struct)
     {
@@ -207,11 +216,12 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     frame->tanwa_battery.is_present = true;
     frame->tanwa_battery.value = (uint32_t)(data.tanwa.vbat * 100.0f);
 
+    // ESP_LOGI(TAG, "Tanwa battery is %f", data.tanwa.vbat);
+
     frame->tanwa_state.is_present = true;
     frame->tanwa_state.value = data.tanwa.tanWaState;
 
-    ESP_LOGI(TAG, "Tanwa state: %d", data.tanwa.tanWaState);
-    ESP_LOGI(TAG, "Tanwa battery: %f", data.tanwa.vbat);
+    // ESP_LOGI(TAG, "Tanwa state is %d", data.tanwa.tanWaState);
 
     frame->tanwa_thrust.is_present = true;
     frame->tanwa_thrust.value = (int32_t)(data.tanwa.thrust_val * 100.0f);
@@ -305,8 +315,6 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         frame->esp_now_wkup_flags.is_present = true;
         frame->esp_now_wkup_flags.value = wk;
     }
-
-    // ESP_LOGI(TAG, "Waken flags bitfield: %d", data.ox_vent_eth_main_valves.waken_up);
 
     // errors - pack into single uint32 value as before
     frame->errors.is_present = true;

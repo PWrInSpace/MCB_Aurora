@@ -61,11 +61,11 @@ message LoRaFrame {
     optional fixed32 eth_vent_bit_data_b = 27;
 
     optional uint32 auto_vent_setting = 28;
-    // 36 bytes
-
+    
     // === Tanwa ===
     optional uint32 tanwa_battery = 29;
     optional uint32 tanwa_state = 30;
+
     // 8 bytes
 
     // === Tanwa CAN connections & status ===
