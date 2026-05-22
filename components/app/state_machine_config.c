@@ -23,8 +23,6 @@ static void on_init(void *arg) {
 
 static void on_idle(void *arg) {
     gpioexp_led_set_color(GREEN);
-    cmd_message_t cmd = cmd_create_message(ETH_VALVE_CLOSE, 0x00);
-    ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
     ESP_LOGI(TAG, "ON IDLE");
 }
 
