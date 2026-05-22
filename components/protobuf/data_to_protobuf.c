@@ -146,9 +146,9 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         frame->auto_vent_setting.value = data.ox_vent_eth_main_valves.auto_vent_pressure;
     }
 
-    ESP_LOGI(TAG, "auto vent setting %d", data.ox_vent_eth_main_valves.auto_vent_pressure);
-    ESP_LOGE(TAG, "activated %d", data.ox_vent_eth_main_valves.auto_vent_activated);
-    ESP_LOGE(TAG, "trigger %d", data.ox_vent_eth_main_valves.auto_vent_triggered);
+    // ESP_LOGI(TAG, "auto vent setting %d", data.ox_vent_eth_main_valves.auto_vent_pressure);
+    // ESP_LOGE(TAG, "activated %d", data.ox_vent_eth_main_valves.auto_vent_activated);
+    // ESP_LOGE(TAG, "trigger %d", data.ox_vent_eth_main_valves.auto_vent_triggered);
 
     // ox main bit data (uses ox_main_valve struct)
     {
