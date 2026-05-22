@@ -50,18 +50,18 @@ struct obc_lo_ra_frame_t {
     struct {
         bool is_present;
         uint32_t value;
-    } stan_mcb;
+    } mcb_state;
     struct {
         bool is_present;
         uint32_t value;
-    } uptime_disconnect_timer;
+    } uptime_ms;
     struct {
         bool is_present;
         int32_t value;
-    } czas_lotu;
+    } flight_time_ms;
     struct {
         bool is_present;
-        float value;
+        uint32_t value;
     } mcb_batt;
     struct {
         bool is_present;
@@ -74,15 +74,15 @@ struct obc_lo_ra_frame_t {
     struct {
         bool is_present;
         bool value;
-    } gps_sat;
+    } gps_sat_ok;
     struct {
         bool is_present;
         int32_t value;
-    } altitude;
+    } altitude_m;
     struct {
         bool is_present;
         int32_t value;
-    } velocity;
+    } velocity_m_s;
     struct {
         bool is_present;
         int32_t value;
@@ -105,20 +105,20 @@ struct obc_lo_ra_frame_t {
     } recovery_flags;
     struct {
         bool is_present;
-        float value;
-    } pitot_bateria;
+        uint32_t value;
+    } pitot_battery;
     struct {
         bool is_present;
         int32_t value;
-    } pitot_wysokosc;
+    } pitot_altitude;
     struct {
         bool is_present;
         int32_t value;
-    } pitot_predkosc;
+    } pitot_velocity;
     struct {
         bool is_present;
         int32_t value;
-    } pitot_temperatura;
+    } pitot_temperature;
     struct {
         bool is_present;
         uint32_t value;
@@ -161,11 +161,11 @@ struct obc_lo_ra_frame_t {
     } auto_vent_setting;
     struct {
         bool is_present;
-        float value;
-    } tanwa_bateria;
+        uint32_t value;
+    } tanwa_battery;
     struct {
         bool is_present;
-        int32_t value;
+        uint32_t value;
     } tanwa_state;
     struct {
         bool is_present;
@@ -173,64 +173,64 @@ struct obc_lo_ra_frame_t {
     } tanwa_flags;
     struct {
         bool is_present;
-        float value;
+        int32_t value;
     } tanwa_thrust;
     struct {
         bool is_present;
-        float value;
+        uint32_t value;
     } tanwa_tank_weight;
     struct {
         bool is_present;
-        float value;
-    } tanwa_temperature_post_n2_o_fill;
+        int32_t value;
+    } tanwa_temp_post_n2o_fill;
     struct {
         bool is_present;
-        float value;
-    } tanwa_temperature_filling_wall;
+        int32_t value;
+    } tanwa_temp_filling_wall;
     struct {
         bool is_present;
-        float value;
-    } tanwa_post_fill_n2_o_pres;
+        uint32_t value;
+    } tanwa_post_fill_n2o_pres;
     struct {
         bool is_present;
-        float value;
-    } tanwa_cutoff_n2_o_pres;
+        uint32_t value;
+    } tanwa_cutoff_n2o_pres;
     struct {
         bool is_present;
-        float value;
-    } tanwa_droid_n2_o_press;
+        uint32_t value;
+    } tanwa_droid_n2o_pres;
     struct {
         bool is_present;
-        float value;
-    } tanwa_pre_regulator_n2_pres;
+        uint32_t value;
+    } tanwa_pre_reg_n2_pres;
     struct {
         bool is_present;
-        float value;
-    } tanwa_post_regulator_n2_pres;
+        uint32_t value;
+    } tanwa_post_reg_n2_pres;
     struct {
         bool is_present;
-        float value;
+        uint32_t value;
     } tanwa_post_fill_n2_pres;
     struct {
         bool is_present;
-        float value;
-    } tanwa_droid_n2_press;
+        uint32_t value;
+    } tanwa_droid_n2_pres;
     struct {
         bool is_present;
-        float value;
+        uint32_t value;
     } tanwa_comb_chamber_pres;
     struct {
         bool is_present;
-        float value;
-    } payload_bateria;
+        uint32_t value;
+    } payload_battery;
     struct {
         bool is_present;
         uint32_t value;
-    } espnow_connected_flags;
+    } esp_now_connected_flags;
     struct {
         bool is_present;
         uint32_t value;
-    } espnow_wkup_flags;
+    } esp_now_wkup_flags;
     struct {
         bool is_present;
         uint32_t value;
@@ -290,7 +290,7 @@ struct obc_lo_ra_settings_t {
     struct {
         bool is_present;
         int32_t value;
-    } ingition_time;
+    } ignition_time;
     struct {
         bool is_present;
         uint32_t value;

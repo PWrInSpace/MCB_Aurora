@@ -135,6 +135,8 @@ void rocket_data_update_pitot(pitot_data_t *data) {
 }
 
 void rocket_data_update_tanwa(tanwa_data_t *data) {
+    // ESP_LOGE(TAG, "Updating tanwa data");
+    // ESP_LOGE(TAG, "Tanwa state %d", data->tanWaState);
     if (xSemaphoreTake(gb.data_mutex, 1000) != pdTRUE) {
         ESP_LOGE(TAG, "Data semaphore errror :C");
         return;

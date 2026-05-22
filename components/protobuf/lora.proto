@@ -3,19 +3,19 @@ package obc;
 
 message LoRaFrame {
     // === MCB ===
-    optional uint32 Stan_MCB = 1;
-    optional uint32 Uptime_Disconnect_timer = 2;  // ms
-    optional int32 Czas_lotu = 3;                 // ms
-    optional float Mcb_batt = 4;
-    optional float GPS_lat = 5;
-    optional float GPS_long = 6;
-    optional bool GPS_sat = 7;
-    optional int32 Altitude = 8;                  // m
-    optional int32 Velocity = 9;                  // m/s
-    optional int32 MCB_temperature = 10;
-    optional float Euler_fi = 11;
-    optional float Euler_psi = 12;
-    optional float Euler_theta = 13;
+    optional uint32 mcb_state = 1;
+    optional uint32 uptime_ms = 2;
+    optional sint32 flight_time_ms = 3;
+    optional uint32 mcb_batt = 4;
+    optional float gps_lat = 5;
+    optional float gps_long = 6;
+    optional bool gps_sat_ok = 7;
+    optional sint32 altitude_m = 8;
+    optional sint32 velocity_m_s = 9;
+    optional sint32 mcb_temperature = 10;
+    optional float euler_fi = 11;
+    optional float euler_psi = 12;
+    optional float euler_theta = 13;
     // 49 bytes
 
     // === Recovery bitfield ===
@@ -33,10 +33,10 @@ message LoRaFrame {
     // 4 bytes
 
     // === Pitot ===
-    optional float Pitot_bateria = 15;
-    optional int32 Pitot_wysokosc = 16;
-    optional int32 Pitot_predkosc = 17;
-    optional int32 Pitot_temperatura = 18;
+    optional uint32 pitot_battery = 15;
+    optional sint32 pitot_altitude = 16;
+    optional sint32 pitot_velocity = 17;
+    optional sint32 pitot_temperature = 18;
     // 16 bytes
 
     // === Main/Vent bitfield ===
@@ -61,10 +61,11 @@ message LoRaFrame {
     optional fixed32 eth_vent_bit_data_b = 27;
 
     optional uint32 auto_vent_setting = 28;
-
+    
     // === Tanwa ===
-    optional float Tanwa_bateria = 29;
-    optional int32 Tanwa_state = 30;
+    optional uint32 tanwa_battery = 29;
+    optional uint32 tanwa_state = 30;
+
     // 8 bytes
 
     // === Tanwa CAN connections & status ===
@@ -87,25 +88,25 @@ message LoRaFrame {
     // bit16: heating_valves_state
     optional fixed32 tanwa_flags = 31;
 
-    optional float Tanwa_thrust = 32;
-    optional float Tanwa_tank_weight = 33;
-    optional float Tanwa_temperature_post_N2O_fill = 34;
-    optional float Tanwa_temperature_filling_wall = 35;
+    optional sint32 tanwa_thrust = 32;
+    optional uint32 tanwa_tank_weight = 33;
+    optional sint32 tanwa_temp_post_n2o_fill = 34;
+    optional sint32 tanwa_temp_filling_wall = 35;
 
     // Tanwa pressures as individual floats (previously packed pairs).
-    // Use float to preserve fractional values; tags 31..38 reserved for these 8 pressures.
-    optional float Tanwa_postFillN2O_pres      = 36;
-    optional float Tanwa_cutoffN2O_pres        = 37;
-    optional float Tanwa_droidN2O_press        = 38;
-    optional float Tanwa_preRegulatorN2_pres   = 39;
-    optional float Tanwa_postRegulatorN2_pres  = 40;
-    optional float Tanwa_postFillN2_pres       = 41;
-    optional float Tanwa_droidN2_press         = 42;
-    optional float Tanwa_combChamber_pres      = 43;
+    // Use float to preserve fractional values; tags 34..41 reserved for these 8 pressures.
+    optional uint32 tanwa_post_fill_n2o_pres = 36;
+    optional uint32 tanwa_cutoff_n2o_pres = 37;
+    optional uint32 tanwa_droid_n2o_pres = 38;
+    optional uint32 tanwa_pre_reg_n2_pres = 39;
+    optional uint32 tanwa_post_reg_n2_pres = 40;
+    optional uint32 tanwa_post_fill_n2_pres = 41;
+    optional uint32 tanwa_droid_n2_pres = 42;
+    optional uint32 tanwa_comb_chamber_pres = 43;
     // 52 bytes
 
     // === Payload ===
-    optional float Payload_bateria = 44;
+    optional uint32 payload_battery = 44;
 
     // === ESP-NOW connection bitfield ===
     // bit0: payload_connected
@@ -115,7 +116,7 @@ message LoRaFrame {
     // bit4: ox_vent_eth_main_connected
     // bit5: n2_vent_connected
     // bit6: pitot_connected
-    optional fixed32 espnow_connected_flags = 45;
+    optional fixed32 esp_now_connected_flags = 45;
 
     // === ESP-NOW wake-up bitfield ===
     // bit0: payload_wkup
@@ -124,7 +125,7 @@ message LoRaFrame {
     // bit3: ox_vent_eth_main_wkup
     // bit4: n2_vent_wkup
     // bit5: pitot_wkup
-    optional fixed32 espnow_wkup_flags = 46;
+    optional fixed32 esp_now_wkup_flags = 46;
 
     optional fixed32 errors = 47;
     // 16 bytes
@@ -142,7 +143,7 @@ message LoRaSettings {
     optional int32 lora_freq_khz = 1;
     optional int32 lora_transmit_ms = 2;
     optional int32 countdown_time = 3;
-    optional int32 ingition_time = 4;
+    optional int32 ignition_time = 4;
     optional uint32 flash_enable = 5;
     optional uint32 buzzer_enable = 6;
 }
