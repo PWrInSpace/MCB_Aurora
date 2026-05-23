@@ -63,7 +63,7 @@ message LoRaFrame {
     optional uint32 auto_vent_setting = 28;
     
     // === Tanwa ===
-    optional uint32 tanwa_battery = 29;
+    optional fixed32 tanwa_battery = 29;
     optional uint32 tanwa_state = 30;
 
     // 8 bytes

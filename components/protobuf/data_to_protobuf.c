@@ -117,7 +117,7 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         frame->ox_vent_eth_main_bit_data_a.value = v;
     }
 
-    ESP_LOGI(TAG, "Pressure 1 packed: %d", (uint16_t)(fmax(data.ox_vent_eth_main_valves.pressure_1, 0) * 100.0f));
+    // ESP_LOGI(TAG, "Pressure 1 packed: %d", (uint16_t)(fmax(data.ox_vent_eth_main_valves.pressure_1, 0) * 100.0f));
 
     {
         uint32_t v = 0;
@@ -126,7 +126,6 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         v |= (uint32_t)(uint8_t)charger_temperature << 23;
         uint16_t pressure = (uint16_t)(fmax(data.ox_vent_eth_main_valves.pressure_2, 0) * 100);
         v |= (uint32_t)pressure << 7;
-        // ESP_LOGI(TAG, "Pressure 2 packed: %d", pressure);
         frame->ox_vent_eth_main_bit_data_b.is_present = true;
         frame->ox_vent_eth_main_bit_data_b.value = v;
     }
@@ -213,8 +212,25 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     }
 
     // tanwa - map explicit fields from tanwa_data_t
-    frame->tanwa_battery.is_present = true;
-    frame->tanwa_battery.value = (uint32_t)(data.tanwa.vbat * 100.0f);
+    {
+        // wszystko wymuszamy na format 999 i potem dzielimy przez 10
+        uint32_t v = 0;
+        uint8_t tanwa_24v_sys_voltage = (uint8_t)fminf(255.0f, data.tanwa.tanwa_24v_sys_voltage / 100.0f);
+        v |= (uint32_t)tanwa_24v_sys_voltage << 24;
+        uint8_t tanwa_24v_sys_current = (uint8_t)fminf(255.0f, data.tanwa.tanwa_24v_sys_current);
+        v |= (uint32_t)tanwa_24v_sys_current << 16;
+        uint8_t tanwa_24v_sol_voltage = (uint8_t)fminf(255.0f, data.tanwa.tanwa_24v_sol_voltage / 100.0f);
+        v |= (uint32_t)tanwa_24v_sol_voltage << 8;
+        uint8_t tanwa_24v_sol_current = (uint8_t)fminf(255.0f, data.tanwa.tanwa_24v_sol_current);
+        v |= (uint32_t)tanwa_24v_sol_current << 0;
+        frame->tanwa_battery.is_present = true;
+        frame->tanwa_battery.value = v;
+
+        ESP_LOGI(TAG, "tanwa 24v sys voltage %d", tanwa_24v_sys_voltage);
+        ESP_LOGI(TAG, "tanwa 24v sys current %d", tanwa_24v_sys_current);
+        ESP_LOGI(TAG, "tanwa 24v sol voltage %d", tanwa_24v_sol_voltage);
+        ESP_LOGI(TAG, "tanwa 24v sol current %d", tanwa_24v_sol_current);
+    }
 
     // ESP_LOGI(TAG, "Tanwa battery is %f", data.tanwa.vbat);
 
