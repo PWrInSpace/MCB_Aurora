@@ -226,10 +226,10 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         frame->tanwa_battery.is_present = true;
         frame->tanwa_battery.value = v;
 
-        ESP_LOGI(TAG, "tanwa 24v sys voltage %d", tanwa_24v_sys_voltage);
-        ESP_LOGI(TAG, "tanwa 24v sys current %d", tanwa_24v_sys_current);
-        ESP_LOGI(TAG, "tanwa 24v sol voltage %d", tanwa_24v_sol_voltage);
-        ESP_LOGI(TAG, "tanwa 24v sol current %d", tanwa_24v_sol_current);
+        // ESP_LOGI(TAG, "tanwa 24v sys voltage %d", tanwa_24v_sys_voltage);
+        // ESP_LOGI(TAG, "tanwa 24v sys current %d", tanwa_24v_sys_current);
+        // ESP_LOGI(TAG, "tanwa 24v sol voltage %d", tanwa_24v_sol_voltage);
+        // ESP_LOGI(TAG, "tanwa 24v sol current %d", tanwa_24v_sol_current);
     }
 
     // ESP_LOGI(TAG, "Tanwa battery is %f", data.tanwa.vbat);

@@ -152,7 +152,7 @@ static size_t lora_packet(uint8_t* buffer, size_t buffer_size) {
         size = lora_create_data_packet(buffer, buffer_size);
     }
 
-    // ESP_LOGI(TAG, "Sending LoRa frame -> size: %d", size);
+    ESP_LOGI(TAG, "Sending LoRa frame -> size: %d", size);
 
     return size;
 }
