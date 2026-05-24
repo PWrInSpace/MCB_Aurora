@@ -14,7 +14,7 @@ void settings_init_default() {
     settings.countdownTime = -30000;
     settings.ignitTime = -15000;
     settings.lora_transmit_ms = 500;
-    settings.loraFreq_KHz = 916125;
+    settings.loraFreq_KHz = 916250;
     settings.flash_on = 0;
     settings.buzzer_on = 0;
 
