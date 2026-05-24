@@ -36,12 +36,12 @@ bool recovery_send_cmd(uint32_t command, int32_t payload) {
 }
 
 static bool recovery_read_data(recovery_data_t* message, size_t len) {
-   recovery_data_t leftRecoveryData;
-   bool leftStatus = true;
-   if(i2c_com_only_read(RECOVERY_ADDRESS_LEFT, (uint8_t*)&leftRecoveryData, len) == false){
-    //ESP_LOGE(TAG, "RECOVERY ESP RECEIVER ERROR");
-    memset(&leftRecoveryData,0,sizeof(leftRecoveryData));
-    leftStatus = false;
+    recovery_data_t leftRecoveryData;
+    bool leftStatus = true;
+    if (i2c_com_only_read(RECOVERY_ADDRESS_LEFT, (uint8_t*)&leftRecoveryData, len) == false) {
+        //ESP_LOGE(TAG, "RECOVERY ESP RECEIVER ERROR");
+        memset(&leftRecoveryData,0,sizeof(leftRecoveryData));
+        leftStatus = false;
     }
     // if(i2c_com_only_read(RECOVERY_ADDRESS_RIGHT, (uint8_t*)&rightRecoveryData, len) == false){
     // ESP_LOGE(TAG, "RIGHT RECOVERY ESP RECEIVER ERROR");

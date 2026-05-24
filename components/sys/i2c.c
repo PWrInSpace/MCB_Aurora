@@ -128,23 +128,14 @@ static bool I2C_master_only_read(i2c_port_t port, uint8_t dev_addr, uint8_t *dat
     return res == ESP_OK;
 }
 
-bool I2C_master_read_from_slave(i2c_port_t port, uint8_t dev_addr, uint8_t *data,
-                          size_t len) {
+bool I2C_master_read_from_slave(i2c_port_t port, uint8_t dev_addr, uint8_t *data, size_t len) {
+    esp_err_t ret = i2c_master_read_from_device(port, dev_addr, data,len, pdMS_TO_TICKS(100));
 
-    esp_err_t ret; 
-    i2c_cmd_handle_t cmd = i2c_cmd_link_create();    
-    i2c_master_start(cmd);
-    ret = i2c_master_read_from_device(port,dev_addr,data,len,pdMS_TO_TICKS(100));
-    if(ret != ESP_OK){
-    //    ESP_LOGI(TAG, "WYJEBAŁO SIĘ");
-        ret = false;
-        return ret;
+    if (ret != ESP_OK) {
+        return false;
     }
-    i2c_master_stop(cmd);
-    ret = i2c_master_cmd_begin(port, cmd, pdMS_TO_TICKS(100));
-    i2c_cmd_link_delete(cmd);
-    return ret;
 
+    return true;
 }
 
 bool I2C_master_write_to_slave(i2c_port_t port, uint8_t dev_addr, uint8_t *data,
