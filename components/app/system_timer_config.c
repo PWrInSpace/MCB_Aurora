@@ -18,16 +18,13 @@
 #define TAG "TIM"
 
 void on_sd_timer(void *arg){
-    rocket_data_t *p = malloc(sizeof(rocket_data_t));
-    if (p == NULL) {
-        errors_add(ERROR_TYPE_MEMORY, ERROR_MEMORY_UNKNOWN, 0);
-        return;
-    }
-    rocket_data_copy(p);
-    if (SDT_send_data(p, sizeof(*p)) == false) {
+    static rocket_data_t p;
+
+    rocket_data_copy(&p);
+
+    if (SDT_send_data(&p, sizeof(p)) == false) {
         errors_add(ERROR_TYPE_MCB, ERROR_MCB_SD_QUEUE_ADD, 0);
     }
-    free(p);
 }
 
 static void on_broadcast_timer(void *arg) {
@@ -36,20 +33,16 @@ static void on_broadcast_timer(void *arg) {
 }
 
 static void on_flash_data_timer(void *arg) {
-    rocket_data_t *p = malloc(sizeof(rocket_data_t));
-    if (p == NULL) {
-        errors_add(ERROR_TYPE_MEMORY, ERROR_MEMORY_UNKNOWN, 0);
-        return;
-    }
-    rocket_data_copy(p);
-    if (FT_send_data(p) == false) {
+    static rocket_data_t p;
+
+    rocket_data_copy(&p);
+
+    if (FT_send_data(&p) == false) {
         errors_add(ERROR_TYPE_MCB, ERROR_MCB_FLASH_QUEUE_ADD, 0);
     }
-    free(p);
 }
 
 static void on_ignition_timer(void *arg) {
-    ESP_LOGI("TIM", "Ignition timer callback");
     cmd_message_t mess = cmd_create_message(TANWA_FIRE, 0x00);
     ENA_send(&esp_now_tanwa, mess.raw, sizeof(mess.raw), 3);
 }
@@ -95,23 +88,22 @@ static void connected_dev(void *arg) {
 }
 
 static void debug_data(void *arg) {
+    // --- KOD DIAGNOSTYCZNY ---
+    size_t free_heap = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    size_t max_block = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
+
+    ESP_LOGW("MEM_DEBUG", "Całkowity wolny RAM: %d bajtow | Najwiekszy ciągły blok: %d bajtow",
+             free_heap, max_block);
+    // -------------------------
+
     const size_t buf_sz = 2048;
-    char *buffer = malloc(buf_sz);
-    if (buffer == NULL) {
-        errors_add(ERROR_TYPE_MEMORY, ERROR_MEMORY_UNKNOWN, 0);
-        return;
-    }
-    rocket_data_t *p = malloc(sizeof(rocket_data_t));
-    if (p == NULL) {
-        free(buffer);
-        errors_add(ERROR_TYPE_MEMORY, ERROR_MEMORY_UNKNOWN, 0);
-        return;
-    }
-    rocket_data_copy(p);
-    pysd_create_sd_frame(buffer, buf_sz, *p, true);
+    static char buffer[2048];
+    static rocket_data_t p;
+
+    rocket_data_copy(&p);
+
+    pysd_create_sd_frame(buffer, buf_sz, p, true);
     ESP_LOGD(TAG, "%s", buffer);
-    free(p);
-    free(buffer);
 }
 
 static void on_camera_timer(void *arg) {

@@ -1,11 +1,14 @@
 #include "gps_task_config.h"
-#include "ublox_m8.h"
+
+#include <string.h>
+
+#include "basic_task.h"
+#include "errors_config.h"
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "uart.h"
-#include "basic_task.h"
-#include "esp_log.h"
-#include "errors_config.h"
+#include "ublox_m8.h"
 
 #define TAG "GPS"
 
@@ -27,6 +30,37 @@ static struct {
 static void ubx_delay(uint32_t millis) {
     vTaskDelay(pdMS_TO_TICKS(millis));
 }
+
+// --- Konfiguracja GPS ---
+static const uint8_t disableNmeaAll[]          = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x00, 0x01, 0x00, 0x00, 0x02, 0x00, 0x01, 0x00, 0x00, 0x9D, 0xDF};
+static const uint8_t disableInfMessages[]      = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x00, 0x01, 0x00, 0x00, 0x02, 0x00, 0x92, 0x20, 0x00, 0xB0, 0x63};
+static const uint8_t setRocketMode4G[]         = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x00, 0x01, 0x00, 0x00, 0x21, 0x00, 0x11, 0x20, 0x08, 0x94, 0xB7};
+// static const uint8_t enableNavPvt[]            = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0x01, 0x07, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x18, 0xE1};
+static const uint8_t setRate1Hz_M10[]          = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x00, 0x01, 0x00, 0x00, 0x01, 0x00, 0x21, 0x30, 0xE8, 0x03, 0xF1, 0xAE};
+static const char* setUart1OnlyUbxNmea         = "$PUBX,41,1,0003,0001,9600,0*16\r\n";
+
+static void configure_gps_hardware(void) {
+    ESP_LOGI(TAG, "Wysyłanie konfiguracji (Rocket Mode, 1Hz, PVT)...");
+
+    // Używamy wskaźnika do funkcji UART, tak jak robi to reszta biblioteki
+    gb.ubx.uart_write_fnc((uint8_t*)setUart1OnlyUbxNmea, strlen(setUart1OnlyUbxNmea));
+    ubx_delay(50);
+    gb.ubx.uart_write_fnc((uint8_t*)disableInfMessages, sizeof(disableInfMessages));
+    ubx_delay(50);
+    gb.ubx.uart_write_fnc((uint8_t*)disableNmeaAll, sizeof(disableNmeaAll));
+    ubx_delay(50);
+    gb.ubx.uart_write_fnc((uint8_t*)setRocketMode4G, sizeof(setRocketMode4G));
+    ubx_delay(50);
+    // gb.ubx.uart_write_fnc((uint8_t*)enableNavPvt, sizeof(enableNavPvt));
+    // ubx_delay(50);
+    gb.ubx.uart_write_fnc((uint8_t*)setRate1Hz_M10, sizeof(setRate1Hz_M10));
+    ubx_delay(100);
+
+    // Czyszczenie bufora RX, żeby pozbyć się starych śmieci/odpowiedzi z GPS
+    // (Odpowiednik HAL_UARTEx_ReceiveToIdle_DMA ze STM32)
+    uart_flush_rx();
+}
+// ------------------------
 
 static void process_gps_data(void) {
     ublox_m8_pvt_t pvt;
@@ -89,6 +123,10 @@ bool initialize_gps(void) {
     if (ublox_m8_init(&gb.ubx) == false) {
         return false;
     }
+
+    // --- WSTRZYKNIĘCIE KONFIGURACJI SPRZĘTOWEJ ---
+    configure_gps_hardware();
+    // ---------------------------------------------
 
     gb.data_mutex = xSemaphoreCreateMutex();
     if (gb.data_mutex == NULL) {
