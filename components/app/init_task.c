@@ -34,7 +34,7 @@
 
 #define TAG "INIT"
 
-inline static void CHECK_RESULT_ESP(esp_err_t res, char *message) {
+static void CHECK_RESULT_ESP(esp_err_t res, char *message) {
     if (res == ESP_OK) {
         ESP_LOGI(TAG, "Initialized %s", message);
         return;
@@ -44,7 +44,7 @@ inline static void CHECK_RESULT_ESP(esp_err_t res, char *message) {
     esp_restart();
 }
 
-inline static void CHECK_RESULT_BOOL(esp_err_t res, char *message) {
+static void CHECK_RESULT_BOOL(esp_err_t res, char *message) {
     if (res == true) {
         ESP_LOGI(TAG, "Initialized %s", message);
         return;
@@ -60,7 +60,7 @@ static void TASK_init(void *arg) {
     size_t free_heap = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
     ESP_LOGI(TAG, "Free heap at init: %u bytes", (unsigned)free_heap);
 
-        //CHECK_RESULT_ESP(settings_init(), "Change state");
+        // CHECK_RESULT_ESP(settings_init(), "Change state");
     settings_init_default();
     Settings settings = settings_get_all();
 
@@ -69,7 +69,6 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(liquid_mission_timer_init(settings.countdownTime), "Mission timer");
     CHECK_RESULT_BOOL(vbat_init(), "VBAT MEASUREMENT");
     CHECK_RESULT_BOOL(buzzer_init(), "Buzzer");
-
     CHECK_RESULT_BOOL(i2c_sensors_init(), "i2c sensors");
     CHECK_RESULT_BOOL(i2c_com_init(), "i2c com");
     CHECK_RESULT_BOOL(spi_init(VSPI_HOST, CONFIG_SPI_MOSI, CONFIG_SPI_MISO, CONFIG_SPI_SCK), "SPI");
@@ -102,17 +101,15 @@ static void TASK_init(void *arg) {
 
     CHECK_RESULT_BOOL(initialize_lora(settings.loraFreq_KHz, settings.lora_transmit_ms), "LORA");
 
-    // CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
-    // CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 100, TIMER_TYPE_PERIODIC), "SD TIMER");
+    CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 1000, TIMER_TYPE_PERIODIC), "SD TIMER");
     CHECK_RESULT_ESP(init_console(), "CLI");
     // esp_log_level_set("*", ESP_LOG_DEBUG);
 
     CHECK_RESULT_ESP(SM_change_state(IDLE), "Change state to idle");
 
-    // if (settings.buzzer_on != 0) {
-    //     // CHECK_RESULT_BOOL(buzzer_init(), "Buzzer");
-    //     buzzer_turn_on();
-    // }
+    // buzzer_turn_on();
+
     {
         UBaseType_t high = uxTaskGetStackHighWaterMark(NULL);
         ESP_LOGI(TAG, "Init task stack high water mark: %u", (unsigned)high);

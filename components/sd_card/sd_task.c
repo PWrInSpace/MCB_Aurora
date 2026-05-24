@@ -47,6 +47,8 @@ static bool write_to_sd(FILE *file, char *data, size_t size) {
 
     xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
     fwrite(data, 1, size, file);
+    fflush(file);
+    fsync(fileno(file));
     xSemaphoreGive(mem.spi_mutex);
 
     return true;
