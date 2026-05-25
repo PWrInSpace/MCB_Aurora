@@ -16,6 +16,7 @@ bool liquid_mission_timer_init(int32_t countdown_start_ms) {
 bool liquid_mission_timer_start(int32_t countdown_time, int32_t ignition_time) {
     assert(countdown_time < 0);
     assert(ignition_time < 0);
+
     if (countdown_time >= 0 || ignition_time >= 0) {
         return false;
     }
