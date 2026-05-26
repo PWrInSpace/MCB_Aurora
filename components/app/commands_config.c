@@ -21,12 +21,12 @@
 
 // MCB
 static bool state_change_check_countdown(void) {
-    recovery_data_t data = rocket_data_get_recovery();
-    tanwa_data_t tanwa = rocket_data_get_tanwa();
-    if (data.isArmed == false || data.isTeleActive == false || tanwa.soft_arm == false) {
-        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_NOT_ARMED, 100);
-        return false;
-    }
+    // recovery_data_t data = rocket_data_get_recovery();
+    // tanwa_data_t tanwa = rocket_data_get_tanwa();
+    // if (data.isArmed == false || data.isTeleActive == false || tanwa.soft_arm == false) {
+    //     errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_NOT_ARMED, 100);
+    //     return false;
+    // }
 
     // if (rocket_data_woken_up() == false) {
     //     ESP_LOGE(TAG, "On or more devices are sleeping");
@@ -321,7 +321,7 @@ static cmd_command_t recovery_commands[] = {
     {RECOV_EASYMINI_DISARM,     recov_easymini_disarm           },
     {RECOV_TELEMETRUM_ARM,      recov_telemetrum_arm            },
     {RECOV_TELEMETRUM_DISARM,   recov_telemetrum_disarm         },
-    {RECOV_FORCE_SECOND_STAGE,  recov_force_first_separation    },
+    {RECOV_FORCE_FIRST_STAGE,   recov_force_first_separation     },
     {RECOV_FORCE_SECOND_STAGE,  recov_force_second_separation   },
 };
 
@@ -552,13 +552,13 @@ static cmd_command_t tanwa_commands[] = {
 #define SIZE_OF(x) sizeof(x) / sizeof(x[0])
 
 static cmd_device_t devices[] = {
-    {DEVICE_MCB,            mcb_commands,            SIZE_OF(mcb_commands)},
-    {DEVICE_RECOVERY,       recovery_commands,       SIZE_OF(recovery_commands)},
-    {DEVICE_N2_VENT_VALVE,    n2_vent_valve_commands,    SIZE_OF(n2_vent_valve_commands)},
-    {DEVICE_ETH_VENT_VALVE,    eth_vent_valve_commands,    SIZE_OF(eth_vent_valve_commands)},
-    {DEVICE_OX_MAIN_VALVE,  ox_main_valve_commands,  SIZE_OF(ox_main_valve_commands)},
-    {DEVICE_OX_VENT_ETH_MAIN_VALVES, ox_vent_eth_main_valves_commands, SIZE_OF(ox_vent_eth_main_valves_commands)},
-    {DEVICE_TANWA,          tanwa_commands,          SIZE_OF(tanwa_commands)},
+    {DEVICE_MCB,                        mcb_commands,                       SIZE_OF(mcb_commands)},
+    {DEVICE_RECOVERY,                   recovery_commands,                  SIZE_OF(recovery_commands)},
+    {DEVICE_N2_VENT_VALVE,              n2_vent_valve_commands,             SIZE_OF(n2_vent_valve_commands)},
+    {DEVICE_ETH_VENT_VALVE,             eth_vent_valve_commands,            SIZE_OF(eth_vent_valve_commands)},
+    {DEVICE_OX_MAIN_VALVE,              ox_main_valve_commands,             SIZE_OF(ox_main_valve_commands)},
+    {DEVICE_OX_VENT_ETH_MAIN_VALVES,    ox_vent_eth_main_valves_commands,   SIZE_OF(ox_vent_eth_main_valves_commands)},
+    {DEVICE_TANWA,                      tanwa_commands,                     SIZE_OF(tanwa_commands)},
 };
 
 static cmd_t commands = {

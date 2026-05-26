@@ -43,7 +43,7 @@ static uint8_t calculate_checksum(uint8_t* buffer, size_t size) {
 
 static void lora_process(uint8_t* packet, size_t packet_size) {
     if (packet_size > 40) {
-        ESP_LOGE(TAG, "Recevied packet is too big");
+        ESP_LOGE(TAG, "Received packet is too big");
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 100);
         return;
     }
@@ -53,29 +53,27 @@ static void lora_process(uint8_t* packet, size_t packet_size) {
         return;
     }
 
-
     uint8_t prefix_size = sizeof(PACKET_PREFIX) - 1;
     if (calculate_checksum(packet + prefix_size, packet_size - prefix_size - 1) != packet[packet_size - 1]) {
         ESP_LOGE(TAG, "Invalid checksum");
         return;
     }
 
-       
-
     struct obc_lo_ra_command_t* received = obc_lo_ra_command_new(&workspace, sizeof(workspace));
+
     size_t decoded_size = 0;
     decoded_size = obc_lo_ra_command_decode(received, packet + prefix_size, packet_size - prefix_size - 1);
-    if (decoded_size > 0 && received->lora_dev_id.is_present && received->sys_dev_id.is_present &&
-        received->command.is_present && received->payload.is_present) {
-         cmd_message_t received_command = cmd_create_message(received->command.value, received->payload.value);
-         ESP_LOGI(TAG, "Received command from LoRa -> lora_dev_id: %d, sys_dev_id: %d, command: %d, payload: %d",
-                  received->lora_dev_id.value, received->sys_dev_id.value, received->command.value, received->payload.value);
-        if (lora_cmd_process_command(received->lora_dev_id.value, received->sys_dev_id.value,
-                                &received_command) == false) {
+
+    if (decoded_size > 0 && received->lora_dev_id.is_present && received->sys_dev_id.is_present && received->command.is_present && received->payload.is_present) {
+        cmd_message_t received_command = cmd_create_message(received->command.value, received->payload.value);
+        ESP_LOGI(TAG, "Received command from LoRa -> lora_dev_id: %d, sys_dev_id: %d, command: %d, payload: %d", received->lora_dev_id.value, received->sys_dev_id.value, received->command.value, received->payload.value);
+
+        if (lora_cmd_process_command(received->lora_dev_id.value, received->sys_dev_id.value, &received_command) == false) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_COMMAND_NOT_FOUND, 200);
-            ESP_LOGE(TAG, "Unable to prcess command :C");
+            ESP_LOGE(TAG, "Unable to process command :C");
             return;
         }
+
     } else {
         ESP_LOGE(TAG, "Unable to decode received package");
     }

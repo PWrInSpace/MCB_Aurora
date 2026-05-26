@@ -1,6 +1,5 @@
 // Copyright 2022 PWrInSpace, Kuba
 #include "state_machine_config.h"
-#include <stddef.h>
 #include "esp_log.h"
 #include "sdkconfig.h"
 #include "flash_task.h"
@@ -81,7 +80,6 @@ static void on_armed_to_launch(void *arg) {
 }
 
 static void on_ready_to_lauch(void *arg) {
-
     gpioexp_led_set_color(PURPLE);
     ESP_LOGI(TAG, "ON READY_TO_LAUNCH");
     Settings settings = settings_get_all();
@@ -93,7 +91,6 @@ static void on_ready_to_lauch(void *arg) {
 }
 
 static void on_countdown(void *arg) {
-
     ESP_LOGI(TAG, "ON COUNTDOWN");
 
     if (sys_timer_stop(TIMER_DISCONNECT) == false) {
@@ -125,9 +122,11 @@ abort_countdown:
 
 static void recovery_first_stage_process(recovery_data_t *data) {
     if (data == NULL) {
+        ESP_LOGE(TAG, "Recovery data is NULL");
         return;
     }
 
+    ESP_LOGI(TAG, "Recovery first stage process, firstStageDone: %d", data->firstStageDone);
     if (data->firstStageDone == true) {
         if (SM_change_state(FIRST_STAGE_RECOVERY) != SM_OK) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
@@ -138,7 +137,9 @@ static void recovery_first_stage_process(recovery_data_t *data) {
 static void lift_off_process(void *data_buffer) {
 
     static uint8_t liftoff_counter = 0;
-    sensors_data_t *data = (sensors_data_t *)data_buffer;
+    sensors_data_t *data = data_buffer;
+
+    ESP_LOGI(TAG, "Lift off process altitude: %.2f, acc_vertical: %.2f", data->altitude, data->acc_vertical);
 
     if (data->altitude > 10.0f) {
         liftoff_counter += 1;
@@ -155,11 +156,11 @@ static void lift_off_process(void *data_buffer) {
 static void on_lift_off(void *arg) {
     ESP_LOGI(TAG, "----> ON LIFT_OFF <----");
     if (recovery_change_process_fnc(recovery_first_stage_process) == false) {
-        ESP_LOGE(TAG, "Unable do add process fnc");
+        ESP_LOGE(TAG, "Unable do add recovery process fnc");
     }
 
     if (sensors_change_process_function(lift_off_process, 100) == false) {
-        ESP_LOGE(TAG, "Unable to add process function");
+        ESP_LOGE(TAG, "Unable to add sensors process fnc");
     }
 
     cmd_message_t cmd = cmd_create_message(VALVE_DZIDA, 0x00);
@@ -170,7 +171,7 @@ static void on_lift_off(void *arg) {
 static void burn_process(void *data_buffer) {
     
     static uint8_t burn_counter = 0;
-    sensors_data_t *data = (sensors_data_t *)data_buffer;
+    sensors_data_t *data = data_buffer;
 
     if (data->altitude > 50.0f && data->acc_vertical < -8.5f) {
         burn_counter += 1;
@@ -214,7 +215,7 @@ static void recovery_second_stage_process(recovery_data_t *data) {
 static void on_first_stage_recovery(void *arg) {
     ESP_LOGI(TAG, "ON FIRST_STAGE_RECOV");
     if (recovery_change_process_fnc(recovery_second_stage_process) == false) {
-        ESP_LOGE(TAG, "Unable do add process fnc");
+        ESP_LOGE(TAG, "Unable to change to second stage recovery process fnc");
     }
 
     if (recovery_send_cmd(RECOV_FORCE_FIRST_STAGE, 0) == false) {
@@ -224,7 +225,7 @@ static void on_first_stage_recovery(void *arg) {
 
 static void on_ground_sensors_process(void *data_buffer) {
     static uint8_t ground_counter = 0;
-    sensors_data_t *data = (sensors_data_t*) data_buffer;
+    sensors_data_t *data = data_buffer;
 
     if (data->altitude < 50) {
         ground_counter += 1;
@@ -241,6 +242,7 @@ static void on_ground_sensors_process(void *data_buffer) {
 
 static void on_second_stage_recovery(void *arg) {
     ESP_LOGI(TAG, "ON SECOND_STAGE_RECOV");
+
     if (recovery_remove_process_fnc() == false) {
         ESP_LOGE(TAG, "Unable do remove process fnc");
     }

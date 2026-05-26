@@ -49,26 +49,26 @@ static bool get_device_index(cmd_t *cmd, cmd_sys_dev_id dev_id, size_t *dev_inde
     return false;
 }
 
-static bool find_command_and_execute(
-                                    cmd_device_t *dev_cmd,
-                                    cmd_message_t *received_command,
-                                    bool privilage) {
+static bool find_command_and_execute(cmd_device_t *dev_cmd, cmd_message_t *received_command, bool privilege) {
     for (size_t i = 0; i < dev_cmd->number_of_cmd; ++i) {
+        ESP_LOGI(TAG, "Checking command -> received: %d, current: %d", received_command->cmd.command, dev_cmd->cmd[i].command_id);
         if (dev_cmd->cmd[i].command_id == received_command->cmd.command) {
+            ESP_LOGI(TAG, "Command found, executing -> command: %d, payload: %d, privilege: %d", received_command->cmd.command, received_command->cmd.payload, privilege);
             if (dev_cmd->cmd[i].on_command_receive_fnc != NULL) {
-                dev_cmd->cmd[i].on_command_receive_fnc(
-                    received_command->cmd.command, received_command->cmd.payload, privilage);
+                dev_cmd->cmd[i].on_command_receive_fnc(received_command->cmd.command, received_command->cmd.payload, privilege);
+            } else {
+                ESP_LOGE(TAG, "Command function is NULL");
             }
             return true;
         }
     }
-
     return false;
 }
 
 static bool process_command(cmd_t *cmd, cmd_sys_dev_id dev_id, cmd_message_t *message, bool privilage) {
     size_t index = 0;
     if (get_device_index(cmd, dev_id, &index) == false) {
+        ESP_LOGE(TAG, "Device with id %d not found", dev_id);
         return false;
     }
 
@@ -103,9 +103,11 @@ bool cmd_process_lora_command(cmd_t *cmd, cmd_lora_dev_id lora_dev_id, cmd_sys_d
     }
 
     if (check_dev_id_privilage_mode(lora_dev_id) == true) {
+        ESP_LOGE(TAG, "Processing with privileged mode");
         return process_command(cmd, dev_id, message, true);
     }
 
+    ESP_LOGE(TAG, "Processing with non-privileged mode");
     return process_command(cmd, dev_id, message, false);
 }
 

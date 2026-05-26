@@ -92,8 +92,7 @@ static void debug_data(void *arg) {
     size_t free_heap = heap_caps_get_free_size(MALLOC_CAP_8BIT);
     size_t max_block = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
 
-    ESP_LOGW("MEM_DEBUG", "Całkowity wolny RAM: %d bajtow | Najwiekszy ciągły blok: %d bajtow",
-             free_heap, max_block);
+    // ESP_LOGW("MEM_DEBUG", "Całkowity wolny RAM: %d bajtow | Najwiekszy ciągły blok: %d bajtow", free_heap, max_block);
     // -------------------------
 
     const size_t buf_sz = 2048;

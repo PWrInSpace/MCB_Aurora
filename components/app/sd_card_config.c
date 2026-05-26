@@ -36,7 +36,7 @@ bool initialize_sd_card(void) {
     ESP_LOGI(TAG, "Initializing sd task");
     sd_task_cfg_t cfg = {
         .cs_pin = CONFIG_SD_CS,
-        .data_path = "data",
+        .data_path = MCB_DATA_PATH,
         .data_path_size = 9,
         .spi_host = VSPI_HOST,
         .log_path = "log",

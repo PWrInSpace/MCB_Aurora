@@ -1,7 +1,7 @@
 // Copyright 2022 PWr in Space, Kuba
 #include "sd_task.h"
-
 #include "esp_log.h"
+
 #define TAG "SDT"
 
 static struct {
