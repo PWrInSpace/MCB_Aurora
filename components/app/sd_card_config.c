@@ -15,8 +15,16 @@
 extern SemaphoreHandle_t mutex_spi;
 
 static size_t convert_data_to_frame(char *buf, size_t buf_size, void* data, size_t size) {
-    rocket_data_t* rocket_data = (rocket_data_t*)data;
+    rocket_data_t* rocket_data = data;
     return pysd_create_sd_frame(buf, buf_size, *rocket_data, true);
+}
+
+static size_t create_data_header(char *buf, size_t buf_size, void* data, size_t size) {
+    return pysd_create_header(buf, buf_size, true);
+}
+
+static size_t get_header_size(void) {
+    return pysd_get_header_size(true);
 }
 
 void on_error(SD_TASK_ERR error) {
@@ -47,6 +55,8 @@ bool initialize_sd_card(void) {
         .error_handler_fnc = on_error,
         .data_size = sizeof(rocket_data_t),
         .create_sd_frame_fnc = convert_data_to_frame,
+        .create_sd_header_fnc = create_data_header,
+        .get_sd_header_size_fnc = get_header_size,
         .spi_mutex = mutex_spi,
     };
 

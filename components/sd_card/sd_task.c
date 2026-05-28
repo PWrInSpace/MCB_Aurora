@@ -25,6 +25,8 @@ static struct {
 
     error_handler error_handler_fnc;
     create_sd_frame create_sd_frame_fnc;
+    create_sd_header create_sd_header_fnc;
+    get_sd_header_size get_sd_header_size_fnc;
 } mem = {
     .sd_task = NULL,
     .log_queue = NULL,
@@ -38,7 +40,6 @@ static void report_error(SD_TASK_ERR error_code) {
 
     mem.error_handler_fnc(error_code);
 }
-
 
 static bool write_to_sd(FILE *file, char *data, size_t size) {
     if (file == NULL) {
@@ -59,8 +60,8 @@ static void get_data_from_queue_and_save(FILE * data_file) {
     if (xQueueReceive(mem.data_queue, mem.data_from_queue, 0) == pdFALSE) {
             report_error(SD_QUEUE_READ);
     } else {
-        frame_size = mem.create_sd_frame_fnc(mem.data_buffer, sizeof(mem.data_buffer),
-                                             mem.data_from_queue, mem.data_from_queue_size);
+        frame_size = mem.create_sd_frame_fnc(mem.data_buffer, sizeof(mem.data_buffer), mem.data_from_queue, mem.data_from_queue_size);
+
         if (write_to_sd(data_file, mem.data_buffer, frame_size) == false) {
             xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
             SD_remount(&mem.sd_card);
@@ -296,16 +297,45 @@ static bool initialize_task(sd_task_cfg_t *task_cfg) {
     return true;
 }
 
+static void write_headers(sd_task_cfg_t *task_cfg) {
+    ESP_LOGI(TAG, "Writing headers for SD task");
+
+    if (task_cfg->create_sd_header_fnc == NULL) {
+        ESP_LOGE(TAG, "Header create function is null");
+        return;
+    }
+
+    if (task_cfg->get_sd_header_size_fnc == NULL) {
+        ESP_LOGE(TAG, "Unable to get sd header size");
+        return;
+    }
+
+    mem.get_sd_header_size_fnc = task_cfg->get_sd_header_size_fnc;
+    mem.create_sd_header_fnc = task_cfg->create_sd_header_fnc;
+
+    char *buffer = malloc(mem.get_sd_header_size_fnc());
+    mem.create_sd_header_fnc(buffer, mem.get_sd_header_size_fnc(), NULL, 0);
+
+    FILE *data_file = fopen(mem.data_path, "a");
+    write_to_sd(data_file, buffer, mem.get_sd_header_size_fnc());
+    fclose(data_file);
+
+    free(buffer);
+}
+
 bool SDT_init(sd_task_cfg_t *task_cfg) {
     mem.spi_mutex = task_cfg->spi_mutex;
 
     if (initialize_sd_card(task_cfg) == false) {
-        ESP_LOGE(TAG, "Unable to initialzie sd card");
+        ESP_LOGE(TAG, "Unable to initialize sd card");
         return false;
     }
 
+    // creating headers
+    // write_headers(task_cfg);
+
     if (initialize_task(task_cfg) == false) {
-        ESP_LOGE(TAG, "Unable to initialzie sd task");
+        ESP_LOGE(TAG, "Unable to initialize sd task");
         return false;
     }
 

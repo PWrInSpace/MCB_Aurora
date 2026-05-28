@@ -115,7 +115,6 @@ typedef struct{
     float postFillN2_pres;
     float droidN2_press;
     float combChamber_pres;
-    // tanwa power data
     float tanwa_24v_sys_voltage;
     float tanwa_24v_sys_current;
     float tanwa_24v_sol_voltage;
