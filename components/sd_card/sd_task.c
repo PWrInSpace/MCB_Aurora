@@ -76,6 +76,12 @@ static void prepare_data_file_and_save(void) {
     FILE *data_file = fopen(mem.data_path, "a");
     xSemaphoreGive(mem.spi_mutex);
 
+    if (data_file == NULL) {
+        ESP_LOGE(TAG, "Failed to open data file: %s", mem.data_path);
+        report_error(SD_WRITE);
+        return;
+    }
+
     int received_data_counter = 0;
     // ESP_LOGI(TAG, "Saving to sd");
     while (uxQueueMessagesWaiting(mem.data_queue) > 0) {
@@ -317,10 +323,14 @@ static void write_headers(sd_task_cfg_t *task_cfg) {
     mem.create_sd_header_fnc(buffer, mem.get_sd_header_size_fnc(), NULL, 0);
 
     FILE *data_file = fopen(mem.data_path, "a");
+
+    if (data_file == NULL) {
+        report_error(SD_WRITE);
+        return;
+    }
+
     write_to_sd(data_file, buffer, mem.get_sd_header_size_fnc());
     fclose(data_file);
-
-    free(buffer);
 }
 
 bool SDT_init(sd_task_cfg_t *task_cfg) {
