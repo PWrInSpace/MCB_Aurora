@@ -5,7 +5,7 @@
 #include "esp_log.h"
 #include <math.h>            // <-- added
 
-#define TAG "DUPA"
+#define TAG "BMP5"
 
 static struct {
     struct bmp5_dev bmp;
@@ -120,7 +120,7 @@ bool bmp5_calculate_altitude_offset(void) {
         }
         // pressure given in Pa -> convert to hPa before altitude calculation where expected
         sum += bmp5_wrapper_altitude(BMP5_Pa_TO_hPa(data.pressure));
-        vTaskDelay(pdTICKS_TO_MS(25));
+        vTaskDelay(pdMS_TO_TICKS(25));
     }
 
     // divide by actual number of measurements (was hardcoded to 10)

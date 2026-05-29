@@ -1,4 +1,4 @@
-#ifndef MMC5893_H
+#ifndef MMC5983_H
 #define MMC5983_H
 
 #include <stdbool.h>

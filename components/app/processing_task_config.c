@@ -23,7 +23,7 @@ static struct bmp5_sensor_data bar;
 static struct mgos_imu_madgwick madgwick;
 
 static void sensors_read_data(void *data_buffer) {
-    sensors_data_t *data = (sensors_data_t *)data_buffer;
+    sensors_data_t *data = data_buffer;
 
     if (mag_data_ready() == true) {
         if (mag_get_data(&mag) == false) {
