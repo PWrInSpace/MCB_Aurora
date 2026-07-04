@@ -38,14 +38,14 @@ extern "C" {
 #include "pbtools.h"
 
 /**
- * Message obc.LoRaFrame.
+ * Message obc.LoRaMCBFrame.
  */
-struct obc_lo_ra_frame_repeated_t {
+struct obc_lo_ra_mcb_frame_repeated_t {
     int length;
-    struct obc_lo_ra_frame_t *items_p;
+    struct obc_lo_ra_mcb_frame_t *items_p;
 };
 
-struct obc_lo_ra_frame_t {
+struct obc_lo_ra_mcb_frame_t {
     struct pbtools_message_base_t base;
     struct {
         bool is_present;
@@ -162,66 +162,6 @@ struct obc_lo_ra_frame_t {
     struct {
         bool is_present;
         uint32_t value;
-    } tanwa_battery;
-    struct {
-        bool is_present;
-        uint32_t value;
-    } tanwa_state;
-    struct {
-        bool is_present;
-        uint32_t value;
-    } tanwa_flags;
-    struct {
-        bool is_present;
-        int32_t value;
-    } tanwa_thrust;
-    struct {
-        bool is_present;
-        uint32_t value;
-    } tanwa_tank_weight;
-    struct {
-        bool is_present;
-        int32_t value;
-    } tanwa_temp_post_n2o_fill;
-    struct {
-        bool is_present;
-        int32_t value;
-    } tanwa_temp_filling_wall;
-    struct {
-        bool is_present;
-        uint32_t value;
-    } tanwa_post_fill_n2o_pres;
-    struct {
-        bool is_present;
-        uint32_t value;
-    } tanwa_cutoff_n2o_pres;
-    struct {
-        bool is_present;
-        uint32_t value;
-    } tanwa_droid_n2o_pres;
-    struct {
-        bool is_present;
-        uint32_t value;
-    } tanwa_pre_reg_n2_pres;
-    struct {
-        bool is_present;
-        uint32_t value;
-    } tanwa_post_reg_n2_pres;
-    struct {
-        bool is_present;
-        uint32_t value;
-    } tanwa_post_fill_n2_pres;
-    struct {
-        bool is_present;
-        uint32_t value;
-    } tanwa_droid_n2_pres;
-    struct {
-        bool is_present;
-        uint32_t value;
-    } tanwa_comb_chamber_pres;
-    struct {
-        bool is_present;
-        uint32_t value;
     } payload_battery;
     struct {
         bool is_present;
@@ -266,56 +206,20 @@ struct obc_lo_ra_command_t {
 };
 
 /**
- * Message obc.LoRaSettings.
+ * Encoding and decoding of obc.LoRaMCBFrame.
  */
-struct obc_lo_ra_settings_repeated_t {
-    int length;
-    struct obc_lo_ra_settings_t *items_p;
-};
-
-struct obc_lo_ra_settings_t {
-    struct pbtools_message_base_t base;
-    struct {
-        bool is_present;
-        int32_t value;
-    } lora_freq_khz;
-    struct {
-        bool is_present;
-        int32_t value;
-    } lora_transmit_ms;
-    struct {
-        bool is_present;
-        int32_t value;
-    } countdown_time;
-    struct {
-        bool is_present;
-        int32_t value;
-    } ignition_time;
-    struct {
-        bool is_present;
-        uint32_t value;
-    } flash_enable;
-    struct {
-        bool is_present;
-        uint32_t value;
-    } buzzer_enable;
-};
-
-/**
- * Encoding and decoding of obc.LoRaFrame.
- */
-struct obc_lo_ra_frame_t *
-obc_lo_ra_frame_new(
+struct obc_lo_ra_mcb_frame_t *
+obc_lo_ra_mcb_frame_new(
     void *workspace_p,
     size_t size);
 
-int obc_lo_ra_frame_encode(
-    struct obc_lo_ra_frame_t *self_p,
+int obc_lo_ra_mcb_frame_encode(
+    struct obc_lo_ra_mcb_frame_t *self_p,
     uint8_t *encoded_p,
     size_t size);
 
-int obc_lo_ra_frame_decode(
-    struct obc_lo_ra_frame_t *self_p,
+int obc_lo_ra_mcb_frame_decode(
+    struct obc_lo_ra_mcb_frame_t *self_p,
     const uint8_t *encoded_p,
     size_t size);
 
@@ -337,47 +241,29 @@ int obc_lo_ra_command_decode(
     const uint8_t *encoded_p,
     size_t size);
 
-/**
- * Encoding and decoding of obc.LoRaSettings.
- */
-struct obc_lo_ra_settings_t *
-obc_lo_ra_settings_new(
-    void *workspace_p,
-    size_t size);
-
-int obc_lo_ra_settings_encode(
-    struct obc_lo_ra_settings_t *self_p,
-    uint8_t *encoded_p,
-    size_t size);
-
-int obc_lo_ra_settings_decode(
-    struct obc_lo_ra_settings_t *self_p,
-    const uint8_t *encoded_p,
-    size_t size);
-
 /* Internal functions. Do not use! */
 
-void obc_lo_ra_frame_init(
-    struct obc_lo_ra_frame_t *self_p,
+void obc_lo_ra_mcb_frame_init(
+    struct obc_lo_ra_mcb_frame_t *self_p,
     struct pbtools_heap_t *heap_p);
 
-void obc_lo_ra_frame_encode_inner(
+void obc_lo_ra_mcb_frame_encode_inner(
     struct pbtools_encoder_t *encoder_p,
-    struct obc_lo_ra_frame_t *self_p);
+    struct obc_lo_ra_mcb_frame_t *self_p);
 
-void obc_lo_ra_frame_decode_inner(
+void obc_lo_ra_mcb_frame_decode_inner(
     struct pbtools_decoder_t *decoder_p,
-    struct obc_lo_ra_frame_t *self_p);
+    struct obc_lo_ra_mcb_frame_t *self_p);
 
-void obc_lo_ra_frame_encode_repeated_inner(
+void obc_lo_ra_mcb_frame_encode_repeated_inner(
     struct pbtools_encoder_t *encoder_p,
     int field_number,
-    struct obc_lo_ra_frame_repeated_t *repeated_p);
+    struct obc_lo_ra_mcb_frame_repeated_t *repeated_p);
 
-void obc_lo_ra_frame_decode_repeated_inner(
+void obc_lo_ra_mcb_frame_decode_repeated_inner(
     struct pbtools_decoder_t *decoder_p,
     struct pbtools_repeated_info_t *repeated_info_p,
-    struct obc_lo_ra_frame_repeated_t *repeated_p);
+    struct obc_lo_ra_mcb_frame_repeated_t *repeated_p);
 
 void obc_lo_ra_command_init(
     struct obc_lo_ra_command_t *self_p,
@@ -400,28 +286,6 @@ void obc_lo_ra_command_decode_repeated_inner(
     struct pbtools_decoder_t *decoder_p,
     struct pbtools_repeated_info_t *repeated_info_p,
     struct obc_lo_ra_command_repeated_t *repeated_p);
-
-void obc_lo_ra_settings_init(
-    struct obc_lo_ra_settings_t *self_p,
-    struct pbtools_heap_t *heap_p);
-
-void obc_lo_ra_settings_encode_inner(
-    struct pbtools_encoder_t *encoder_p,
-    struct obc_lo_ra_settings_t *self_p);
-
-void obc_lo_ra_settings_decode_inner(
-    struct pbtools_decoder_t *decoder_p,
-    struct obc_lo_ra_settings_t *self_p);
-
-void obc_lo_ra_settings_encode_repeated_inner(
-    struct pbtools_encoder_t *encoder_p,
-    int field_number,
-    struct obc_lo_ra_settings_repeated_t *repeated_p);
-
-void obc_lo_ra_settings_decode_repeated_inner(
-    struct pbtools_decoder_t *decoder_p,
-    struct pbtools_repeated_info_t *repeated_info_p,
-    struct obc_lo_ra_settings_repeated_t *repeated_p);
 
 #ifdef __cplusplus
 }
