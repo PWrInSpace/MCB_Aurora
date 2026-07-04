@@ -8,7 +8,7 @@
 
 #define TAG "PBF"
 
-void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
+void create_protobuf_data_frame(struct obc_lo_ra_mcb_frame_t *frame) {
     rocket_data_t data = rocket_data_get();
     error_data_t errors[MAX_NUMBER_OF_ERRORS];
     if (errors_get_all(errors, sizeof(errors)) == false) {
@@ -209,94 +209,6 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
         frame->eth_vent_bit_data_a.value = v;
     }
 
-    // tanwa - map explicit fields from tanwa_data_t
-    {
-        // wszystko wymuszamy na format 999 i potem dzielimy przez 10
-        uint32_t v = 0;
-        uint8_t tanwa_24v_sys_voltage = (uint8_t)(data.tanwa.tanwa_24v_sys_voltage / 100.0f);
-        v |= (uint32_t)tanwa_24v_sys_voltage << 24;
-        uint8_t tanwa_24v_sys_current = (uint8_t)data.tanwa.tanwa_24v_sys_current;
-        v |= (uint32_t)tanwa_24v_sys_current << 16;
-        uint8_t tanwa_24v_sol_voltage = (uint8_t)(data.tanwa.tanwa_24v_sol_voltage / 100.0f);
-        v |= (uint32_t)tanwa_24v_sol_voltage << 8;
-        uint8_t tanwa_24v_sol_current = (uint8_t)data.tanwa.tanwa_24v_sol_current;
-        v |= (uint32_t)tanwa_24v_sol_current << 0;
-        frame->tanwa_battery.is_present = true;
-        frame->tanwa_battery.value = v;
-
-        // ESP_LOGI(TAG, "tanwa 24v sys voltage %d", tanwa_24v_sys_voltage);
-        // ESP_LOGI(TAG, "tanwa 24v sys current %d", tanwa_24v_sys_current);
-        // ESP_LOGI(TAG, "tanwa 24v sol voltage %d", tanwa_24v_sol_voltage);
-        // ESP_LOGI(TAG, "tanwa 24v sol current %d", tanwa_24v_sol_current);
-    }
-
-    // ESP_LOGI(TAG, "Tanwa battery is %f", data.tanwa.vbat);
-
-    frame->tanwa_state.is_present = true;
-    frame->tanwa_state.value = data.tanwa.tanWaState;
-
-    // ESP_LOGI(TAG, "Tanwa state is %d", data.tanwa.tanWaState);
-
-    frame->tanwa_thrust.is_present = true;
-    frame->tanwa_thrust.value = (int32_t)(data.tanwa.thrust_val * 100.0f);
-
-    frame->tanwa_tank_weight.is_present = true;
-    frame->tanwa_tank_weight.value = (uint32_t)(data.tanwa.tankWeight_val * 100.0f);
-
-    frame->tanwa_temp_post_n2o_fill.is_present = true;
-    frame->tanwa_temp_post_n2o_fill.value = (int32_t)(data.tanwa.temperature_postFill * 100.0f);
-
-    frame->tanwa_temp_filling_wall.is_present = true;
-    frame->tanwa_temp_filling_wall.value = (int32_t)(data.tanwa.temperature_Wall * 100.0f);
-
-    frame->tanwa_post_fill_n2o_pres.is_present = true;
-    frame->tanwa_post_fill_n2o_pres.value = (int32_t)(data.tanwa.postFillN2O_pres * 100.0f);
-
-    frame->tanwa_cutoff_n2o_pres.is_present = true;
-    frame->tanwa_cutoff_n2o_pres.value = (int32_t)(data.tanwa.cutoffN2O_pres * 100.0f);
-
-    frame->tanwa_droid_n2o_pres.is_present = true;
-    frame->tanwa_droid_n2o_pres.value = (int32_t)(data.tanwa.droidN2O_press * 100.0f);
-
-    frame->tanwa_pre_reg_n2_pres.is_present = true;
-    frame->tanwa_pre_reg_n2_pres.value = (int32_t)(data.tanwa.preRegulatorN2_pres * 100.0f);
-
-    frame->tanwa_post_reg_n2_pres.is_present = true;
-    frame->tanwa_post_reg_n2_pres.value = (int32_t)(data.tanwa.postRegulatorN2_pres * 100.0f);
-
-    frame->tanwa_post_fill_n2_pres.is_present = true;
-    frame->tanwa_post_fill_n2_pres.value = (int32_t)(data.tanwa.postFillN2_pres * 100.0f);
-
-    frame->tanwa_droid_n2_pres.is_present = true;
-    frame->tanwa_droid_n2_pres.value = (int32_t)(data.tanwa.droidN2_press * 100.0f);
-
-    frame->tanwa_comb_chamber_pres.is_present = true;
-    frame->tanwa_comb_chamber_pres.value = (int32_t)(data.tanwa.combChamber_pres * 100.0f);
-
-    // tanwa flags - pack many boolean status bits into a single fixed32 tanwa_flags
-    {
-        uint32_t tanwa_flags = 0;
-        tanwa_flags |= data.tanwa.canWeights_con ? 1u << 0 : 0u; // CAN_Weights_connection
-        tanwa_flags |= data.tanwa.canUtility_con ? 1u << 1 : 0u; // CAN_Utility_connection
-        tanwa_flags |= data.tanwa.canSensor_con ? 1u << 2 : 0u; // CAN_Sensor_connection
-        tanwa_flags |= data.tanwa.canPower_con ? 1u << 3 : 0u; // CAN_Power_connection
-        tanwa_flags |= data.tanwa.canSolenoid_con ? 1u << 4 : 0u; // CAN_Solenoid_connection
-        tanwa_flags |= data.tanwa.igniterContinouity_1 ? 1u << 5 : 0u; // igniter_1_continuity
-        tanwa_flags |= data.tanwa.igniterContinouity_2 ? 1u << 6 : 0u; // igniter_2_continuity
-        tanwa_flags |= data.tanwa.soft_arm ? 1u << 7 : 0u; // soft_arm
-        tanwa_flags |= data.tanwa.abortButton ? 1u << 8 : 0u; // abort_button
-        tanwa_flags |= data.tanwa.fillN2OState ? 1u << 9 : 0u;
-        tanwa_flags |= data.tanwa.deprN2OState ? 1u << 10 : 0u;
-        tanwa_flags |= data.tanwa.fillN2State ? 1u << 11 : 0u;
-        tanwa_flags |= data.tanwa.deprN2State ? 1u << 12 : 0u;
-        tanwa_flags |= data.tanwa.droidN2OState ? 1u << 13 : 0u;
-        tanwa_flags |= data.tanwa.droidN2State ? 1u << 14 : 0u;
-        tanwa_flags |= data.tanwa.heatingTankState ? 1u << 15 : 0u;
-        tanwa_flags |= data.tanwa.heatingValveState ? 1u << 16 : 0u;
-        frame->tanwa_flags.is_present = true;
-        frame->tanwa_flags.value = tanwa_flags;
-    }
-    
     // payload
     frame->payload_battery.is_present = true;
     frame->payload_battery.value = (uint32_t)(data.payload.vbat * 100.0f);
@@ -339,21 +251,4 @@ void create_protobuf_data_frame(struct obc_lo_ra_frame_t *frame) {
     frame->errors.value |= errors[ERROR_TYPE_MEMORY] << 16;
     frame->errors.value |= errors[ERROR_TYPE_MCB] << 24;
     frame->errors.value |= errors[ERROR_TYPE_SENSORS] << 28;
-}
-
-void create_protobuf_settings_frame(struct obc_lo_ra_settings_t *frame) {
-    Settings settings = settings_get_all();
-    frame->countdown_time.value = settings.countdownTime;
-    frame->ignition_time.value = settings.ignitTime;
-    frame->lora_freq_khz.value = settings.loraFreq_KHz;
-    frame->lora_transmit_ms.value = settings.lora_transmit_ms;
-    frame->buzzer_enable.value = settings.buzzer_on;
-    frame->flash_enable.value = settings.flash_on;
-
-    frame->countdown_time.is_present = true;
-    frame->ignition_time.is_present = true;
-    frame->lora_freq_khz.is_present = true;
-    frame->lora_transmit_ms.is_present = true;
-    frame->buzzer_enable.is_present = true;
-    frame->flash_enable.is_present = true;
 }

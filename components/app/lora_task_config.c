@@ -93,30 +93,11 @@ static size_t add_prefix(uint8_t* buffer, size_t size) {
     return sizeof(PACKET_PREFIX) - 1;
 }
 
-static size_t lora_create_settings_packet(uint8_t* buffer, size_t size) {
-    /* create settings protobuf into buffer, reserve 1 byte at the end for checksum */
-    if (buffer == NULL || size == 0) return 0;
-
-    struct obc_lo_ra_settings_t *frame = obc_lo_ra_settings_new(&workspace, sizeof(workspace));
-    create_protobuf_settings_frame(frame);
-
-    size_t prefix_size = add_prefix(buffer, size);
-    if (prefix_size == 0) return 0;
-
-    if (size <= prefix_size) return 0;
-    size_t max_payload = size - prefix_size;
-
-    size_t data_size = obc_lo_ra_settings_encode(frame, buffer + prefix_size, max_payload);
-    if (data_size == 0 || data_size > max_payload) return 0;
-
-    return prefix_size + data_size;
-}
-
 static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
     /* create data protobuf into buffer, reserve 1 byte at the end for checksum */
     if (buffer == NULL || size == 0) return 0;
 
-    struct obc_lo_ra_frame_t *frame = obc_lo_ra_frame_new(&workspace, sizeof(workspace));
+    struct obc_lo_ra_mcb_frame_t *frame = obc_lo_ra_mcb_frame_new(&workspace, sizeof(workspace));
     create_protobuf_data_frame(frame);
 
     size_t prefix_size = add_prefix(buffer, size);
@@ -126,7 +107,7 @@ static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
     if (size <= prefix_size) return 0;
     size_t max_payload = size - prefix_size;
 
-    size_t data_size = obc_lo_ra_frame_encode(frame, buffer + prefix_size, max_payload);
+    size_t data_size = obc_lo_ra_mcb_frame_encode(frame, buffer + prefix_size, max_payload);
     if (data_size == 0 || data_size > max_payload) return 0;
 
     //ESP_LOGI(TAG, "Data frame size: %zu", data_size);
@@ -142,13 +123,7 @@ static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
 static size_t lora_packet(uint8_t* buffer, size_t buffer_size) {
     size_t size = 0;
 
-    if (settings_frame == true) {
-        size = lora_create_settings_packet(buffer, buffer_size);
-        settings_frame = false;
-        //ESP_LOGI(TAG, "Transmiting settings frame");
-    } else {
-        size = lora_create_data_packet(buffer, buffer_size);
-    }
+    size = lora_create_data_packet(buffer, buffer_size);
 
     ESP_LOGI(TAG, "Sending LoRa frame -> size: %d", size);
 

@@ -1,7 +1,7 @@
 syntax = "proto3";
 package obc;
 
-message LoRaFrame {
+message LoRaMCBFrame {
     // === MCB ===
     optional uint32 mcb_state = 1;
     optional uint32 uptime_ms = 2;
@@ -61,49 +61,6 @@ message LoRaFrame {
     optional fixed32 eth_vent_bit_data_b = 27;
 
     optional uint32 auto_vent_setting = 28;
-    
-    // === Tanwa ===
-    optional fixed32 tanwa_battery = 29;
-    optional uint32 tanwa_state = 30;
-
-    // 8 bytes
-
-    // === Tanwa CAN connections & status ===
-    // bit0: CAN_Weights_connection
-    // bit1: CAN_Utility_connection
-    // bit2: CAN_Sensor_connection
-    // bit3: CAN_Power_connection
-    // bit4: CAN_Solenoid_connection
-    // bit5: igniter_1_continuity
-    // bit6: igniter_2_continuity
-    // bit7: soft_arm
-    // bit8: abort_button
-    // bit9: fill_N2O_state
-    // bit10: depr_N2O_state
-    // bit11: fill_N2_state
-    // bit12: depr_N2_state
-    // bit13: droid_N2O_state
-    // bit14: droid_N2_state
-    // bit15: heating_tank_state
-    // bit16: heating_valves_state
-    optional fixed32 tanwa_flags = 31;
-
-    optional sint32 tanwa_thrust = 32;
-    optional uint32 tanwa_tank_weight = 33;
-    optional sint32 tanwa_temp_post_n2o_fill = 34;
-    optional sint32 tanwa_temp_filling_wall = 35;
-
-    // Tanwa pressures as individual floats (previously packed pairs).
-    // Use float to preserve fractional values; tags 34..41 reserved for these 8 pressures.
-    optional uint32 tanwa_post_fill_n2o_pres = 36;
-    optional uint32 tanwa_cutoff_n2o_pres = 37;
-    optional uint32 tanwa_droid_n2o_pres = 38;
-    optional uint32 tanwa_pre_reg_n2_pres = 39;
-    optional uint32 tanwa_post_reg_n2_pres = 40;
-    optional uint32 tanwa_post_fill_n2_pres = 41;
-    optional uint32 tanwa_droid_n2_pres = 42;
-    optional uint32 tanwa_comb_chamber_pres = 43;
-    // 52 bytes
 
     // === Payload ===
     optional uint32 payload_battery = 44;
@@ -137,13 +94,4 @@ message LoRaCommand {
     optional uint32 sys_dev_id = 2;
     optional uint32 command = 3;
     optional int32 payload = 4;
-}
-
-message LoRaSettings {
-    optional int32 lora_freq_khz = 1;
-    optional int32 lora_transmit_ms = 2;
-    optional int32 countdown_time = 3;
-    optional int32 ignition_time = 4;
-    optional uint32 flash_enable = 5;
-    optional uint32 buzzer_enable = 6;
 }

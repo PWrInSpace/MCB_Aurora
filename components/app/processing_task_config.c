@@ -62,7 +62,7 @@ static void sensors_read_data(void *data_buffer) {
     data->temperature = bar.temperature;
     float prev_altitude = data->altitude;
     data->altitude = bmp5_wrapper_altitude(data->pressure) * FILTER_CONST + (1 - FILTER_CONST) * data->altitude;
-    data->velocity = (data->altitude - prev_altitude) / CONFIG_SENSORS_TASK_PERIOD_MS;
+    data->velocity = (data->altitude - prev_altitude) / CONFIG_SENSORS_TASK_PERIOD_MS * 1000; // to jest prędkość w m / ms zatem trzeba przemnożyć przez 1000
 
     mgos_imu_madgwick_get_angles(&madgwick, &data->roll, &data->pitch, &data->yaw);
     
@@ -80,40 +80,40 @@ static void sensors_read_data(void *data_buffer) {
 
 
 bool initialize_processing_task(void) {
-    if (bmi08_wrapper_init() == false) {
-        ESP_LOGE(TAG, "BMI08");
-        return false;
-    }
+    // if (bmi08_wrapper_init() == false) {
+    //     ESP_LOGE(TAG, "BMI08");
+    //     return false;
+    // }
+    //
+    // if (bmp5_wrapper_init() == false) {
+    //     ESP_LOGE(TAG, "BMP5");
+    //     return false;
+    // }
 
-    if (bmp5_wrapper_init() == false) {
-        ESP_LOGE(TAG, "BMP5");
-        return false;
-    }
+    // if (bmp5_calculate_altitude_offset() == false) {
+    //     ESP_LOGE(TAG, "BMP5 calibration");
+    //     return false;
+    // }
+    //
+    // if (mag_init() == false) {
+    //     ESP_LOGE(TAG, "MAG");
+    //     return false;
+    // }
 
-    if (bmp5_calculate_altitude_offset() == false) {
-        ESP_LOGE(TAG, "BMP5 calibration");
-        return false;
-    }
+    // if (mag_set_continous_mode(FREQ_100HZ, PRD_500) == false) {
+    //     ESP_LOGE(TAG, "BMAGMODE");
+    //     return false;
+    // }
 
-    if (mag_init() == false) {
-        ESP_LOGE(TAG, "MAG");
-        return false;
-    }
-
-    if (mag_set_continous_mode(FREQ_100HZ, PRD_500) == false) {
-        ESP_LOGE(TAG, "BMAGMODE");
-        return false;
-    }
-
-    if (mgos_imu_madgwick_create(&madgwick) == false) {
-        ESP_LOGE(TAG, "MADGWICK");
-        return false;
-    }
-
-    if (mgos_imu_madgwick_set_params(&madgwick, 100, 0.01) == false) {
-        ESP_LOGE(TAG, "MADGWICK 2");
-        return false;
-    }
+    // if (mgos_imu_madgwick_create(&madgwick) == false) {
+    //     ESP_LOGE(TAG, "MADGWICK");
+    //     return false;
+    // }
+    //
+    // if (mgos_imu_madgwick_set_params(&madgwick, 100, 0.01) == false) {
+    //     ESP_LOGE(TAG, "MADGWICK 2");
+    //     return false;
+    // }
 
     mgos_imu_madgwick_reset(&madgwick);
 
