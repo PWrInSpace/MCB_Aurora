@@ -8,6 +8,7 @@
 #define EXPANDER_LED_PIN_GREEN CONFIG_GPIO_EXPANDER_LED_GREEN
 #define EXPANDER_LED_PIN_BLUE CONFIG_GPIO_EXPANDER_LED_BLUE
 #define EXPANDER_CAMERA_PIN 3
+#define EXPANDER_BUZZER_PIN 4
 
 typedef enum {
     WHITE = 0,
@@ -52,5 +53,29 @@ bool gpioexp_camera_turn_on(void);
  * @return false :C
  */
 bool gpioexp_camera_turn_off(void);
+
+/**
+ * @brief Init buzzer
+ *
+ * @return true :D
+ * @return false :C
+ */
+bool gpioexp_buzzer_init(void);
+
+/**
+ * @brief Turn on buzzer
+ *
+ * @return true :D
+ * @return false :C
+ */
+bool gpioexp_buzzer_turn_on(void);
+
+/**
+ * @brief Turn off buzzer
+ *
+ * @return true :D
+ * @return false :C
+ */
+bool gpioexp_buzzer_turn_off(void);
 
 #endif

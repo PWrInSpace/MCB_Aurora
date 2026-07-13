@@ -17,6 +17,7 @@
 #include "rocket_data.h"
 #define TAG "CONSOLE_CONFIG"
 
+#include "buzzer_pwm.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -368,6 +369,20 @@ int auto_vent_set(int argc, char **argv) {
     return 0;
 }
 
+int buzzer_on(int argc, char **argv) {
+    if (!buzzer_turn_on()) {
+        return -1;
+    }
+    return 0;
+}
+
+int buzzer_off(int argc, char **argv) {
+    if (!buzzer_turn_off()) {
+        return -1;
+    }
+    return 0;
+}
+
 static esp_console_cmd_t cmd[] = {
     {"flash-read", "Read data from flash memory", NULL, read_flash, NULL, NULL, NULL},
     {"reset-dev", "Restart device", NULL, reset_device, NULL, NULL, NULL},
@@ -404,6 +419,8 @@ static esp_console_cmd_t cmd[] = {
     {"cameras_off", "turn off cameras", NULL, cameras_off, NULL, NULL, NULL},
     {"auto_vent_off", "turn off auto vent", NULL, auto_vent_off, NULL, NULL, NULL},
     {"auto_vent_set", "set auto vent value", NULL, auto_vent_set, NULL, NULL, NULL},
+    {"buzzer_on", "turn on buzzer", NULL, buzzer_on, NULL, NULL, NULL},
+    {"buzzer_off", "turn off buzzer", NULL, buzzer_off, NULL, NULL, NULL},
 };
 
 static void console_register_task(void *arg) {

@@ -1,4 +1,5 @@
-build/
+build
+cmake-build-debug-esp-idf-v5.3.4
 sdkconfig
 sdkconfig.default
 sdkconfig.old

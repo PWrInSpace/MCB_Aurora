@@ -99,8 +99,7 @@ bool bmp5_wrapper_init(void) {
 }
 
 bool bmp5_wrapper_get_data(struct bmp5_sensor_data *data) {
-    int8_t res;
-    res = bmp5_get_sensor_data(data, &gb.odr_press_cfg, &gb.bmp);
+    int8_t res = bmp5_get_sensor_data(data, &gb.odr_press_cfg, &gb.bmp);
 
     return res == BMP5_OK ? true : false;
 }

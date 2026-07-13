@@ -45,3 +45,15 @@ bool gpioexp_camera_turn_on(void) {
 bool gpioexp_camera_turn_off(void) {
     return PCA9574_set_level_pin(&gb.pca, PCA9574_LOW, EXPANDER_CAMERA_PIN);
 }
+
+bool gpioexp_buzzer_init(void) {
+    return PCA9574_set_level_pin(&gb.pca, PCA9574_LOW, EXPANDER_BUZZER_PIN);
+}
+
+bool gpioexp_buzzer_turn_on(void) {
+    return PCA9574_set_level_pin(&gb.pca, PCA9574_HIGH, EXPANDER_BUZZER_PIN);
+}
+
+bool gpioexp_buzzer_turn_off(void) {
+    return PCA9574_set_level_pin(&gb.pca, PCA9574_LOW, EXPANDER_BUZZER_PIN);
+}

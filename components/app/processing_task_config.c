@@ -2,15 +2,14 @@
 #include "processing_task_config.h"
 
 #include <math.h>
+
 #include "bmi08_wrapper.h"
 #include "bmp5_wrapper.h"
 #include "errors_config.h"
 #include "esp_log.h"
 #include "mag_wrapper.h"
 #include "magdwick.h"
-#include "rocket_data.h"
 #include "state_machine.h"
-#include "state_machine_config.h"
 
 #define TAG "SENSORS_CFG"
 
@@ -43,8 +42,7 @@ static void sensors_read_data(void *data_buffer) {
         errors_add(ERROR_TYPE_SENSORS, ERROR_SENSOR_BAR, 100);
     }
 
-    mgos_imu_madgwick_update(&madgwick, gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y,
-                             mag.z);
+    mgos_imu_madgwick_update(&madgwick, gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y, mag.z);
 
     data->acc_x = acc.x;
     data->acc_y = acc.y;
@@ -76,44 +74,53 @@ static void sensors_read_data(void *data_buffer) {
                                 acc.z * cosf(roll_rad) * cosf(pitch_rad);
 
     data->acc_vertical = acc_earth_z;
+
+    ESP_LOGI(TAG, "SENSORS: acc: %.2f %.2f %.2f, gyr: %.2f %.2f %.2f, mag: %.2f %.2f %.2f, bar: %.2f hPa, alt: %.2f m, vel: %.2f m/s, temp: %.2f C",
+             data->acc_x, data->acc_y, data->acc_z,
+             data->gyr_x, data->gyr_y, data->gyr_z,
+             data->mag_x, data->mag_y, data->mag_z,
+             data->pressure,
+             data->altitude,
+             data->velocity,
+             data->temperature);
 }
 
 
 bool initialize_processing_task(void) {
-    // if (bmi08_wrapper_init() == false) {
-    //     ESP_LOGE(TAG, "BMI08");
-    //     return false;
-    // }
-    //
-    // if (bmp5_wrapper_init() == false) {
-    //     ESP_LOGE(TAG, "BMP5");
-    //     return false;
-    // }
+    if (bmi08_wrapper_init() == false) {
+        ESP_LOGE(TAG, "BMI08");
+        return false;
+    }
 
-    // if (bmp5_calculate_altitude_offset() == false) {
-    //     ESP_LOGE(TAG, "BMP5 calibration");
-    //     return false;
-    // }
-    //
-    // if (mag_init() == false) {
-    //     ESP_LOGE(TAG, "MAG");
-    //     return false;
-    // }
+    if (bmp5_wrapper_init() == false) {
+        ESP_LOGE(TAG, "BMP5");
+        return false;
+    }
 
-    // if (mag_set_continous_mode(FREQ_100HZ, PRD_500) == false) {
-    //     ESP_LOGE(TAG, "BMAGMODE");
-    //     return false;
-    // }
+    if (bmp5_calculate_altitude_offset() == false) {
+        ESP_LOGE(TAG, "BMP5 calibration");
+        return false;
+    }
 
-    // if (mgos_imu_madgwick_create(&madgwick) == false) {
-    //     ESP_LOGE(TAG, "MADGWICK");
-    //     return false;
-    // }
-    //
-    // if (mgos_imu_madgwick_set_params(&madgwick, 100, 0.01) == false) {
-    //     ESP_LOGE(TAG, "MADGWICK 2");
-    //     return false;
-    // }
+    if (mag_init() == false) {
+        ESP_LOGE(TAG, "MAG");
+        return false;
+    }
+
+    if (mag_set_continous_mode(FREQ_100HZ, PRD_500) == false) {
+        ESP_LOGE(TAG, "BMAGMODE");
+        return false;
+    }
+
+    if (mgos_imu_madgwick_create(&madgwick) == false) {
+        ESP_LOGE(TAG, "MADGWICK");
+        return false;
+    }
+
+    if (mgos_imu_madgwick_set_params(&madgwick, 100, 0.01) == false) {
+        ESP_LOGE(TAG, "MADGWICK 2");
+        return false;
+    }
 
     mgos_imu_madgwick_reset(&madgwick);
 

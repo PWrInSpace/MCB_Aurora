@@ -5,8 +5,6 @@
 #include "processing_task.h"
 #include "slave_structs.h"
 
-
-
 typedef struct {
     float acc_x;
     float acc_y;
