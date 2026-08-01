@@ -36,8 +36,8 @@
 #    error "Number of bits in a char must be 8."
 #endif
 
-void obc_lo_ra_mcb_frame_init(
-    struct obc_lo_ra_mcb_frame_t *self_p,
+void obc_mcb_frame_init(
+    struct obc_mcb_frame_t *self_p,
     struct pbtools_heap_t *heap_p)
 {
     self_p->base.heap_p = heap_p;
@@ -75,9 +75,9 @@ void obc_lo_ra_mcb_frame_init(
     self_p->errors.is_present = false;
 }
 
-void obc_lo_ra_mcb_frame_encode_inner(
+void obc_mcb_frame_encode_inner(
     struct pbtools_encoder_t *encoder_p,
-    struct obc_lo_ra_mcb_frame_t *self_p)
+    struct obc_mcb_frame_t *self_p)
 {
     if (self_p->errors.is_present) {
         pbtools_encoder_write_fixed32_always(encoder_p, 47, self_p->errors.value);
@@ -177,9 +177,9 @@ void obc_lo_ra_mcb_frame_encode_inner(
     }
 }
 
-void obc_lo_ra_mcb_frame_decode_inner(
+void obc_mcb_frame_decode_inner(
     struct pbtools_decoder_t *decoder_p,
-    struct obc_lo_ra_mcb_frame_t *self_p)
+    struct obc_mcb_frame_t *self_p)
 {
     int wire_type;
 
@@ -353,47 +353,47 @@ void obc_lo_ra_mcb_frame_decode_inner(
     }
 }
 
-void obc_lo_ra_mcb_frame_encode_repeated_inner(
+void obc_mcb_frame_encode_repeated_inner(
     struct pbtools_encoder_t *encoder_p,
     int field_number,
-    struct obc_lo_ra_mcb_frame_repeated_t *repeated_p)
+    struct obc_mcb_frame_repeated_t *repeated_p)
 {
     pbtools_encode_repeated_inner(
         encoder_p,
         field_number,
         (struct pbtools_repeated_message_t *)repeated_p,
-        sizeof(struct obc_lo_ra_mcb_frame_t),
-        (pbtools_message_encode_inner_t)obc_lo_ra_mcb_frame_encode_inner);
+        sizeof(struct obc_mcb_frame_t),
+        (pbtools_message_encode_inner_t)obc_mcb_frame_encode_inner);
 }
 
-void obc_lo_ra_mcb_frame_decode_repeated_inner(
+void obc_mcb_frame_decode_repeated_inner(
     struct pbtools_decoder_t *decoder_p,
     struct pbtools_repeated_info_t *repeated_info_p,
-    struct obc_lo_ra_mcb_frame_repeated_t *repeated_p)
+    struct obc_mcb_frame_repeated_t *repeated_p)
 {
     pbtools_decode_repeated_inner(
         decoder_p,
         repeated_info_p,
         (struct pbtools_repeated_message_t *)repeated_p,
-        sizeof(struct obc_lo_ra_mcb_frame_t),
-        (pbtools_message_init_t)obc_lo_ra_mcb_frame_init,
-        (pbtools_message_decode_inner_t)obc_lo_ra_mcb_frame_decode_inner);
+        sizeof(struct obc_mcb_frame_t),
+        (pbtools_message_init_t)obc_mcb_frame_init,
+        (pbtools_message_decode_inner_t)obc_mcb_frame_decode_inner);
 }
 
-struct obc_lo_ra_mcb_frame_t *
-obc_lo_ra_mcb_frame_new(
+struct obc_mcb_frame_t *
+obc_mcb_frame_new(
     void *workspace_p,
     size_t size)
 {
     return (pbtools_message_new(
                 workspace_p,
                 size,
-                sizeof(struct obc_lo_ra_mcb_frame_t),
-                (pbtools_message_init_t)obc_lo_ra_mcb_frame_init));
+                sizeof(struct obc_mcb_frame_t),
+                (pbtools_message_init_t)obc_mcb_frame_init));
 }
 
-int obc_lo_ra_mcb_frame_encode(
-    struct obc_lo_ra_mcb_frame_t *self_p,
+int obc_mcb_frame_encode(
+    struct obc_mcb_frame_t *self_p,
     uint8_t *encoded_p,
     size_t size)
 {
@@ -401,11 +401,11 @@ int obc_lo_ra_mcb_frame_encode(
                 &self_p->base,
                 encoded_p,
                 size,
-                (pbtools_message_encode_inner_t)obc_lo_ra_mcb_frame_encode_inner));
+                (pbtools_message_encode_inner_t)obc_mcb_frame_encode_inner));
 }
 
-int obc_lo_ra_mcb_frame_decode(
-    struct obc_lo_ra_mcb_frame_t *self_p,
+int obc_mcb_frame_decode(
+    struct obc_mcb_frame_t *self_p,
     const uint8_t *encoded_p,
     size_t size)
 {
@@ -413,11 +413,238 @@ int obc_lo_ra_mcb_frame_decode(
                 &self_p->base,
                 encoded_p,
                 size,
-                (pbtools_message_decode_inner_t)obc_lo_ra_mcb_frame_decode_inner));
+                (pbtools_message_decode_inner_t)obc_mcb_frame_decode_inner));
 }
 
-void obc_lo_ra_command_init(
-    struct obc_lo_ra_command_t *self_p,
+void obc_tanwa_frame_init(
+    struct obc_tanwa_frame_t *self_p,
+    struct pbtools_heap_t *heap_p)
+{
+    self_p->base.heap_p = heap_p;
+    self_p->tanwa_battery.is_present = false;
+    self_p->tanwa_state.is_present = false;
+    self_p->tanwa_flags.is_present = false;
+    self_p->tanwa_thrust.is_present = false;
+    self_p->tanwa_tank_weight.is_present = false;
+    self_p->tanwa_temp_post_n2o_fill.is_present = false;
+    self_p->tanwa_temp_filling_wall.is_present = false;
+    self_p->tanwa_post_fill_n2o_pres.is_present = false;
+    self_p->tanwa_cutoff_n2o_pres.is_present = false;
+    self_p->tanwa_droid_n2o_pres.is_present = false;
+    self_p->tanwa_pre_reg_n2_pres.is_present = false;
+    self_p->tanwa_post_reg_n2_pres.is_present = false;
+    self_p->tanwa_post_fill_n2_pres.is_present = false;
+    self_p->tanwa_droid_n2_pres.is_present = false;
+    self_p->tanwa_comb_chamber_pres.is_present = false;
+}
+
+void obc_tanwa_frame_encode_inner(
+    struct pbtools_encoder_t *encoder_p,
+    struct obc_tanwa_frame_t *self_p)
+{
+    if (self_p->tanwa_comb_chamber_pres.is_present) {
+        pbtools_encoder_write_uint32_always(encoder_p, 15, self_p->tanwa_comb_chamber_pres.value);
+    }
+    if (self_p->tanwa_droid_n2_pres.is_present) {
+        pbtools_encoder_write_uint32_always(encoder_p, 14, self_p->tanwa_droid_n2_pres.value);
+    }
+    if (self_p->tanwa_post_fill_n2_pres.is_present) {
+        pbtools_encoder_write_uint32_always(encoder_p, 13, self_p->tanwa_post_fill_n2_pres.value);
+    }
+    if (self_p->tanwa_post_reg_n2_pres.is_present) {
+        pbtools_encoder_write_uint32_always(encoder_p, 12, self_p->tanwa_post_reg_n2_pres.value);
+    }
+    if (self_p->tanwa_pre_reg_n2_pres.is_present) {
+        pbtools_encoder_write_uint32_always(encoder_p, 11, self_p->tanwa_pre_reg_n2_pres.value);
+    }
+    if (self_p->tanwa_droid_n2o_pres.is_present) {
+        pbtools_encoder_write_uint32_always(encoder_p, 10, self_p->tanwa_droid_n2o_pres.value);
+    }
+    if (self_p->tanwa_cutoff_n2o_pres.is_present) {
+        pbtools_encoder_write_uint32_always(encoder_p, 9, self_p->tanwa_cutoff_n2o_pres.value);
+    }
+    if (self_p->tanwa_post_fill_n2o_pres.is_present) {
+        pbtools_encoder_write_uint32_always(encoder_p, 8, self_p->tanwa_post_fill_n2o_pres.value);
+    }
+    if (self_p->tanwa_temp_filling_wall.is_present) {
+        pbtools_encoder_write_sint32_always(encoder_p, 7, self_p->tanwa_temp_filling_wall.value);
+    }
+    if (self_p->tanwa_temp_post_n2o_fill.is_present) {
+        pbtools_encoder_write_sint32_always(encoder_p, 6, self_p->tanwa_temp_post_n2o_fill.value);
+    }
+    if (self_p->tanwa_tank_weight.is_present) {
+        pbtools_encoder_write_uint32_always(encoder_p, 5, self_p->tanwa_tank_weight.value);
+    }
+    if (self_p->tanwa_thrust.is_present) {
+        pbtools_encoder_write_sint32_always(encoder_p, 4, self_p->tanwa_thrust.value);
+    }
+    if (self_p->tanwa_flags.is_present) {
+        pbtools_encoder_write_fixed32_always(encoder_p, 3, self_p->tanwa_flags.value);
+    }
+    if (self_p->tanwa_state.is_present) {
+        pbtools_encoder_write_uint32_always(encoder_p, 2, self_p->tanwa_state.value);
+    }
+    if (self_p->tanwa_battery.is_present) {
+        pbtools_encoder_write_fixed32_always(encoder_p, 1, self_p->tanwa_battery.value);
+    }
+}
+
+void obc_tanwa_frame_decode_inner(
+    struct pbtools_decoder_t *decoder_p,
+    struct obc_tanwa_frame_t *self_p)
+{
+    int wire_type;
+
+    while (pbtools_decoder_available(decoder_p)) {
+        switch (pbtools_decoder_read_tag(decoder_p, &wire_type)) {
+
+        case 1:
+            self_p->tanwa_battery.is_present = true;
+            self_p->tanwa_battery.value = pbtools_decoder_read_fixed32(decoder_p, wire_type);
+            break;
+
+        case 2:
+            self_p->tanwa_state.is_present = true;
+            self_p->tanwa_state.value = pbtools_decoder_read_uint32(decoder_p, wire_type);
+            break;
+
+        case 3:
+            self_p->tanwa_flags.is_present = true;
+            self_p->tanwa_flags.value = pbtools_decoder_read_fixed32(decoder_p, wire_type);
+            break;
+
+        case 4:
+            self_p->tanwa_thrust.is_present = true;
+            self_p->tanwa_thrust.value = pbtools_decoder_read_sint32(decoder_p, wire_type);
+            break;
+
+        case 5:
+            self_p->tanwa_tank_weight.is_present = true;
+            self_p->tanwa_tank_weight.value = pbtools_decoder_read_uint32(decoder_p, wire_type);
+            break;
+
+        case 6:
+            self_p->tanwa_temp_post_n2o_fill.is_present = true;
+            self_p->tanwa_temp_post_n2o_fill.value = pbtools_decoder_read_sint32(decoder_p, wire_type);
+            break;
+
+        case 7:
+            self_p->tanwa_temp_filling_wall.is_present = true;
+            self_p->tanwa_temp_filling_wall.value = pbtools_decoder_read_sint32(decoder_p, wire_type);
+            break;
+
+        case 8:
+            self_p->tanwa_post_fill_n2o_pres.is_present = true;
+            self_p->tanwa_post_fill_n2o_pres.value = pbtools_decoder_read_uint32(decoder_p, wire_type);
+            break;
+
+        case 9:
+            self_p->tanwa_cutoff_n2o_pres.is_present = true;
+            self_p->tanwa_cutoff_n2o_pres.value = pbtools_decoder_read_uint32(decoder_p, wire_type);
+            break;
+
+        case 10:
+            self_p->tanwa_droid_n2o_pres.is_present = true;
+            self_p->tanwa_droid_n2o_pres.value = pbtools_decoder_read_uint32(decoder_p, wire_type);
+            break;
+
+        case 11:
+            self_p->tanwa_pre_reg_n2_pres.is_present = true;
+            self_p->tanwa_pre_reg_n2_pres.value = pbtools_decoder_read_uint32(decoder_p, wire_type);
+            break;
+
+        case 12:
+            self_p->tanwa_post_reg_n2_pres.is_present = true;
+            self_p->tanwa_post_reg_n2_pres.value = pbtools_decoder_read_uint32(decoder_p, wire_type);
+            break;
+
+        case 13:
+            self_p->tanwa_post_fill_n2_pres.is_present = true;
+            self_p->tanwa_post_fill_n2_pres.value = pbtools_decoder_read_uint32(decoder_p, wire_type);
+            break;
+
+        case 14:
+            self_p->tanwa_droid_n2_pres.is_present = true;
+            self_p->tanwa_droid_n2_pres.value = pbtools_decoder_read_uint32(decoder_p, wire_type);
+            break;
+
+        case 15:
+            self_p->tanwa_comb_chamber_pres.is_present = true;
+            self_p->tanwa_comb_chamber_pres.value = pbtools_decoder_read_uint32(decoder_p, wire_type);
+            break;
+
+        default:
+            pbtools_decoder_skip_field(decoder_p, wire_type);
+            break;
+        }
+    }
+}
+
+void obc_tanwa_frame_encode_repeated_inner(
+    struct pbtools_encoder_t *encoder_p,
+    int field_number,
+    struct obc_tanwa_frame_repeated_t *repeated_p)
+{
+    pbtools_encode_repeated_inner(
+        encoder_p,
+        field_number,
+        (struct pbtools_repeated_message_t *)repeated_p,
+        sizeof(struct obc_tanwa_frame_t),
+        (pbtools_message_encode_inner_t)obc_tanwa_frame_encode_inner);
+}
+
+void obc_tanwa_frame_decode_repeated_inner(
+    struct pbtools_decoder_t *decoder_p,
+    struct pbtools_repeated_info_t *repeated_info_p,
+    struct obc_tanwa_frame_repeated_t *repeated_p)
+{
+    pbtools_decode_repeated_inner(
+        decoder_p,
+        repeated_info_p,
+        (struct pbtools_repeated_message_t *)repeated_p,
+        sizeof(struct obc_tanwa_frame_t),
+        (pbtools_message_init_t)obc_tanwa_frame_init,
+        (pbtools_message_decode_inner_t)obc_tanwa_frame_decode_inner);
+}
+
+struct obc_tanwa_frame_t *
+obc_tanwa_frame_new(
+    void *workspace_p,
+    size_t size)
+{
+    return (pbtools_message_new(
+                workspace_p,
+                size,
+                sizeof(struct obc_tanwa_frame_t),
+                (pbtools_message_init_t)obc_tanwa_frame_init));
+}
+
+int obc_tanwa_frame_encode(
+    struct obc_tanwa_frame_t *self_p,
+    uint8_t *encoded_p,
+    size_t size)
+{
+    return (pbtools_message_encode(
+                &self_p->base,
+                encoded_p,
+                size,
+                (pbtools_message_encode_inner_t)obc_tanwa_frame_encode_inner));
+}
+
+int obc_tanwa_frame_decode(
+    struct obc_tanwa_frame_t *self_p,
+    const uint8_t *encoded_p,
+    size_t size)
+{
+    return (pbtools_message_decode(
+                &self_p->base,
+                encoded_p,
+                size,
+                (pbtools_message_decode_inner_t)obc_tanwa_frame_decode_inner));
+}
+
+void obc_app_frame_init(
+    struct obc_app_frame_t *self_p,
     struct pbtools_heap_t *heap_p)
 {
     self_p->base.heap_p = heap_p;
@@ -427,9 +654,9 @@ void obc_lo_ra_command_init(
     self_p->payload.is_present = false;
 }
 
-void obc_lo_ra_command_encode_inner(
+void obc_app_frame_encode_inner(
     struct pbtools_encoder_t *encoder_p,
-    struct obc_lo_ra_command_t *self_p)
+    struct obc_app_frame_t *self_p)
 {
     if (self_p->payload.is_present) {
         pbtools_encoder_write_int32_always(encoder_p, 4, self_p->payload.value);
@@ -445,9 +672,9 @@ void obc_lo_ra_command_encode_inner(
     }
 }
 
-void obc_lo_ra_command_decode_inner(
+void obc_app_frame_decode_inner(
     struct pbtools_decoder_t *decoder_p,
-    struct obc_lo_ra_command_t *self_p)
+    struct obc_app_frame_t *self_p)
 {
     int wire_type;
 
@@ -481,47 +708,47 @@ void obc_lo_ra_command_decode_inner(
     }
 }
 
-void obc_lo_ra_command_encode_repeated_inner(
+void obc_app_frame_encode_repeated_inner(
     struct pbtools_encoder_t *encoder_p,
     int field_number,
-    struct obc_lo_ra_command_repeated_t *repeated_p)
+    struct obc_app_frame_repeated_t *repeated_p)
 {
     pbtools_encode_repeated_inner(
         encoder_p,
         field_number,
         (struct pbtools_repeated_message_t *)repeated_p,
-        sizeof(struct obc_lo_ra_command_t),
-        (pbtools_message_encode_inner_t)obc_lo_ra_command_encode_inner);
+        sizeof(struct obc_app_frame_t),
+        (pbtools_message_encode_inner_t)obc_app_frame_encode_inner);
 }
 
-void obc_lo_ra_command_decode_repeated_inner(
+void obc_app_frame_decode_repeated_inner(
     struct pbtools_decoder_t *decoder_p,
     struct pbtools_repeated_info_t *repeated_info_p,
-    struct obc_lo_ra_command_repeated_t *repeated_p)
+    struct obc_app_frame_repeated_t *repeated_p)
 {
     pbtools_decode_repeated_inner(
         decoder_p,
         repeated_info_p,
         (struct pbtools_repeated_message_t *)repeated_p,
-        sizeof(struct obc_lo_ra_command_t),
-        (pbtools_message_init_t)obc_lo_ra_command_init,
-        (pbtools_message_decode_inner_t)obc_lo_ra_command_decode_inner);
+        sizeof(struct obc_app_frame_t),
+        (pbtools_message_init_t)obc_app_frame_init,
+        (pbtools_message_decode_inner_t)obc_app_frame_decode_inner);
 }
 
-struct obc_lo_ra_command_t *
-obc_lo_ra_command_new(
+struct obc_app_frame_t *
+obc_app_frame_new(
     void *workspace_p,
     size_t size)
 {
     return (pbtools_message_new(
                 workspace_p,
                 size,
-                sizeof(struct obc_lo_ra_command_t),
-                (pbtools_message_init_t)obc_lo_ra_command_init));
+                sizeof(struct obc_app_frame_t),
+                (pbtools_message_init_t)obc_app_frame_init));
 }
 
-int obc_lo_ra_command_encode(
-    struct obc_lo_ra_command_t *self_p,
+int obc_app_frame_encode(
+    struct obc_app_frame_t *self_p,
     uint8_t *encoded_p,
     size_t size)
 {
@@ -529,11 +756,11 @@ int obc_lo_ra_command_encode(
                 &self_p->base,
                 encoded_p,
                 size,
-                (pbtools_message_encode_inner_t)obc_lo_ra_command_encode_inner));
+                (pbtools_message_encode_inner_t)obc_app_frame_encode_inner));
 }
 
-int obc_lo_ra_command_decode(
-    struct obc_lo_ra_command_t *self_p,
+int obc_app_frame_decode(
+    struct obc_app_frame_t *self_p,
     const uint8_t *encoded_p,
     size_t size)
 {
@@ -541,5 +768,229 @@ int obc_lo_ra_command_decode(
                 &self_p->base,
                 encoded_p,
                 size,
-                (pbtools_message_decode_inner_t)obc_lo_ra_command_decode_inner));
+                (pbtools_message_decode_inner_t)obc_app_frame_decode_inner));
+}
+
+int obc_lo_ra_frame_mcb_frame_alloc(
+    struct obc_lo_ra_frame_t *self_p)
+{
+    self_p->frame = obc_lo_ra_frame_frame_mcb_frame_e;
+
+    return (pbtools_sub_message_alloc(
+                (struct pbtools_message_base_t **)&self_p->mcb_frame_p,
+                self_p->base.heap_p,
+                sizeof(struct obc_mcb_frame_t),
+                (pbtools_message_init_t)obc_mcb_frame_init));
+}
+
+int obc_lo_ra_frame_tanwa_frame_alloc(
+    struct obc_lo_ra_frame_t *self_p)
+{
+    self_p->frame = obc_lo_ra_frame_frame_tanwa_frame_e;
+
+    return (pbtools_sub_message_alloc(
+                (struct pbtools_message_base_t **)&self_p->tanwa_frame_p,
+                self_p->base.heap_p,
+                sizeof(struct obc_tanwa_frame_t),
+                (pbtools_message_init_t)obc_tanwa_frame_init));
+}
+
+int obc_lo_ra_frame_app_frame_alloc(
+    struct obc_lo_ra_frame_t *self_p)
+{
+    self_p->frame = obc_lo_ra_frame_frame_app_frame_e;
+
+    return (pbtools_sub_message_alloc(
+                (struct pbtools_message_base_t **)&self_p->app_frame_p,
+                self_p->base.heap_p,
+                sizeof(struct obc_app_frame_t),
+                (pbtools_message_init_t)obc_app_frame_init));
+}
+
+static void obc_lo_ra_frame_mcb_frame_decode(
+    struct pbtools_decoder_t *decoder_p,
+    int wire_type,
+    struct obc_lo_ra_frame_t *self_p)
+{
+    self_p->frame = obc_lo_ra_frame_frame_mcb_frame_e;
+    pbtools_decoder_sub_message_decode(
+        decoder_p,
+        wire_type,
+        (struct pbtools_message_base_t **)&self_p->mcb_frame_p,
+        sizeof(struct obc_mcb_frame_t),
+        (pbtools_message_init_t)obc_mcb_frame_init,
+        (pbtools_message_decode_inner_t)obc_mcb_frame_decode_inner);
+}
+
+static void obc_lo_ra_frame_tanwa_frame_decode(
+    struct pbtools_decoder_t *decoder_p,
+    int wire_type,
+    struct obc_lo_ra_frame_t *self_p)
+{
+    self_p->frame = obc_lo_ra_frame_frame_tanwa_frame_e;
+    pbtools_decoder_sub_message_decode(
+        decoder_p,
+        wire_type,
+        (struct pbtools_message_base_t **)&self_p->tanwa_frame_p,
+        sizeof(struct obc_tanwa_frame_t),
+        (pbtools_message_init_t)obc_tanwa_frame_init,
+        (pbtools_message_decode_inner_t)obc_tanwa_frame_decode_inner);
+}
+
+static void obc_lo_ra_frame_app_frame_decode(
+    struct pbtools_decoder_t *decoder_p,
+    int wire_type,
+    struct obc_lo_ra_frame_t *self_p)
+{
+    self_p->frame = obc_lo_ra_frame_frame_app_frame_e;
+    pbtools_decoder_sub_message_decode(
+        decoder_p,
+        wire_type,
+        (struct pbtools_message_base_t **)&self_p->app_frame_p,
+        sizeof(struct obc_app_frame_t),
+        (pbtools_message_init_t)obc_app_frame_init,
+        (pbtools_message_decode_inner_t)obc_app_frame_decode_inner);
+}
+
+void obc_lo_ra_frame_init(
+    struct obc_lo_ra_frame_t *self_p,
+    struct pbtools_heap_t *heap_p)
+{
+    self_p->base.heap_p = heap_p;
+    self_p->frame = 0;
+}
+
+void obc_lo_ra_frame_encode_inner(
+    struct pbtools_encoder_t *encoder_p,
+    struct obc_lo_ra_frame_t *self_p)
+{
+    switch (self_p->frame) {
+
+    case obc_lo_ra_frame_frame_mcb_frame_e:
+        pbtools_encoder_sub_message_encode_always(
+            encoder_p,
+            1,
+            &self_p->mcb_frame_p->base,
+            (pbtools_message_encode_inner_t)obc_mcb_frame_encode_inner);
+        break;
+
+    case obc_lo_ra_frame_frame_tanwa_frame_e:
+        pbtools_encoder_sub_message_encode_always(
+            encoder_p,
+            2,
+            &self_p->tanwa_frame_p->base,
+            (pbtools_message_encode_inner_t)obc_tanwa_frame_encode_inner);
+        break;
+
+    case obc_lo_ra_frame_frame_app_frame_e:
+        pbtools_encoder_sub_message_encode_always(
+            encoder_p,
+            3,
+            &self_p->app_frame_p->base,
+            (pbtools_message_encode_inner_t)obc_app_frame_encode_inner);
+        break;
+
+    default:
+        break;
+    }
+}
+
+void obc_lo_ra_frame_decode_inner(
+    struct pbtools_decoder_t *decoder_p,
+    struct obc_lo_ra_frame_t *self_p)
+{
+    int wire_type;
+
+    while (pbtools_decoder_available(decoder_p)) {
+        switch (pbtools_decoder_read_tag(decoder_p, &wire_type)) {
+
+        case 1:
+            obc_lo_ra_frame_mcb_frame_decode(
+                decoder_p,
+                wire_type,
+                self_p);
+            break;
+
+        case 2:
+            obc_lo_ra_frame_tanwa_frame_decode(
+                decoder_p,
+                wire_type,
+                self_p);
+            break;
+
+        case 3:
+            obc_lo_ra_frame_app_frame_decode(
+                decoder_p,
+                wire_type,
+                self_p);
+            break;
+
+        default:
+            pbtools_decoder_skip_field(decoder_p, wire_type);
+            break;
+        }
+    }
+}
+
+void obc_lo_ra_frame_encode_repeated_inner(
+    struct pbtools_encoder_t *encoder_p,
+    int field_number,
+    struct obc_lo_ra_frame_repeated_t *repeated_p)
+{
+    pbtools_encode_repeated_inner(
+        encoder_p,
+        field_number,
+        (struct pbtools_repeated_message_t *)repeated_p,
+        sizeof(struct obc_lo_ra_frame_t),
+        (pbtools_message_encode_inner_t)obc_lo_ra_frame_encode_inner);
+}
+
+void obc_lo_ra_frame_decode_repeated_inner(
+    struct pbtools_decoder_t *decoder_p,
+    struct pbtools_repeated_info_t *repeated_info_p,
+    struct obc_lo_ra_frame_repeated_t *repeated_p)
+{
+    pbtools_decode_repeated_inner(
+        decoder_p,
+        repeated_info_p,
+        (struct pbtools_repeated_message_t *)repeated_p,
+        sizeof(struct obc_lo_ra_frame_t),
+        (pbtools_message_init_t)obc_lo_ra_frame_init,
+        (pbtools_message_decode_inner_t)obc_lo_ra_frame_decode_inner);
+}
+
+struct obc_lo_ra_frame_t *
+obc_lo_ra_frame_new(
+    void *workspace_p,
+    size_t size)
+{
+    return (pbtools_message_new(
+                workspace_p,
+                size,
+                sizeof(struct obc_lo_ra_frame_t),
+                (pbtools_message_init_t)obc_lo_ra_frame_init));
+}
+
+int obc_lo_ra_frame_encode(
+    struct obc_lo_ra_frame_t *self_p,
+    uint8_t *encoded_p,
+    size_t size)
+{
+    return (pbtools_message_encode(
+                &self_p->base,
+                encoded_p,
+                size,
+                (pbtools_message_encode_inner_t)obc_lo_ra_frame_encode_inner));
+}
+
+int obc_lo_ra_frame_decode(
+    struct obc_lo_ra_frame_t *self_p,
+    const uint8_t *encoded_p,
+    size_t size)
+{
+    return (pbtools_message_decode(
+                &self_p->base,
+                encoded_p,
+                size,
+                (pbtools_message_decode_inner_t)obc_lo_ra_frame_decode_inner));
 }

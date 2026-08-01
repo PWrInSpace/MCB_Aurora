@@ -321,7 +321,7 @@ static cmd_command_t recovery_commands[] = {
     {RECOV_EASYMINI_DISARM,     recov_easymini_disarm           },
     {RECOV_TELEMETRUM_ARM,      recov_telemetrum_arm            },
     {RECOV_TELEMETRUM_DISARM,   recov_telemetrum_disarm         },
-    {RECOV_FORCE_FIRST_STAGE,   recov_force_first_separation     },
+    {RECOV_FORCE_FIRST_STAGE,   recov_force_first_separation    },
     {RECOV_FORCE_SECOND_STAGE,  recov_force_second_separation   },
 };
 

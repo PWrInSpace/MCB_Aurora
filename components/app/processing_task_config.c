@@ -13,7 +13,7 @@
 
 #define TAG "SENSORS_CFG"
 
-#define FILTER_CONST 0.95
+#define FILTER_CONST 0.95f
 
 static struct bmi08_sensor_data_f acc;
 static struct bmi08_sensor_data_f gyro;
@@ -66,25 +66,15 @@ static void sensors_read_data(void *data_buffer) {
     
     // Szybka kalkulacja przyspieszenia pionowego
     // Madgwick zwraca kąty w STOPNIACH, więc konwertujemy na radiany
-    float roll_rad = data->roll * (M_PI / 180.0f);
-    float pitch_rad = data->pitch * (M_PI / 180.0f);
+    float roll_rad = data->roll * ((float)M_PI / 180.0f);
+    float pitch_rad = data->pitch * ((float)M_PI / 180.0f);
     
     float acc_earth_z = -acc.x * sinf(pitch_rad) + 
                                 acc.y * sinf(roll_rad) * cosf(pitch_rad) + 
                                 acc.z * cosf(roll_rad) * cosf(pitch_rad);
 
     data->acc_vertical = acc_earth_z;
-
-    ESP_LOGI(TAG, "SENSORS: acc: %.2f %.2f %.2f, gyr: %.2f %.2f %.2f, mag: %.2f %.2f %.2f, bar: %.2f hPa, alt: %.2f m, vel: %.2f m/s, temp: %.2f C",
-             data->acc_x, data->acc_y, data->acc_z,
-             data->gyr_x, data->gyr_y, data->gyr_z,
-             data->mag_x, data->mag_y, data->mag_z,
-             data->pressure,
-             data->altitude,
-             data->velocity,
-             data->temperature);
 }
-
 
 bool initialize_processing_task(void) {
     if (bmi08_wrapper_init() == false) {
@@ -117,7 +107,7 @@ bool initialize_processing_task(void) {
         return false;
     }
 
-    if (mgos_imu_madgwick_set_params(&madgwick, 100, 0.01) == false) {
+    if (mgos_imu_madgwick_set_params(&madgwick, 100, 0.01f) == false) {
         ESP_LOGE(TAG, "MADGWICK 2");
         return false;
     }

@@ -8,7 +8,7 @@
 
 #define TAG "PBF"
 
-void create_protobuf_data_frame(struct obc_lo_ra_mcb_frame_t *frame) {
+void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
     rocket_data_t data = rocket_data_get();
     error_data_t errors[MAX_NUMBER_OF_ERRORS];
     if (errors_get_all(errors, sizeof(errors)) == false) {
@@ -69,8 +69,6 @@ void create_protobuf_data_frame(struct obc_lo_ra_mcb_frame_t *frame) {
         recovery_flags |= data.recovery.easyMiniSecondStage ? 1u << 7 : 0u;
         recovery_flags |= data.recovery.isTeleActive ? 1u << 8 : 0u;
         recovery_flags |= data.recovery.isArmed ? 1u << 9 : 0u;
-        //ESP_LOGI(TAG, "arm status: %d", data.recovery.isArmed);
-        //ESP_LOGI(TAG, "telemetry status: %d", data.recovery.isTeleActive);
         frame->recovery_flags.is_present = true;
         frame->recovery_flags.value = recovery_flags;
     }
@@ -143,10 +141,6 @@ void create_protobuf_data_frame(struct obc_lo_ra_mcb_frame_t *frame) {
         frame->auto_vent_setting.value = data.ox_vent_eth_main_valves.auto_vent_pressure;
     }
 
-    // ESP_LOGI(TAG, "auto vent setting %d", data.ox_vent_eth_main_valves.auto_vent_pressure);
-    // ESP_LOGE(TAG, "activated %d", data.ox_vent_eth_main_valves.auto_vent_activated);
-    // ESP_LOGE(TAG, "trigger %d", data.ox_vent_eth_main_valves.auto_vent_triggered);
-
     // ox main bit data (uses ox_main_valve struct)
     {
         uint32_t v = 0;
@@ -213,7 +207,6 @@ void create_protobuf_data_frame(struct obc_lo_ra_mcb_frame_t *frame) {
     frame->payload_battery.is_present = true;
     frame->payload_battery.value = (uint32_t)(data.payload.vbat * 100.0f);
 
-    // ESP-NOW connected flags (bitfield) - pack individual connection booleans
     {
         uint32_t conn = 0;
         conn |= data.connected_dev.payload ? 1u << 0 : 0u; // payload_connected
@@ -227,9 +220,6 @@ void create_protobuf_data_frame(struct obc_lo_ra_mcb_frame_t *frame) {
         frame->esp_now_connected_flags.value = conn;
     }
 
-    // ESP_LOGI(TAG, "Connected flags bitfield: %d", data.connected_dev.ox_vent_eth_main_valves);
-
-    // ESP-NOW wakeup flags (bitfield) - pack waken_up booleans
     {
         uint32_t wk = 0;
         wk |= data.payload.waken_up ? 1u << 0 : 0u;
