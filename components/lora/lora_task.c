@@ -127,9 +127,9 @@ void lora_task(void *arg) {
     size_t rx_packet_size = 0;
 
     while (1) {
+        //on transmit
         if (gb.lora_state == LORA_TRANSMIT) {
             ESP_LOGI(TAG, "ON transmit");
-            // wait_until_irq();
             lora_change_state_to_receive();
 
         // on receive
@@ -145,26 +145,22 @@ void lora_task(void *arg) {
             while (1) {
                 TickType_t current_tick = xTaskGetTickCount();
                 if (current_tick - start_tick >= delay_ticks) {
-                    break; // Czas okienka minął
+                    break;  // Czas okienka minął
                 }
-                
                 TickType_t remaining_ticks = delay_ticks - (current_tick - start_tick);
-                
+
                 // Czekamy na przerwanie (RXDONE) przez pozostały czas
                 ESP_LOGI(TAG, "Waiting for RXDONE for %d ticks", remaining_ticks);
                 int flags = ulTaskNotifyTake(pdTRUE, remaining_ticks);
                 ESP_LOGI(TAG, "ulTaskNotifyTake returned: %d", flags);
                 if (flags > 0) {
-                    // Tutaj odczytaj rejestr 0x12 z RFM95W (RegIrqFlags)
-                    uint8_t irq_flags = lora_read_reg(&gb.lora, 0x12);
-                    ESP_LOGI(TAG, "Hardware IRQ Flags: 0x%02X", irq_flags);
-                    ESP_LOGI(TAG, "RXDONE received");
                     // Wybudzono nas przerwaniem - jest ramka!
                     rx_packet_size = on_lora_receive(rx_buffer, sizeof(rx_buffer));
 
                     if (rx_packet_size > 0) {
                         // lora_receive_packet przełącza układ w tryb Idle,
-                        // więc musimy z powrotem przełączyć go na tryb odbioru ciągłego (Continuous RX)
+                        // więc musimy z powrotem przełączyć go na tryb odbioru ciągłego
+                        // (Continuous RX)
                         lora_set_receive_mode(&gb.lora);
                     }
                 }
@@ -196,6 +192,7 @@ bool lora_task_init(lora_api_config_t *cfg) {
     lora_init(&gb.lora);
     lora_set_frequency(&gb.lora, cfg->frequency_khz * 1e3);
     lora_set_bandwidth(&gb.lora, LORA_TASK_BANDWIDTH);
+    lora_set_spreading_factor(&gb.lora, LORA_TASK_SPREADING_FACTOR);
     lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_RXDONE);
     if (LORA_TASK_CRC_ENABLE) {
         lora_enable_crc(&gb.lora);
