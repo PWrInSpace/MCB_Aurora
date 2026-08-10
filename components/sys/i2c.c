@@ -140,7 +140,6 @@ bool I2C_master_read_from_slave(i2c_port_t port, uint8_t dev_addr, uint8_t *data
 
 bool I2C_master_write_to_slave(i2c_port_t port, uint8_t dev_addr, uint8_t *data,
                           size_t len){
-    //todo odgetcić to góœno
     esp_err_t ret;
     ret = i2c_master_write_to_device(port, dev_addr, data, 8, pdMS_TO_TICKS(5000));
     ESP_LOGE(TAG, "Error in i2c_master_write: %s", esp_err_to_name(ret));

@@ -12,6 +12,9 @@
 
 #define TAG "LORA_T"
 
+static uint8_t buffer[1024];
+static StaticMessageBuffer_t message_buffer;
+
 static struct {
     lora_struct_t lora;
     lora_task_process_rx_packet process_packet_fnc;
@@ -19,14 +22,17 @@ static struct {
     lora_state_t lora_state;
     uint8_t tx_buffer[512];
     size_t tx_buffer_size;
+    MessageBufferHandle_t rx_queue;
 
     SemaphoreHandle_t irq_notification;
     TaskHandle_t task;
+    TaskHandle_t receive_task;
     TimerHandle_t receive_window_timer;
+    uint32_t receive_window_period;
 } gb;
 
-static bool wait_until_irq(void) {
-    return ulTaskNotifyTake(pdTRUE, portMAX_DELAY) == pdTRUE ? true : false;
+static void wait_until_irq(void) {
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 }
 
 void IRAM_ATTR lora_task_irq_notify(void *arg) {
@@ -85,17 +91,17 @@ void turn_of_receive_window_timer(void) {
 
 static size_t on_lora_receive(uint8_t *rx_buffer, size_t buffer_len) {
     size_t len = 0;
-    turn_of_receive_window_timer();
-    lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_TXDONE);
     if (lora_received(&gb.lora) == LORA_OK) {
         len = lora_receive_packet(&gb.lora, rx_buffer, buffer_len);
         rx_buffer[len] = '\0';
+        ESP_LOGI(TAG, "Received %d bytes", len);
+        xMessageBufferSend(gb.rx_queue, rx_buffer, len, 100);
         ESP_LOGD(TAG, "Received %s, len %d", rx_buffer, len);
     }
     return len;
 }
 
-static void transmint_packet(void) {
+static void transmit_packet(void) {
     if (gb.get_tx_packet_fnc == NULL) {
         return;
     }
@@ -105,41 +111,74 @@ static void transmint_packet(void) {
     lora_send_packet(&gb.lora, gb.tx_buffer, gb.tx_buffer_size);
 }
 
-static void on_lora_transmit() {
-    lora_change_state_to_receive();
-    turn_of_receive_window_timer();
-    turn_on_receive_window_timer();
+static void lora_receive_task(void *arg) {
+    uint8_t msg[255];
+
+    while (1) {
+        size_t msg_size = xMessageBufferReceive(gb.rx_queue, &msg, 255, portMAX_DELAY);
+        ESP_LOGI(TAG, "Received %d", msg_size);
+        gb.process_packet_fnc(msg, msg_size);
+    }
 }
 
-static void lora_task(void *arg) {
+
+void lora_task(void *arg) {
     uint8_t rx_buffer[512];
     size_t rx_packet_size = 0;
 
     while (1) {
-        if (wait_until_irq() == true) {
-            // on transmit
-            if (gb.lora_state == LORA_TRANSMIT) {
-                //ESP_LOGI(TAG, "ON transmit");
-                on_lora_transmit();
-            // on receive
-            } else {
-                rx_packet_size = on_lora_receive(rx_buffer, sizeof(rx_buffer));
-                if (rx_packet_size > 0 && gb.process_packet_fnc != NULL) {
-                    gb.process_packet_fnc(rx_buffer, rx_packet_size);
-                    vTaskDelay(pdMS_TO_TICKS(100));
+        if (gb.lora_state == LORA_TRANSMIT) {
+            ESP_LOGI(TAG, "ON transmit");
+            // wait_until_irq();
+            lora_change_state_to_receive();
+
+        // on receive
+        } else {
+            ESP_LOGI(TAG, "ON receive");
+
+            TickType_t start_tick = xTaskGetTickCount();
+            TickType_t delay_ticks = pdMS_TO_TICKS(gb.receive_window_period);
+            
+            // Wyczyść ewentualne zaległe powiadomienia z przerwań
+            ulTaskNotifyTake(pdTRUE, 0);
+
+            while (1) {
+                TickType_t current_tick = xTaskGetTickCount();
+                if (current_tick - start_tick >= delay_ticks) {
+                    break; // Czas okienka minął
                 }
-                lora_change_state_to_transmit();
-                transmint_packet();
-                // qucik fix
-                turn_on_receive_window_timer();
+                
+                TickType_t remaining_ticks = delay_ticks - (current_tick - start_tick);
+                
+                // Czekamy na przerwanie (RXDONE) przez pozostały czas
+                ESP_LOGI(TAG, "Waiting for RXDONE for %d ticks", remaining_ticks);
+                int flags = ulTaskNotifyTake(pdTRUE, remaining_ticks);
+                ESP_LOGI(TAG, "ulTaskNotifyTake returned: %d", flags);
+                if (flags > 0) {
+                    // Tutaj odczytaj rejestr 0x12 z RFM95W (RegIrqFlags)
+                    uint8_t irq_flags = lora_read_reg(&gb.lora, 0x12);
+                    ESP_LOGI(TAG, "Hardware IRQ Flags: 0x%02X", irq_flags);
+                    ESP_LOGI(TAG, "RXDONE received");
+                    // Wybudzono nas przerwaniem - jest ramka!
+                    rx_packet_size = on_lora_receive(rx_buffer, sizeof(rx_buffer));
+
+                    if (rx_packet_size > 0) {
+                        // lora_receive_packet przełącza układ w tryb Idle,
+                        // więc musimy z powrotem przełączyć go na tryb odbioru ciągłego (Continuous RX)
+                        lora_set_receive_mode(&gb.lora);
+                    }
+                }
             }
+
+            vTaskDelay(pdMS_TO_TICKS(100));
+            lora_change_state_to_transmit();
+            transmit_packet();
         }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
 bool lora_task_init(lora_api_config_t *cfg) {
-    assert(cfg != NULL);
     if (cfg == NULL) {
         return false;
     }
@@ -150,6 +189,8 @@ bool lora_task_init(lora_api_config_t *cfg) {
 
     gb.process_packet_fnc = cfg->process_rx_packet_fnc;
     gb.get_tx_packet_fnc = cfg->get_tx_packet_fnc;
+    gb.receive_window_period = cfg->transmiting_period;
+    gb.rx_queue = xMessageBufferCreateStatic(1024, buffer, &message_buffer);
     memcpy(&gb.lora, cfg->lora, sizeof(lora_struct_t));
 
     lora_init(&gb.lora);
@@ -163,7 +204,6 @@ bool lora_task_init(lora_api_config_t *cfg) {
     }
 
     gb.irq_notification = xSemaphoreCreateBinary();
-    // init_irq_norification();
     if (gb.irq_notification == NULL) {
         return false;
     }
@@ -173,10 +213,13 @@ bool lora_task_init(lora_api_config_t *cfg) {
                      on_receive_window_timer);
     ESP_LOGD(TAG, "Starting timer");
     lora_change_state_to_receive();
-    turn_on_receive_window_timer();
+    // turn_on_receive_window_timer();
 
     xTaskCreatePinnedToCore(lora_task, "LoRa task", LORA_TASK_STACK_DEPTH, NULL, LORA_TASK_PRIORITY,
                             &gb.task, LORA_TASK_CPU_NUM);
+
+    xTaskCreatePinnedToCore(lora_receive_task, "Receive task", LORA_TASK_STACK_DEPTH, NULL, LORA_TASK_PRIORITY - 1,
+                            &gb.receive_task, LORA_TASK_CPU_NUM);
 
     if (gb.task == NULL) {
         return false;

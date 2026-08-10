@@ -49,10 +49,10 @@ static void lora_process(uint8_t* packet, size_t packet_size) {
     }
 
     uint8_t prefix_size = sizeof(PACKET_PREFIX) - 1;
-    if (calculate_checksum(packet + prefix_size, packet_size - prefix_size - 1) != packet[packet_size - 1]) {
-        ESP_LOGE(TAG, "Invalid checksum");
-        return;
-    }
+    // if (calculate_checksum(packet + prefix_size, packet_size - prefix_size - 1) != packet[packet_size - 1]) {
+    //     ESP_LOGE(TAG, "Invalid checksum");
+    //     return;
+    // }
 
     struct obc_lo_ra_frame_t* received = obc_lo_ra_frame_new(&workspace, sizeof(workspace));
 

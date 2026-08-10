@@ -51,9 +51,7 @@ static bool get_device_index(cmd_t *cmd, cmd_sys_dev_id dev_id, size_t *dev_inde
 
 static bool find_command_and_execute(cmd_device_t *dev_cmd, cmd_message_t *received_command, bool privilege) {
     for (size_t i = 0; i < dev_cmd->number_of_cmd; ++i) {
-        ESP_LOGI(TAG, "Checking command -> received: %d, current: %d", received_command->cmd.command, dev_cmd->cmd[i].command_id);
         if (dev_cmd->cmd[i].command_id == received_command->cmd.command) {
-            ESP_LOGI(TAG, "Command found, executing -> command: %d, payload: %d, privilege: %d", received_command->cmd.command, received_command->cmd.payload, privilege);
             if (dev_cmd->cmd[i].on_command_receive_fnc != NULL) {
                 dev_cmd->cmd[i].on_command_receive_fnc(received_command->cmd.command, received_command->cmd.payload, privilege);
             } else {

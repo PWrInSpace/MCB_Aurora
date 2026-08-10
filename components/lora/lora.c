@@ -277,6 +277,9 @@ int16_t lora_receive_packet(lora_struct_t *lora, uint8_t *buf, int16_t size) {
     buf[i] = lora_read_reg(lora, REG_FIFO);
   }
 
+  // Wymagane przez notę katalogową dla Continuous RX: reset wskaźnika FIFO
+  lora_write_reg(lora, REG_FIFO_ADDR_PTR, 0x00);
+
   return len;
 }
 
