@@ -96,7 +96,7 @@ static size_t on_lora_receive(uint8_t *rx_buffer, size_t buffer_len) {
         rx_buffer[len] = '\0';
         ESP_LOGI(TAG, "Received %d bytes", len);
         xMessageBufferSend(gb.rx_queue, rx_buffer, len, 100);
-        ESP_LOGD(TAG, "Received %s, len %d", rx_buffer, len);
+        ESP_LOGD(TAG, "Received, len %d", len);
     }
     return len;
 }
