@@ -150,10 +150,7 @@ void lora_task(void *arg) {
                 TickType_t remaining_ticks = delay_ticks - (current_tick - start_tick);
 
                 // Czekamy na przerwanie (RXDONE) przez pozostały czas
-                ESP_LOGI(TAG, "Waiting for RXDONE for %d ticks", remaining_ticks);
-                int flags = ulTaskNotifyTake(pdTRUE, remaining_ticks);
-                ESP_LOGI(TAG, "ulTaskNotifyTake returned: %d", flags);
-                if (flags > 0) {
+                if (ulTaskNotifyTake(pdTRUE, remaining_ticks) == pdTRUE) {
                     // Wybudzono nas przerwaniem - jest ramka!
                     rx_packet_size = on_lora_receive(rx_buffer, sizeof(rx_buffer));
 
