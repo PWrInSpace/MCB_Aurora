@@ -7,7 +7,6 @@
 #include "freertos/projdefs.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
-#include "freertos/timers.h"
 #include "uart.h"
 
 #define TAG "LORA_T"
@@ -27,11 +26,8 @@ static struct {
     SemaphoreHandle_t irq_notification;
     TaskHandle_t task;
     TaskHandle_t receive_task;
-    TimerHandle_t receive_window_timer;
     uint32_t receive_window_period;
 } gb;
-
-static void wait_until_irq(void) { ulTaskNotifyTake(pdTRUE, portMAX_DELAY); }
 
 void IRAM_ATTR lora_task_irq_notify(void *arg) {
     BaseType_t higher_priority_task_woken = pdFALSE;
@@ -45,13 +41,6 @@ void IRAM_ATTR lora_task_irq_notify(void *arg) {
     }
 }
 
-static void notify_end_of_rx_window(void) {
-    xTaskNotifyGive(gb.task);
-    ESP_LOGD(TAG, "END OF WINDOW");
-}
-
-static void on_receive_window_timer(TimerHandle_t timer) { notify_end_of_rx_window(); }
-
 static void lora_change_state_to_receive() {
     ESP_LOGD(TAG, "Changing state to receive");
     if (gb.lora_state == LORA_RECEIVE) {
@@ -59,9 +48,7 @@ static void lora_change_state_to_receive() {
     }
 
     lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_RXDONE);
-
     lora_write_reg(&gb.lora, REG_IRQ_FLAGS, 0xFF);
-
     lora_set_receive_mode(&gb.lora);
     gb.lora_state = LORA_RECEIVE;
 }
@@ -73,21 +60,6 @@ static void lora_change_state_to_transmit() {
     }
 
     gb.lora_state = LORA_TRANSMIT;
-}
-
-void turn_on_receive_window_timer(void) {
-    if (xTimerIsTimerActive(gb.receive_window_timer) == pdTRUE) {
-        xTimerReset(gb.receive_window_timer, portMAX_DELAY);
-        // ESP_LOGE(TAG, "TIMER IS ACTIVE");
-        return;
-    }
-    xTimerStart(gb.receive_window_timer, portMAX_DELAY);
-}
-
-void turn_of_receive_window_timer(void) {
-    if (xTimerIsTimerActive(gb.receive_window_timer) == pdTRUE) {
-        xTimerStop(gb.receive_window_timer, portMAX_DELAY);
-    }
 }
 
 static size_t on_lora_receive(uint8_t *rx_buffer, size_t buffer_len) {
@@ -215,8 +187,6 @@ bool lora_task_init(lora_api_config_t *cfg) {
         return false;
     }
 
-    gb.receive_window_timer = xTimerCreate("Transmit timer", pdMS_TO_TICKS(cfg->transmiting_period),
-                                           pdFALSE, NULL, on_receive_window_timer);
     ESP_LOGD(TAG, "Starting timer");
     lora_change_state_to_receive();
     // turn_on_receive_window_timer();
@@ -238,14 +208,6 @@ bool lora_task_init(lora_api_config_t *cfg) {
     return true;
 }
 
-bool lora_change_receive_window_period(uint32_t period_ms) {
-    if (xTimerChangePeriod(gb.receive_window_timer, pdMS_TO_TICKS(period_ms), 500) == pdFAIL) {
-        return false;
-    }
-
-    return true;
-}
-
 bool lora_change_frequency(uint32_t frequency_khz) {
     if (frequency_khz < 4e5 || frequency_khz > 1e6) {
         return false;
@@ -255,6 +217,10 @@ bool lora_change_frequency(uint32_t frequency_khz) {
         return false;
     }
 
-    // on_lora_transmit();
+    return true;
+}
+
+bool lora_change_receive_window_period(uint32_t period_ms) {
+    gb.receive_window_period = period_ms;
     return true;
 }
