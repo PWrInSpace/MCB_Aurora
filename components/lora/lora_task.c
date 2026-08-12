@@ -31,9 +31,7 @@ static struct {
     uint32_t receive_window_period;
 } gb;
 
-static void wait_until_irq(void) {
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-}
+static void wait_until_irq(void) { ulTaskNotifyTake(pdTRUE, portMAX_DELAY); }
 
 void IRAM_ATTR lora_task_irq_notify(void *arg) {
     BaseType_t higher_priority_task_woken = pdFALSE;
@@ -47,7 +45,7 @@ void IRAM_ATTR lora_task_irq_notify(void *arg) {
     }
 }
 
-static void notify_end_of_rx_window(void) { 
+static void notify_end_of_rx_window(void) {
     xTaskNotifyGive(gb.task);
     ESP_LOGD(TAG, "END OF WINDOW");
 }
@@ -61,6 +59,9 @@ static void lora_change_state_to_receive() {
     }
 
     lora_map_d0_interrupt(&gb.lora, LORA_IRQ_D0_RXDONE);
+
+    lora_write_reg(&gb.lora, REG_IRQ_FLAGS, 0xFF);
+
     lora_set_receive_mode(&gb.lora);
     gb.lora_state = LORA_RECEIVE;
 }
@@ -77,7 +78,7 @@ static void lora_change_state_to_transmit() {
 void turn_on_receive_window_timer(void) {
     if (xTimerIsTimerActive(gb.receive_window_timer) == pdTRUE) {
         xTimerReset(gb.receive_window_timer, portMAX_DELAY);
-        //ESP_LOGE(TAG, "TIMER IS ACTIVE");
+        // ESP_LOGE(TAG, "TIMER IS ACTIVE");
         return;
     }
     xTimerStart(gb.receive_window_timer, portMAX_DELAY);
@@ -121,26 +122,38 @@ static void lora_receive_task(void *arg) {
     }
 }
 
-
 void lora_task(void *arg) {
     uint8_t rx_buffer[512];
     size_t rx_packet_size = 0;
 
     while (1) {
-        //on transmit
+        // on transmit
         if (gb.lora_state == LORA_TRANSMIT) {
             ESP_LOGI(TAG, "ON transmit");
             lora_change_state_to_receive();
 
-        // on receive
+            // on receive
         } else {
             ESP_LOGI(TAG, "ON receive");
 
             TickType_t start_tick = xTaskGetTickCount();
             TickType_t delay_ticks = pdMS_TO_TICKS(gb.receive_window_period);
-            
+
             // Wyczyść ewentualne zaległe powiadomienia z przerwań
             ulTaskNotifyTake(pdTRUE, 0);
+
+            // Safety net: jeżeli ramka wpadła w oknie między set_receive_mode a
+            // wyzerowaniem notyfikacji, flaga RX_DONE dalej wisi w rejestrze,
+            // a DIO0 jest HIGH — bez tego POSEDGE już nie strzeli.
+            if (lora_read_reg(&gb.lora, REG_IRQ_FLAGS) & IRQ_RX_DONE_MASK) {
+                rx_packet_size = on_lora_receive(rx_buffer, sizeof(rx_buffer));
+                if (rx_packet_size > 0) {
+                    lora_set_receive_mode(&gb.lora);
+                } else {
+                    // CRC error / śmieć — i tak zdejmij flagi, żeby DIO0 zszedł
+                    lora_write_reg(&gb.lora, REG_IRQ_FLAGS, 0xFF);
+                }
+            }
 
             while (1) {
                 TickType_t current_tick = xTaskGetTickCount();
@@ -202,9 +215,8 @@ bool lora_task_init(lora_api_config_t *cfg) {
         return false;
     }
 
-    gb.receive_window_timer =
-        xTimerCreate("Transmit timer", pdMS_TO_TICKS(cfg->transmiting_period), pdFALSE, NULL,
-                     on_receive_window_timer);
+    gb.receive_window_timer = xTimerCreate("Transmit timer", pdMS_TO_TICKS(cfg->transmiting_period),
+                                           pdFALSE, NULL, on_receive_window_timer);
     ESP_LOGD(TAG, "Starting timer");
     lora_change_state_to_receive();
     // turn_on_receive_window_timer();
@@ -212,15 +224,16 @@ bool lora_task_init(lora_api_config_t *cfg) {
     xTaskCreatePinnedToCore(lora_task, "LoRa task", LORA_TASK_STACK_DEPTH, NULL, LORA_TASK_PRIORITY,
                             &gb.task, LORA_TASK_CPU_NUM);
 
-    xTaskCreatePinnedToCore(lora_receive_task, "Receive task", LORA_TASK_STACK_DEPTH, NULL, LORA_TASK_PRIORITY - 1,
-                            &gb.receive_task, LORA_TASK_CPU_NUM);
+    xTaskCreatePinnedToCore(lora_receive_task, "Receive task", LORA_TASK_STACK_DEPTH, NULL,
+                            LORA_TASK_PRIORITY - 1, &gb.receive_task, LORA_TASK_CPU_NUM);
 
     if (gb.task == NULL) {
         return false;
     }
     {
         UBaseType_t high = uxTaskGetStackHighWaterMark(gb.task);
-        ESP_LOGI(TAG, "LoRa task %s stack high water mark: %u", pcTaskGetName(gb.task), (unsigned)high);
+        ESP_LOGI(TAG, "LoRa task %s stack high water mark: %u", pcTaskGetName(gb.task),
+                 (unsigned)high);
     }
     return true;
 }

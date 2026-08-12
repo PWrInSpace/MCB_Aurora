@@ -49,14 +49,16 @@ static void lora_process(uint8_t* packet, size_t packet_size) {
     }
 
     uint8_t prefix_size = sizeof(PACKET_PREFIX) - 1;
-    // if (calculate_checksum(packet + prefix_size, packet_size - prefix_size - 1) != packet[packet_size - 1]) {
+    // if (calculate_checksum(packet + prefix_size, packet_size - prefix_size - 1) !=
+    // packet[packet_size - 1]) {
     //     ESP_LOGE(TAG, "Invalid checksum");
     //     return;
     // }
 
     struct obc_lo_ra_frame_t* received = obc_lo_ra_frame_new(&workspace, sizeof(workspace));
 
-    size_t decoded_size = obc_lo_ra_frame_decode(received, packet + prefix_size, packet_size - prefix_size - 1);
+    size_t decoded_size =
+        obc_lo_ra_frame_decode(received, packet + prefix_size, packet_size - prefix_size - 1);
 
     ESP_LOGI(TAG, "Received frame type: %d", received->frame);
 
@@ -65,11 +67,20 @@ static void lora_process(uint8_t* packet, size_t packet_size) {
         return;
     }
 
-    if (decoded_size > 0 && received->app_frame_p->lora_dev_id.is_present && received->app_frame_p->sys_dev_id.is_present && received->app_frame_p->command.is_present && received->app_frame_p->payload.is_present) {
-        cmd_message_t received_command = cmd_create_message(received->app_frame_p->command.value, received->app_frame_p->payload.value);
-        ESP_LOGI(TAG, "Received command from LoRa -> lora_dev_id: %d, sys_dev_id: %d, command: %d, payload: %d", received->app_frame_p->lora_dev_id.value, received->app_frame_p->sys_dev_id.value, received->app_frame_p->command.value, received->app_frame_p->payload.value);
+    if (decoded_size > 0 && received->app_frame_p->lora_dev_id.is_present &&
+        received->app_frame_p->sys_dev_id.is_present && received->app_frame_p->command.is_present &&
+        received->app_frame_p->payload.is_present) {
+        cmd_message_t received_command = cmd_create_message(received->app_frame_p->command.value,
+                                                            received->app_frame_p->payload.value);
+        ESP_LOGI(TAG,
+                 "Received command from LoRa -> lora_dev_id: %d, sys_dev_id: %d, command: %d, "
+                 "payload: %d",
+                 received->app_frame_p->lora_dev_id.value, received->app_frame_p->sys_dev_id.value,
+                 received->app_frame_p->command.value, received->app_frame_p->payload.value);
 
-        if (lora_cmd_process_command(received->app_frame_p->lora_dev_id.value, received->app_frame_p->sys_dev_id.value, &received_command) == false) {
+        if (lora_cmd_process_command(received->app_frame_p->lora_dev_id.value,
+                                     received->app_frame_p->sys_dev_id.value,
+                                     &received_command) == false) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_COMMAND_NOT_FOUND, 200);
             ESP_LOGE(TAG, "Unable to process command :C");
             return;
@@ -97,7 +108,7 @@ static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
     /* create data protobuf into buffer, reserve 1 byte at the end for checksum */
     if (buffer == NULL || size == 0) return 0;
 
-    struct obc_lo_ra_frame_t *frame = obc_lo_ra_frame_new(&workspace, sizeof(workspace));
+    struct obc_lo_ra_frame_t* frame = obc_lo_ra_frame_new(&workspace, sizeof(workspace));
     frame->frame = obc_lo_ra_frame_frame_mcb_frame_e;
     struct obc_mcb_frame_t mcb_frame = {0};
     frame->mcb_frame_p = &mcb_frame;
