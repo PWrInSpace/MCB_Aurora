@@ -4,6 +4,7 @@
 #define ESP_NOW_CONFIG_H
 
 #include <stdint.h>
+
 #include "esp_now_api.h"
 #include "slave_structs.h"
 
@@ -23,10 +24,10 @@
 #define ESP_NOW_TASK_PRIORITY CONFIG_ESP_NOW_TASK_PRIORITY
 #define ESP_NOW_TASK_CORE_ID CONFIG_ESP_NOW_TASK_CORE_ID
 
-extern const ENA_device_t esp_now_broadcast;  // :CCC
-extern const ENA_device_t esp_now_pitot;  // :CCC
+extern const ENA_device_t esp_now_broadcast;       // :CCC
+extern const ENA_device_t esp_now_pitot;           // :CCC
 extern const ENA_device_t esp_now_eth_vent_valve;  // :CCC
-extern const ENA_device_t esp_now_n2_vent_valve;  // :CCC
+extern const ENA_device_t esp_now_n2_vent_valve;   // :CCC
 extern const ENA_device_t esp_now_ox_main_valve;
 extern const ENA_device_t esp_now_ox_vent_eth_main_valves;
 extern const ENA_device_t esp_now_tanwa;    // :CCC

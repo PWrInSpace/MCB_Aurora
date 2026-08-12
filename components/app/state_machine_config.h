@@ -26,7 +26,7 @@ typedef enum {
 
 /**
  * @brief Initialize state machine task
- * 
+ *
  * @return true :D
  * @return false :C
  */

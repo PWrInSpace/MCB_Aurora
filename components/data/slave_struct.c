@@ -26,14 +26,11 @@
 //     return true;
 // }
 
-
-
 // void rocket_data_update_n2_vent_valve(n2_vent_valve_data_t *data) {
 //     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
 //     memcpy(&gb.main_valves, data, sizeof(gb.main_valves));
 //     xSemaphoreGive(gb.data_mutex);
 // }
-
 
 // void rocket_data_update_eth_vent_valve(eth_vent_valve_data_t *data) {
 //     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
@@ -53,13 +50,11 @@
 //     xSemaphoreGive(gb.data_mutex);
 // }
 
-
 // void rocket_data_update_recovery(recovery_data_t *data) {
 //     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
 //     memcpy(&gb.recovery, data, sizeof(gb.recovery));
 //     xSemaphoreGive(gb.data_mutex);
 // }
-
 
 // n2_vent_valve_data_t rocket_data_get_n2_vent_valve(void) {
 //     n2_vent_valve_data_t tmp;

@@ -4,8 +4,10 @@
 #include "utils.h"
 #include "esp_log.h"
 #include "mission_timer_config.h"
-#include "system_timer_config.h"
 #include "processing_task_config.h"
+#include "state_machine.h"
+#include "system_timer_config.h"
+#include "utils.h"
 #include "vbat_wrapper.h"
 
 #define TAG "MS"
@@ -19,7 +21,7 @@ bool mcb_update_struct(mcb_data_t *mcb) {
     if (sys_timer_get_expiry_time(TIMER_DISCONNECT, &dc_timer_expire) == false) {
         mcb->disconnect_timer = DISCONNECT_TIMER_PERIOD_S;
     } else {
-        mcb->disconnect_timer = (dc_timer_expire / 1000 - get_uptime_ms()) / 1000;
+        mcb->disconnect_timer = ((uint32_t)dc_timer_expire / 1000 - get_uptime_ms()) / 1000;
     }
 
     gps_positioning_t gps_position = gps_get_positioning();

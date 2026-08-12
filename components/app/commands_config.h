@@ -8,7 +8,7 @@
 
 /**
  * @brief Initialzie lora commands
- * 
+ *
  * @return true :D
  * @return false :C
  */
@@ -27,8 +27,8 @@
 //                             TANWA_sys_dev_id dev_id,
 //                             TANWA_message_t *message);
 
-
-bool lora_cmd_process_command(cmd_lora_dev_id lora_dev_id, cmd_sys_dev_id dev_id, cmd_message_t *message);
+bool lora_cmd_process_command(cmd_lora_dev_id lora_dev_id, cmd_sys_dev_id dev_id,
+                              cmd_message_t *message);
 
 typedef enum {
     DEVICE_MCB = 0x01,
@@ -107,21 +107,21 @@ typedef enum {
     TANWA_N2_DEPR_OPEN = 0x53,
     TANWA_N2_DEPR_CLOSE = 0x54,
     TANWA_N2_DEPR_OPEN_TIME = 0x55,
-    TANWA_FIRE = 0x60, //FIREBALL, DOO DOO DOO DOO DO DOO (FIREBALL) ~PITBULL 2k10
+    TANWA_FIRE = 0x60,  // FIREBALL, DOO DOO DOO DOO DO DOO (FIREBALL) ~PITBULL 2k10
 } tanwa_commands_t;
 
 typedef enum {
-    N2O_VALVE_CLOSE = 0x00,
-    N2O_VALVE_OPEN = 0x01,
-    ETH_VALVE_CLOSE = 0x02,
-    ETH_VALVE_OPEN = 0x03,
+    OX_MAIN_CLOSE = 0x00,
+    OX_MAIN_OPEN = 0x01,
+    ETH_MAIN_CLOSE = 0x02,
+    ETH_MAIN_OPEN = 0x03,
     N2_VALVE_CLOSE = 0x04,
     N2_VALVE_OPEN = 0x05,
 
-    N2O_SOL_CLOSE = 0x10,
-    N2O_SOL_OPEN = 0x11,
-    ETH_SOL_CLOSE = 0x12,
-    ETH_SOL_OPEN = 0x13,
+    OX_VENT_CLOSE = 0x10,
+    OX_VENT_OPEN = 0x11,
+    ETH_VENT_CLOSE = 0x12,
+    ETH_VENT_OPEN = 0x13,
     N2_SOL_CLOSE = 0x14,
     N2_SOL_OPEN = 0x15,
 

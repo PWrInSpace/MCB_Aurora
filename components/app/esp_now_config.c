@@ -1,13 +1,15 @@
 // Copyright 2022 PWrInSpace, Kuba
-#include <memory.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/timers.h"
 #include "esp_now_config.h"
+
+#include <memory.h>
+
+#include "errors_config.h"
 #include "esp_log.h"
 #include "esp_now_api.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/timers.h"
 #include "rocket_data.h"
 #include "state_machine.h"
-#include "errors_config.h"
 
 #define TAG "ENC"
 
@@ -65,7 +67,7 @@ static void callback_pitot(uint8_t *data, size_t size) {
     ESP_LOGI(TAG, "Pitot receive, size %d", size);
     connected.pitot = true;
     if (size == sizeof(pitot_data_t)) {
-        rocket_data_update_pitot((pitot_data_t *) data);
+        rocket_data_update_pitot((pitot_data_t *)data);
     }
 }
 
@@ -73,7 +75,7 @@ static void callback_eth_vent_valve(uint8_t *data, size_t size) {
     ESP_LOGI(TAG, "Vent receive, size %d", size);
     connected.eth_vent_valve = true;
     if (size == sizeof(eth_vent_valve_data_t)) {
-        rocket_data_update_eth_vent_valve((eth_vent_valve_data_t *) data);
+        rocket_data_update_eth_vent_valve((eth_vent_valve_data_t *)data);
     }
 }
 
@@ -81,7 +83,7 @@ static void callback_n2_vent_valve(uint8_t *data, size_t size) {
     connected.n2_vent_valve = true;
     ESP_LOGI(TAG, "N2 Main receive, size %d", size);
     if (size == sizeof(n2_vent_valve_data_t)) {
-        rocket_data_update_n2_vent_valve((n2_vent_valve_data_t *) data);
+        rocket_data_update_n2_vent_valve((n2_vent_valve_data_t *)data);
     }
 }
 
@@ -89,11 +91,11 @@ static void callback_ox_main_valve(uint8_t *data, size_t size) {
     connected.ox_main_valve = true;
     ESP_LOGI(TAG, "Ox Main receive, size %d", size);
     if (size == sizeof(ox_main_valve_data_t)) {
-        ESP_LOGI(TAG, "valve 1 status: %d", ((ox_main_valve_data_t *) data)->valve_1_state);
-        ESP_LOGI(TAG, "valve 2 status: %d", ((ox_main_valve_data_t *) data)->valve_2_state);
-        ESP_LOGI(TAG, "pressure 1: %f", ((ox_main_valve_data_t *) data)->pressure_1);
-        ESP_LOGI(TAG, "pressure 2: %f", ((ox_main_valve_data_t *) data)->pressure_2);
-        rocket_data_update_ox_main_valve((ox_main_valve_data_t *) data);
+        ESP_LOGI(TAG, "valve 1 status: %d", ((ox_main_valve_data_t *)data)->valve_1_state);
+        ESP_LOGI(TAG, "valve 2 status: %d", ((ox_main_valve_data_t *)data)->valve_2_state);
+        ESP_LOGI(TAG, "pressure 1: %f", ((ox_main_valve_data_t *)data)->pressure_1);
+        ESP_LOGI(TAG, "pressure 2: %f", ((ox_main_valve_data_t *)data)->pressure_2);
+        rocket_data_update_ox_main_valve((ox_main_valve_data_t *)data);
     }
 }
 
@@ -102,7 +104,7 @@ static void callback_ox_vent_eth_main_valves(uint8_t *data, size_t size) {
     connected.ox_vent_eth_main_valves = true;
     ESP_LOGI(TAG, "sizeof %d", sizeof(ox_vent_eth_main_valves_data_t));
     if (size == sizeof(ox_vent_eth_main_valves_data_t)) {
-        rocket_data_update_ox_vent_eth_main_valves((ox_vent_eth_main_valves_data_t *) data);
+        rocket_data_update_ox_vent_eth_main_valves((ox_vent_eth_main_valves_data_t *)data);
     }
 }
 
@@ -111,7 +113,7 @@ static void callback_tanwa(uint8_t *data, size_t size) {
     connected.tanwa = true;
     // ESP_LOGI(TAG, "sizeof %d", sizeof(tanwa_data_t));
     if (size == sizeof(tanwa_data_t)) {
-        rocket_data_update_tanwa((tanwa_data_t *) data);
+        rocket_data_update_tanwa((tanwa_data_t *)data);
     }
 }
 
@@ -119,7 +121,7 @@ static void callback_payload(uint8_t *data, size_t size) {
     ESP_LOGI(TAG, "Received from payload 0x%2X, size %d", data[0], size);
     connected.payload = true;
     if (size == sizeof(payload_data_t)) {
-        rocket_data_update_payload((payload_data_t *) data);
+        rocket_data_update_payload((payload_data_t *)data);
     } else {
         ESP_LOGE(TAG, "Payload invalid size");
     }
@@ -142,21 +144,17 @@ static void temp_on_error(ENA_ERROR error) {
 }
 
 // TO DO add mutex, not critical so i do not make this
-void esp_now_get_connected_dev(esp_now_connected_devices_t *dev) {
-    *dev = connected;
-}
+void esp_now_get_connected_dev(esp_now_connected_devices_t *dev) { *dev = connected; }
 
-void esp_now_clear_connected_dev(void) {
-    memset(&connected, 0, sizeof(connected));
-}
+void esp_now_clear_connected_dev(void) { memset(&connected, 0, sizeof(connected)); }
 
 bool initialize_esp_now(void) {
     esp_err_t status = ESP_OK;
     uint8_t mac_address[] = MCB_MAC;
     ENA_config_t cfg = {
-      .stack_depth = ESP_NOW_TASK_STACK_DEPTH,
-      .priority = ESP_NOW_TASK_PRIORITY,
-      .core_id = ESP_NOW_TASK_CORE_ID,
+        .stack_depth = ESP_NOW_TASK_STACK_DEPTH,
+        .priority = ESP_NOW_TASK_PRIORITY,
+        .core_id = ESP_NOW_TASK_CORE_ID,
     };
 
     status |= ENA_init(mac_address);
