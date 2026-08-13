@@ -263,7 +263,7 @@ static cmd_command_t mcb_commands[] = {
     {MCB_HOLD_OUT, mcb_hold_out},
     {MCB_CHANGE_LORA_FREQ, mcb_change_lora_frequency_khz},
     {MCB_CHANGE_TX_PERIOD, mcb_change_lora_transmitting_period},
-    {MCB_CHANGE_COUNTODWN_TIME, mcb_change_countdown_time},
+    {MCB_CHANGE_COUNTDOWN_TIME, mcb_change_countdown_time},
     {MCB_CHANGE_IGNITION_TIME, mcb_change_ignition_time},
     {MCB_FLASH_ENABLE, mcb_flash_enable},
     {MCB_SETTINGS_FRAME, mcb_settings_frame},
@@ -367,7 +367,7 @@ static cmd_command_t recovery_commands[] = {
 
 // N2 VENT VALVE
 
-static void n2_sol_close(uint32_t command, int32_t payload, bool privilege) {
+static void n2_vent_close(uint32_t command, int32_t payload, bool privilege) {
     // if (privilege == false) {
     //     return;
     // }
@@ -375,7 +375,7 @@ static void n2_sol_close(uint32_t command, int32_t payload, bool privilege) {
     send_command_esp_now(&esp_now_n2_vent_valve, command, payload);
 }
 
-static void n2_sol_open(uint32_t command, int32_t payload, bool privilege) {
+static void n2_vent_open(uint32_t command, int32_t payload, bool privilege) {
     // if (privilege == false) {
     //     return;
     // }
@@ -384,18 +384,18 @@ static void n2_sol_open(uint32_t command, int32_t payload, bool privilege) {
 }
 
 static cmd_command_t n2_vent_valve_commands[] = {
-    {N2_SOL_CLOSE, n2_sol_close},
-    {N2_SOL_OPEN, n2_sol_open},
+    {N2_VENT_CLOSE, n2_vent_close},
+    {N2_VENT_OPEN, n2_vent_open},
 };
 
-// ETH VENT VALVE
+// ETH VENT N2 MAIN VALVES
 
 static void eth_vent_close(uint32_t command, int32_t payload, bool privilege) {
     // if (privilege == false) {
     //     return;
     // }
 
-    send_command_esp_now(&esp_now_eth_vent_valve, command, payload);
+    send_command_esp_now(&esp_now_eth_vent_n2_main_valves, command, payload);
 }
 
 static void eth_vent_open(uint32_t command, int32_t payload, bool privilege) {
@@ -403,12 +403,30 @@ static void eth_vent_open(uint32_t command, int32_t payload, bool privilege) {
     //     return;
     // }
 
-    send_command_esp_now(&esp_now_eth_vent_valve, command, payload);
+    send_command_esp_now(&esp_now_eth_vent_n2_main_valves, command, payload);
 }
 
-static cmd_command_t eth_vent_valve_commands[] = {
+static void n2_main_open(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
+    //     return;
+    // }
+
+    send_command_esp_now(&esp_now_eth_vent_n2_main_valves, command, payload);
+}
+
+static void n2_main_close(uint32_t command, int32_t payload, bool privilege) {
+    // if (privilege == false) {
+    //     return;
+    // }
+
+    send_command_esp_now(&esp_now_eth_vent_n2_main_valves, command, payload);
+}
+
+static cmd_command_t eth_vent_n2_main_valves_commands[] = {
     {ETH_VENT_CLOSE, eth_vent_close},
     {ETH_VENT_OPEN, eth_vent_open},
+    {N2_MAIN_CLOSE, n2_main_close},
+    {N2_MAIN_OPEN, n2_main_open},
 };
 
 // OX VENT ETH MAIN VALVES
@@ -541,7 +559,7 @@ static cmd_device_t devices[] = {
     {DEVICE_MCB, mcb_commands, SIZE_OF(mcb_commands)},
     {DEVICE_RECOVERY, recovery_commands, SIZE_OF(recovery_commands)},
     {DEVICE_N2_VENT_VALVE, n2_vent_valve_commands, SIZE_OF(n2_vent_valve_commands)},
-    {DEVICE_ETH_VENT_VALVE, eth_vent_valve_commands, SIZE_OF(eth_vent_valve_commands)},
+    {DEVICE_ETH_VENT_VALVE, eth_vent_n2_main_valves_commands, SIZE_OF(eth_vent_n2_main_valves_commands)},
     {DEVICE_OX_MAIN_VALVE, ox_main_valve_commands, SIZE_OF(ox_main_valve_commands)},
     {DEVICE_OX_VENT_ETH_MAIN_VALVES, ox_vent_eth_main_valves_commands,
      SIZE_OF(ox_vent_eth_main_valves_commands)},

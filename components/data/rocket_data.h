@@ -7,10 +7,12 @@
 
 typedef struct {
     mcb_data_t mcb;
-    eth_vent_valve_data_t eth_vent_valve;
-    n2_vent_valve_data_t n2_vent_valve;
+
+    eth_vent_n2_main_valves_data_t eth_vent_n2_main_valves;
     ox_vent_eth_main_valves_data_t ox_vent_eth_main_valves;
+    n2_vent_valve_data_t n2_vent_valve;
     ox_main_valve_data_t ox_main_valve;
+
     recovery_data_t recovery;
     payload_data_t payload;
     tanwa_data_t tanwa;
@@ -30,7 +32,7 @@ void rocket_data_update_connected_dev(esp_now_connected_devices_t *data);
 
 void rocket_data_update_n2_vent_valve(n2_vent_valve_data_t *data);
 
-void rocket_data_update_eth_vent_valve(eth_vent_valve_data_t *data);
+void rocket_data_update_eth_vent_n2_main_valves(eth_vent_n2_main_valves_data_t *data);
 
 void rocket_data_update_ox_vent_eth_main_valves(ox_vent_eth_main_valves_data_t *data);
 
@@ -55,7 +57,7 @@ mcb_data_t rocket_data_get_mcb(void);
 
 n2_vent_valve_data_t rocket_data_get_n2_vent_valve(void);
 
-eth_vent_valve_data_t rocket_data_get_eth_vent_valve(void);
+eth_vent_n2_main_valves_data_t rocket_data_get_eth_vent_n2_main_valves(void);
 
 ox_vent_eth_main_valves_data_t rocket_data_get_ox_vent_eth_main_valves(void);
 

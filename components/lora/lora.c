@@ -251,8 +251,8 @@ int16_t lora_receive_packet(lora_struct_t *lora, uint8_t *buf, int16_t size) {
    * Check interrupts.
    */
   int16_t irq = lora_read_reg(lora, REG_IRQ_FLAGS);
-  lora_write_reg(lora, REG_IRQ_FLAGS, irq);
   if ((irq & IRQ_RX_DONE_MASK) == 0) return 0;
+  lora_write_reg(lora, REG_IRQ_FLAGS, irq);
   if (irq & IRQ_PAYLOAD_CRC_ERROR_MASK) return 0;
 
   /*

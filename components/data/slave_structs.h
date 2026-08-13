@@ -7,7 +7,7 @@
 
 typedef struct {
     bool n2_vent_valve : 1;
-    bool eth_vent_valve : 1;
+    bool eth_vent_n2_main_valves : 1;
     bool ox_vent_eth_main_valves : 1;
     bool ox_main_valve : 1;
     bool pitot : 1;
@@ -31,7 +31,7 @@ typedef struct {
     float charger_temperature;
 } n2_vent_valve_data_t;
 
-// eth solenoid
+// eth solenoid n2 servo
 typedef struct {
     bool waken_up : 1;
     bool dump_valve_arm : 1;
@@ -45,7 +45,7 @@ typedef struct {
     float battery_voltage;
     float battery_consumption;
     float charger_temperature;
-} eth_vent_valve_data_t;
+} eth_vent_n2_main_valves_data_t;
 
 // n2o solenoid eth servo
 typedef struct {

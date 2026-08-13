@@ -90,8 +90,9 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
     valve_states_bitfield |= data.ox_main_valve.valve_1_state == 1 ? 1u << 0 : 0u;
     valve_states_bitfield |= data.ox_vent_eth_main_valves.valve_1_state == 1 ? 1u << 2 : 0u;
     valve_states_bitfield |= data.ox_vent_eth_main_valves.valve_2_state == 1 ? 1u << 3 : 0u;
-    valve_states_bitfield |= data.eth_vent_valve.valve_1_state == 1 ? 1u << 4 : 0u;
-    valve_states_bitfield |= data.n2_vent_valve.valve_1_state == 1 ? 1u << 5 : 0u;
+    valve_states_bitfield |= data.eth_vent_n2_main_valves.valve_1_state == 1 ? 1u << 4 : 0u;
+    valve_states_bitfield |= data.eth_vent_n2_main_valves.valve_2_state == 1 ? 1u << 5 : 0u;
+    valve_states_bitfield |= data.n2_vent_valve.valve_1_state == 1 ? 1u << 6 : 0u;
 
     frame->main_vent_flags.is_present = true;
     frame->main_vent_flags.value = valve_states_bitfield;
@@ -170,14 +171,6 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
     // n2 vent bit data (uses n2_vent_valve struct)
     {
         uint32_t v = 0;
-        int16_t pressure_1 = (int16_t)(data.eth_vent_valve.pressure_1 * 100);
-        v |= (uint32_t)(uint16_t)pressure_1 << 16;
-        frame->eth_vent_bit_data_b.is_present = true;
-        frame->eth_vent_bit_data_b.value = v;
-    }
-
-    {
-        uint32_t v = 0;
         uint8_t battery_voltage = (uint8_t)(data.n2_vent_valve.battery_voltage * 10.0f);
         v |= (uint32_t)battery_voltage << 24;
         uint8_t battery_consumption = (uint8_t)(data.n2_vent_valve.battery_consumption * 10.0f);
@@ -189,18 +182,26 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
         frame->n2_vent_bit_data_a.value = v;
     }
 
-    // eth vent bit data (uses eth_vent_valve struct)
+    // eth vent n2 main bit data (uses eth_vent_n2_main_valve struct)
     {
         uint32_t v = 0;
-        uint8_t battery_voltage = (uint8_t)(data.eth_vent_valve.battery_voltage * 10.0f);
+        uint8_t battery_voltage = (uint8_t)(data.eth_vent_n2_main_valves.battery_voltage * 10.0f);
         v |= (uint32_t)battery_voltage << 24;
-        uint8_t battery_consumption = (uint8_t)(data.eth_vent_valve.battery_consumption * 10.0f);
+        uint8_t battery_consumption = (uint8_t)(data.eth_vent_n2_main_valves.battery_consumption * 10.0f);
         v |= (uint32_t)battery_consumption << 16;
-        v |= (uint32_t)data.eth_vent_valve.is_charging << 15;
-        int8_t charger_temperature = (int8_t)data.eth_vent_valve.charger_temperature;
+        v |= (uint32_t)data.eth_vent_n2_main_valves.is_charging << 15;
+        int8_t charger_temperature = (int8_t)data.eth_vent_n2_main_valves.charger_temperature;
         v |= (uint32_t)(uint8_t)charger_temperature << 7;
-        frame->eth_vent_bit_data_a.is_present = true;
-        frame->eth_vent_bit_data_a.value = v;
+        frame->eth_vent_n2_main_bit_data_a.is_present = true;
+        frame->eth_vent_n2_main_bit_data_a.value = v;
+    }
+
+    {
+        uint32_t v = 0;
+        int16_t pressure_1 = (int16_t)(data.eth_vent_n2_main_valves.pressure_1 * 100);
+        v |= (uint32_t)(uint16_t)pressure_1 << 16;
+        frame->eth_vent_n2_main_bit_data_b.is_present = true;
+        frame->eth_vent_n2_main_bit_data_b.value = v;
     }
 
     // payload
@@ -211,7 +212,7 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
         uint32_t conn = 0;
         conn |= data.connected_dev.payload ? 1u << 0 : 0u; // payload_connected
         conn |= data.connected_dev.tanwa ? 1u << 1 : 0u; // tanwa_connected
-        conn |= data.connected_dev.eth_vent_valve ? 1u << 2 : 0u;
+        conn |= data.connected_dev.eth_vent_n2_main_valves ? 1u << 2 : 0u;
         conn |= data.connected_dev.ox_main_valve ? 1u << 3 : 0u;
         conn |= data.connected_dev.ox_vent_eth_main_valves ? 1u << 4 : 0u;
         conn |= data.connected_dev.n2_vent_valve ? 1u << 5 : 0u;
@@ -223,7 +224,7 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
     {
         uint32_t wk = 0;
         wk |= data.payload.waken_up ? 1u << 0 : 0u;
-        wk |= data.eth_vent_valve.waken_up ? 1u << 1 : 0u;
+        wk |= data.eth_vent_n2_main_valves.waken_up ? 1u << 1 : 0u;
         wk |= data.ox_main_valve.waken_up ? 1u << 2 : 0u;
         wk |= data.ox_vent_eth_main_valves.waken_up ? 1u << 3 : 0u;
         wk |= data.n2_vent_valve.waken_up ? 1u << 4 : 0u;

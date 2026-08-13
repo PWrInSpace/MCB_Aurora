@@ -180,7 +180,7 @@ static int esp_now_send_eth_vent_valve(int argc, char **argv) {
     int payload = atoi(argv[2]);
 
     cmd_message_t msg = cmd_create_message(command, payload);
-    ENA_send(&esp_now_eth_vent_valve, msg.raw, sizeof(msg.raw), 3);
+    ENA_send(&esp_now_eth_vent_n2_main_valves, msg.raw, sizeof(msg.raw), 3);
     return 0;
 }
 
@@ -234,7 +234,7 @@ static int cli_change_countdown_time(int argc, char **argv) {
         return -1;
     }
 
-    cmd_message_t command = cmd_create_message(MCB_CHANGE_COUNTODWN_TIME, atoi(argv[1]));
+    cmd_message_t command = cmd_create_message(MCB_CHANGE_COUNTDOWN_TIME, atoi(argv[1]));
     if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
         return -1;
     }

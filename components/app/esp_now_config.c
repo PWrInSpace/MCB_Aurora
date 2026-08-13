@@ -16,7 +16,7 @@
 static esp_now_connected_devices_t connected;
 
 static void callback_pitot(uint8_t *data, size_t size);
-static void callback_eth_vent_valve(uint8_t *data, size_t size);
+static void callback_eth_vent_n2_main_valves(uint8_t *data, size_t size);
 static void callback_n2_vent_valve(uint8_t *data, size_t size);
 static void callback_ox_main_valve(uint8_t *data, size_t size);
 static void callback_ox_vent_eth_main_valves(uint8_t *data, size_t size);
@@ -33,9 +33,9 @@ const ENA_device_t esp_now_pitot = {
     .on_receive = callback_pitot,
 };
 
-const ENA_device_t esp_now_eth_vent_valve = {
-    .peer = {.peer_addr = ETH_VENT_VALVE_MAC, .channel = ESP_NOW_CHANNEL},
-    .on_receive = callback_eth_vent_valve,
+const ENA_device_t esp_now_eth_vent_n2_main_valves = {
+    .peer = {.peer_addr = ETH_VENT_N2_MAIN_VALVES_MAC, .channel = ESP_NOW_CHANNEL},
+    .on_receive = callback_eth_vent_n2_main_valves,
 };
 
 const ENA_device_t esp_now_n2_vent_valve = {
@@ -71,11 +71,11 @@ static void callback_pitot(uint8_t *data, size_t size) {
     }
 }
 
-static void callback_eth_vent_valve(uint8_t *data, size_t size) {
+static void callback_eth_vent_n2_main_valves(uint8_t *data, size_t size) {
     ESP_LOGI(TAG, "Vent receive, size %d", size);
-    connected.eth_vent_valve = true;
-    if (size == sizeof(eth_vent_valve_data_t)) {
-        rocket_data_update_eth_vent_valve((eth_vent_valve_data_t *)data);
+    connected.eth_vent_n2_main_valves = true;
+    if (size == sizeof(eth_vent_n2_main_valves_data_t)) {
+        rocket_data_update_eth_vent_n2_main_valves((eth_vent_n2_main_valves_data_t *)data);
     }
 }
 
@@ -91,10 +91,6 @@ static void callback_ox_main_valve(uint8_t *data, size_t size) {
     connected.ox_main_valve = true;
     ESP_LOGI(TAG, "Ox Main receive, size %d", size);
     if (size == sizeof(ox_main_valve_data_t)) {
-        ESP_LOGI(TAG, "valve 1 status: %d", ((ox_main_valve_data_t *)data)->valve_1_state);
-        ESP_LOGI(TAG, "valve 2 status: %d", ((ox_main_valve_data_t *)data)->valve_2_state);
-        ESP_LOGI(TAG, "pressure 1: %f", ((ox_main_valve_data_t *)data)->pressure_1);
-        ESP_LOGI(TAG, "pressure 2: %f", ((ox_main_valve_data_t *)data)->pressure_2);
         rocket_data_update_ox_main_valve((ox_main_valve_data_t *)data);
     }
 }
@@ -109,9 +105,8 @@ static void callback_ox_vent_eth_main_valves(uint8_t *data, size_t size) {
 }
 
 static void callback_tanwa(uint8_t *data, size_t size) {
-    // ESP_LOGI(TAG, "Tanwa receive, size %d, size %d", size, sizeof(tanwa_data_t));
+    ESP_LOGI(TAG, "Tanwa receive, size %d, size %d", size, sizeof(tanwa_data_t));
     connected.tanwa = true;
-    // ESP_LOGI(TAG, "sizeof %d", sizeof(tanwa_data_t));
     if (size == sizeof(tanwa_data_t)) {
         rocket_data_update_tanwa((tanwa_data_t *)data);
     }
@@ -122,8 +117,6 @@ static void callback_payload(uint8_t *data, size_t size) {
     connected.payload = true;
     if (size == sizeof(payload_data_t)) {
         rocket_data_update_payload((payload_data_t *)data);
-    } else {
-        ESP_LOGE(TAG, "Payload invalid size");
     }
 }
 
@@ -161,7 +154,7 @@ bool initialize_esp_now(void) {
     status |= ENA_register_device(&esp_now_broadcast);
     status |= ENA_register_device(&esp_now_pitot);
     status |= ENA_register_device(&esp_now_payload);
-    status |= ENA_register_device(&esp_now_eth_vent_valve);
+    status |= ENA_register_device(&esp_now_eth_vent_n2_main_valves);
     status |= ENA_register_device(&esp_now_n2_vent_valve);
     status |= ENA_register_device(&esp_now_tanwa);
     status |= ENA_register_device(&esp_now_ox_main_valve);

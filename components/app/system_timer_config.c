@@ -76,9 +76,9 @@ static void connected_dev(void *arg) {
     n2_vent_valve_data_t n2_data = rocket_data_get_n2_vent_valve();
     n2_data.waken_up = false;
     rocket_data_update_n2_vent_valve(&n2_data);
-    eth_vent_valve_data_t vent_data = rocket_data_get_eth_vent_valve();
+    eth_vent_n2_main_valves_data_t vent_data = rocket_data_get_eth_vent_n2_main_valves();
     vent_data.waken_up = false;
-    rocket_data_update_eth_vent_valve(&vent_data);
+    rocket_data_update_eth_vent_n2_main_valves(&vent_data);
     ox_main_valve_data_t ox_main_data = rocket_data_get_ox_main_valve();
     ox_main_data.waken_up = false;
     rocket_data_update_ox_main_valve(&ox_main_data);

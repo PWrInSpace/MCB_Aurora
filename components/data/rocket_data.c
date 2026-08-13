@@ -45,12 +45,12 @@ void rocket_data_update_n2_vent_valve(n2_vent_valve_data_t *data) {
     xSemaphoreGive(gb.data_mutex);
 }
 
-void rocket_data_update_eth_vent_valve(eth_vent_valve_data_t *data) {
+void rocket_data_update_eth_vent_n2_main_valves(eth_vent_n2_main_valves_data_t *data) {
     if (xSemaphoreTake(gb.data_mutex, 1000) != pdTRUE) {
         ESP_LOGE(TAG, "Data semaphore errror :C");
         return;
     }
-    memcpy(&gb.rocket_data.eth_vent_valve, data, sizeof(gb.rocket_data.eth_vent_valve));
+    memcpy(&gb.rocket_data.eth_vent_n2_main_valves, data, sizeof(gb.rocket_data.eth_vent_n2_main_valves));
     xSemaphoreGive(gb.data_mutex);
 }
 
@@ -181,13 +181,13 @@ n2_vent_valve_data_t rocket_data_get_n2_vent_valve(void) {
     return tmp;
 }
 
-eth_vent_valve_data_t rocket_data_get_eth_vent_valve(void) {
-    eth_vent_valve_data_t tmp = {0};
+eth_vent_n2_main_valves_data_t rocket_data_get_eth_vent_n2_main_valves(void) {
+    eth_vent_n2_main_valves_data_t tmp = {0};
     if (xSemaphoreTake(gb.data_mutex, 1000) != pdTRUE) {
         ESP_LOGE(TAG, "Data semaphore errror :C");
         return tmp;
     }
-    tmp = gb.rocket_data.eth_vent_valve;
+    tmp = gb.rocket_data.eth_vent_n2_main_valves;
 
     xSemaphoreGive(gb.data_mutex);
     return tmp;
@@ -266,7 +266,7 @@ bool rocket_data_woken_up(void) {
         return false;
     }
     if (gb.rocket_data.n2_vent_valve.waken_up == false ||
-        gb.rocket_data.eth_vent_valve.waken_up == false ||
+        gb.rocket_data.eth_vent_n2_main_valves.waken_up == false ||
         gb.rocket_data.ox_vent_eth_main_valves.waken_up == false ||
         gb.rocket_data.ox_main_valve.waken_up == false) {
         result = false;
