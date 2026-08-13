@@ -99,59 +99,53 @@ void lora_task(void *arg) {
     size_t rx_packet_size = 0;
 
     while (1) {
-        // on transmit
-        if (gb.lora_state == LORA_TRANSMIT) {
-            ESP_LOGI(TAG, "ON transmit");
-            lora_change_state_to_receive();
+        ESP_LOGI(TAG, "ON receive");
 
-            // on receive
-        } else {
-            ESP_LOGI(TAG, "ON receive");
+        // 1. Zawsze wymuszamy przejście w tryb nasłuchu i czyścimy flagi
+        // (to wykasuje to, co przyszło w trakcie samego nadawania, ale to nieuniknione w
+        // Half-Duplex)
+        lora_change_state_to_receive();
 
-            TickType_t start_tick = xTaskGetTickCount();
-            TickType_t delay_ticks = pdMS_TO_TICKS(gb.receive_window_period);
+        TickType_t start_tick = xTaskGetTickCount();
+        TickType_t delay_ticks = pdMS_TO_TICKS(gb.receive_window_period);
 
-            // Wyczyść ewentualne zaległe powiadomienia z przerwań
-            ulTaskNotifyTake(pdTRUE, 0);
+        // Wyczyść ewentualne zaległe powiadomienia z przerwań RTOS
+        ulTaskNotifyTake(pdTRUE, 0);
 
-            // Safety net: jeżeli ramka wpadła w oknie między set_receive_mode a
-            // wyzerowaniem notyfikacji, flaga RX_DONE dalej wisi w rejestrze,
-            // a DIO0 jest HIGH — bez tego POSEDGE już nie strzeli.
-            if (lora_read_reg(&gb.lora, REG_IRQ_FLAGS) & IRQ_RX_DONE_MASK) {
+        // Safety net: ratunek jeśli coś wpadło ułamek sekundy temu
+        if (lora_read_reg(&gb.lora, REG_IRQ_FLAGS) & IRQ_RX_DONE_MASK) {
+            rx_packet_size = on_lora_receive(rx_buffer, sizeof(rx_buffer));
+            if (rx_packet_size > 0) {
+                lora_set_receive_mode(&gb.lora);
+            } else {
+                lora_write_reg(&gb.lora, REG_IRQ_FLAGS, 0xFF);
+            }
+        }
+
+        // 2. GŁÓWNE OKIENKO 500 ms
+        while (1) {
+            TickType_t current_tick = xTaskGetTickCount();
+            if (current_tick - start_tick >= delay_ticks) {
+                break;  // Czas okienka minął, wychodzimy nadawać!
+            }
+            TickType_t remaining_ticks = delay_ticks - (current_tick - start_tick);
+
+            // Czekamy na przerwanie (RXDONE) przez pozostały czas
+            if (ulTaskNotifyTake(pdTRUE, remaining_ticks) == pdTRUE) {
                 rx_packet_size = on_lora_receive(rx_buffer, sizeof(rx_buffer));
+
                 if (rx_packet_size > 0) {
                     lora_set_receive_mode(&gb.lora);
                 } else {
-                    // CRC error / śmieć — i tak zdejmij flagi, żeby DIO0 zszedł
+                    // Dobra praktyka: zabezpieczenie przed zablokowaniem DIO0 na błędnej ramce
                     lora_write_reg(&gb.lora, REG_IRQ_FLAGS, 0xFF);
                 }
             }
-
-            while (1) {
-                TickType_t current_tick = xTaskGetTickCount();
-                if (current_tick - start_tick >= delay_ticks) {
-                    break;  // Czas okienka minął
-                }
-                TickType_t remaining_ticks = delay_ticks - (current_tick - start_tick);
-
-                // Czekamy na przerwanie (RXDONE) przez pozostały czas
-                if (ulTaskNotifyTake(pdTRUE, remaining_ticks) == pdTRUE) {
-                    // Wybudzono nas przerwaniem - jest ramka!
-                    rx_packet_size = on_lora_receive(rx_buffer, sizeof(rx_buffer));
-
-                    if (rx_packet_size > 0) {
-                        // lora_receive_packet przełącza układ w tryb Idle,
-                        // więc musimy z powrotem przełączyć go na tryb odbioru ciągłego
-                        // (Continuous RX)
-                        lora_set_receive_mode(&gb.lora);
-                    }
-                }
-            }
-
-            vTaskDelay(pdMS_TO_TICKS(100));
-            lora_change_state_to_transmit();
-            transmit_packet();
         }
+
+        // 3. OKIENKO SIĘ SKOŃCZYŁO - NADAWANIE
+        lora_change_state_to_transmit();
+        transmit_packet();
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
