@@ -42,8 +42,7 @@ message MCBFrame {
     // bit2: OX_VENT_STATE
     // bit3: ETH_MAIN_STATE
     // bit4: ETH_VENT_STATE
-    // bit5: N2_MAIN_STATE
-    // bit6: N2_VENT_STATE
+    // bit5: N2_VENT_STATE
     optional fixed32 main_vent_flags = 19;
 
     optional fixed32 n2_vent_bit_data_a = 20;

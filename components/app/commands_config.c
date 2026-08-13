@@ -559,7 +559,7 @@ static cmd_device_t devices[] = {
     {DEVICE_MCB, mcb_commands, SIZE_OF(mcb_commands)},
     {DEVICE_RECOVERY, recovery_commands, SIZE_OF(recovery_commands)},
     {DEVICE_N2_VENT_VALVE, n2_vent_valve_commands, SIZE_OF(n2_vent_valve_commands)},
-    {DEVICE_ETH_VENT_VALVE, eth_vent_n2_main_valves_commands, SIZE_OF(eth_vent_n2_main_valves_commands)},
+    {DEVICE_ETH_VENT_N2_MAIN_VALVES, eth_vent_n2_main_valves_commands, SIZE_OF(eth_vent_n2_main_valves_commands)},
     {DEVICE_OX_MAIN_VALVE, ox_main_valve_commands, SIZE_OF(ox_main_valve_commands)},
     {DEVICE_OX_VENT_ETH_MAIN_VALVES, ox_vent_eth_main_valves_commands,
      SIZE_OF(ox_vent_eth_main_valves_commands)},

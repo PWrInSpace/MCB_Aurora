@@ -13,7 +13,7 @@
 
 #define TAG "SENSORS_CFG"
 
-#define FILTER_CONST 0.05f
+#define FILTER_CONST 0.95f
 
 static struct bmi08_sensor_data_f acc;
 static struct bmi08_sensor_data_f gyro;

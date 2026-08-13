@@ -88,11 +88,11 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
 
     uint32_t valve_states_bitfield = 0;
     valve_states_bitfield |= data.ox_main_valve.valve_1_state == 1 ? 1u << 0 : 0u;
+    valve_states_bitfield |= data.eth_vent_n2_main_valves.valve_2_state == 1 ? 1u << 1 : 0u;
     valve_states_bitfield |= data.ox_vent_eth_main_valves.valve_1_state == 1 ? 1u << 2 : 0u;
     valve_states_bitfield |= data.ox_vent_eth_main_valves.valve_2_state == 1 ? 1u << 3 : 0u;
     valve_states_bitfield |= data.eth_vent_n2_main_valves.valve_1_state == 1 ? 1u << 4 : 0u;
-    valve_states_bitfield |= data.eth_vent_n2_main_valves.valve_2_state == 1 ? 1u << 5 : 0u;
-    valve_states_bitfield |= data.n2_vent_valve.valve_1_state == 1 ? 1u << 6 : 0u;
+    valve_states_bitfield |= data.n2_vent_valve.valve_1_state == 1 ? 1u << 5 : 0u;
 
     frame->main_vent_flags.is_present = true;
     frame->main_vent_flags.value = valve_states_bitfield;

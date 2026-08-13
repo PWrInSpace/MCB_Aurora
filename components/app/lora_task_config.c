@@ -37,7 +37,6 @@ static uint8_t calculate_checksum(uint8_t* buffer, size_t size) {
     for (size_t i = 0; i < size; ++i) {
         sum += buffer[i];
     }
-
     return sum;
 }
 
@@ -49,11 +48,10 @@ static void lora_process(uint8_t* packet, size_t packet_size) {
     }
 
     uint8_t prefix_size = sizeof(PACKET_PREFIX) - 1;
-    // if (calculate_checksum(packet + prefix_size, packet_size - prefix_size - 1) !=
-    // packet[packet_size - 1]) {
-    //     ESP_LOGE(TAG, "Invalid checksum");
-    //     return;
-    // }
+    if (calculate_checksum(packet + prefix_size, packet_size - prefix_size - 1) != packet[packet_size - 1]) {
+        ESP_LOGE(TAG, "Invalid checksum");
+        return;
+    }
 
     struct obc_lo_ra_frame_t* received = obc_lo_ra_frame_new(&workspace, sizeof(workspace));
 
@@ -126,12 +124,16 @@ static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
 
     ESP_LOGI(TAG, "Data frame size: %zu", data_size);
 
-    if (prefix_size + data_size > 255) {
+    uint8_t checksum = calculate_checksum(buffer + prefix_size, data_size);
+    if (prefix_size + data_size + sizeof(checksum) > size) return 0;
+    buffer[prefix_size + data_size] = checksum;
+
+    if (prefix_size + data_size + 1 > 255) {
         ESP_LOGE(TAG, "Data frame too large to send over LoRa");
         return 0;
     }
 
-    return prefix_size + data_size;
+    return prefix_size + data_size + 1;
 }
 
 static size_t lora_packet(uint8_t* buffer, size_t buffer_size) {

@@ -79,6 +79,7 @@ static void on_armed_to_launch(void *arg) {
 
 
     // po całej procedurze tankowania wprowadzamy kalibrację, (płytka powinna się już nagrzać)
+    ESP_LOGI(TAG, "CALIBRATING");
     bmp5_calculate_altitude_offset();
 
     ESP_LOGI(TAG, "ON ARMED TO LAUNCH");
