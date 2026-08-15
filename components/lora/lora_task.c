@@ -42,7 +42,6 @@ void IRAM_ATTR lora_task_irq_notify(void *arg) {
 }
 
 static void lora_change_state_to_receive() {
-    ESP_LOGD(TAG, "Changing state to receive");
     if (gb.lora_state == LORA_RECEIVE) {
         return;
     }
@@ -54,7 +53,6 @@ static void lora_change_state_to_receive() {
 }
 
 static void lora_change_state_to_transmit() {
-    ESP_LOGD(TAG, "Changing state to transmit");
     if (gb.lora_state == LORA_TRANSMIT) {
         return;
     }
@@ -67,9 +65,7 @@ static size_t on_lora_receive(uint8_t *rx_buffer, size_t buffer_len) {
     if (lora_received(&gb.lora) == LORA_OK) {
         len = lora_receive_packet(&gb.lora, rx_buffer, buffer_len);
         rx_buffer[len] = '\0';
-        ESP_LOGI(TAG, "Received %d bytes", len);
         xMessageBufferSend(gb.rx_queue, rx_buffer, len, 100);
-        ESP_LOGD(TAG, "Received, len %d", len);
     }
     return len;
 }
@@ -99,8 +95,6 @@ void lora_task(void *arg) {
     size_t rx_packet_size = 0;
 
     while (1) {
-        ESP_LOGI(TAG, "ON receive");
-
         // 1. Zawsze wymuszamy przejście w tryb nasłuchu i czyścimy flagi
         // (to wykasuje to, co przyszło w trakcie samego nadawania, ale to nieuniknione w
         // Half-Duplex)

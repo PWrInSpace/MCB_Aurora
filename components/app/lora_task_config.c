@@ -41,7 +41,6 @@ static uint8_t calculate_checksum(uint8_t* buffer, size_t size) {
 }
 
 static void lora_process(uint8_t* packet, size_t packet_size) {
-    ESP_LOGI(TAG, "Received packet");
     if (check_prefix(packet, packet_size) == false) {
         ESP_LOGE(TAG, "LoRa invalid prefix");
         return;
