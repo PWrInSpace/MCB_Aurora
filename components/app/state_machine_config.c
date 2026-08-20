@@ -66,10 +66,10 @@ static void on_pressurizing(void *arg) {
     gpioexp_led_set_color(CYAN);
 
     cmd_message_t cmd = cmd_create_message(N2_MAIN_CLOSE, 0x00);
-    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_VENT_CLOSE, 0x00);
-    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
 
     ESP_LOGI(TAG, "ON PRESSURIZING");
 }

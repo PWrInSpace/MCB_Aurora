@@ -149,11 +149,8 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
         v |= (uint32_t)(uint16_t)pressure << 16;
         v |= (uint32_t)data.ox_main_valve.dump_valve_arm << 15;
         v |= (uint32_t)data.ox_main_valve.dump_valve_cont << 14;
-        float pressure_f = data.ox_main_valve.pressure_2;
-        long rounded_pressure = lroundf(pressure_f);
-        int8_t pressure = (int8_t)rounded_pressure;
-
-        v |= (uint32_t)(uint8_t)pressure << 6;
+        int8_t temperature = (int8_t)data.ox_main_valve.temperature_1;
+        v |= (uint32_t)(uint8_t)temperature << 6;
         frame->ox_main_bit_data_a.is_present = true;
         frame->ox_main_bit_data_a.value = v;
     }
