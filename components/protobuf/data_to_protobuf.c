@@ -200,6 +200,8 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
         uint32_t v = 0;
         int16_t pressure_1 = (int16_t)(data.eth_vent_n2_main_valves.pressure_1 * 100);
         v |= (uint32_t)(uint16_t)pressure_1 << 16;
+        int16_t pressure_2 = (int16_t)(data.eth_vent_n2_main_valves.pressure_2 * 100);
+        v |= (uint32_t)(uint16_t)pressure_2;
         frame->eth_vent_n2_main_bit_data_b.is_present = true;
         frame->eth_vent_n2_main_bit_data_b.value = v;
     }
