@@ -2,6 +2,7 @@
 
 #include "commands_config.h"
 
+#include "bmp5_wrapper.h"
 #include "buzzer_pwm.h"
 #include "errors_config.h"
 #include "esp_log.h"
@@ -256,6 +257,10 @@ static void mcb_cameras_off(uint32_t command, int32_t payload, bool privilege) {
     gpioexp_camera_turn_off();
 }
 
+static void mcb_calibrate_barometer(uint32_t command, int32_t payload, bool privilege) {
+    bmp5_calculate_altitude_offset();
+}
+
 static cmd_command_t mcb_commands[] = {
     {MCB_STATE_CHANGE, mcb_state_change},
     {MCB_ABORT, mcb_abort},
@@ -274,6 +279,7 @@ static cmd_command_t mcb_commands[] = {
     {MCB_CAMERAS_OFF, mcb_cameras_off},
     {MCB_RESET_DEV, mcb_reset_dev},
     {MCB_RESET_DISCONNECT_TIMER, mcb_reset_disconnect_timer},
+    {MCB_CALIBRATE_BAROMETER, mcb_calibrate_barometer},
 };
 
 // TANWA
@@ -561,8 +567,7 @@ static cmd_device_t devices[] = {
     {DEVICE_N2_VENT_VALVE, n2_vent_valve_commands, SIZE_OF(n2_vent_valve_commands)},
     {DEVICE_ETH_VENT_N2_MAIN_VALVES, eth_vent_n2_main_valves_commands, SIZE_OF(eth_vent_n2_main_valves_commands)},
     {DEVICE_OX_MAIN_VALVE, ox_main_valve_commands, SIZE_OF(ox_main_valve_commands)},
-    {DEVICE_OX_VENT_ETH_MAIN_VALVES, ox_vent_eth_main_valves_commands,
-     SIZE_OF(ox_vent_eth_main_valves_commands)},
+    {DEVICE_OX_VENT_ETH_MAIN_VALVES, ox_vent_eth_main_valves_commands,SIZE_OF(ox_vent_eth_main_valves_commands)},
     {DEVICE_TANWA, tanwa_commands, SIZE_OF(tanwa_commands)},
 };
 
