@@ -59,16 +59,17 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
     // recovery - pack various boolean fields into a single fixed32 recovery_flags
     {
         uint32_t recovery_flags = 0;
-        recovery_flags |= data.recovery.separationSwitch1 ? 1u << 0 : 0u;
-        recovery_flags |= data.recovery.separationSwitch2 ? 1u << 1 : 0u;
-        recovery_flags |= data.recovery.firstStageDone ? 1u << 2 : 0u;
-        recovery_flags |= data.recovery.secondStageDone ? 1u << 3 : 0u;
-        recovery_flags |= data.recovery.telemetrumFirstStage ? 1u << 4 : 0u;
-        recovery_flags |= data.recovery.telemetrumSecondStage ? 1u << 5 : 0u;
-        recovery_flags |= data.recovery.easyMiniFirstStage ? 1u << 6 : 0u;
-        recovery_flags |= data.recovery.easyMiniSecondStage ? 1u << 7 : 0u;
-        recovery_flags |= data.recovery.isTeleActive ? 1u << 8 : 0u;
-        recovery_flags |= data.recovery.isArmed ? 1u << 9 : 0u;
+        recovery_flags |= data.recovery.telemetrum_armed ? 1u << 0 : 0u;
+        recovery_flags |= data.recovery.telemetrum_apogee_detected ? 1u << 1 : 0u;
+        recovery_flags |= data.recovery.telemetrum_first_stage ? 1u << 2 : 0u;
+        recovery_flags |= data.recovery.telemetrum_second_stage ? 1u << 3 : 0u;
+        recovery_flags |= data.recovery.easymini_armed ? 1u << 4 : 0u;
+        recovery_flags |= data.recovery.easymini_apogee_detected ? 1u << 5 : 0u;
+        recovery_flags |= data.recovery.easymini_first_stage ? 1u << 6 : 0u;
+        recovery_flags |= data.recovery.easymini_second_stage ? 1u << 7 : 0u;
+        recovery_flags |= data.recovery.separation_one ? 1u << 8 : 0u;
+        recovery_flags |= data.recovery.separation_two ? 1u << 9 : 0u;
+        recovery_flags |= data.recovery.continuity ? 1u << 10 : 0u;
         frame->recovery_flags.is_present = true;
         frame->recovery_flags.value = recovery_flags;
     }
