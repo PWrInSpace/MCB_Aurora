@@ -39,39 +39,20 @@ static bool recovery_read_data(recovery_data_t* message, size_t len) {
     recovery_data_t leftRecoveryData;
     bool leftStatus = true;
     if (i2c_com_only_read(RECOVERY_ADDRESS_LEFT, (uint8_t*)&leftRecoveryData, len) == false) {
-        //ESP_LOGE(TAG, "RECOVERY ESP RECEIVER ERROR");
         memset(&leftRecoveryData,0,sizeof(leftRecoveryData));
         leftStatus = false;
     }
-    // if(i2c_com_only_read(RECOVERY_ADDRESS_RIGHT, (uint8_t*)&rightRecoveryData, len) == false){
-    // ESP_LOGE(TAG, "RIGHT RECOVERY ESP RECEIVER ERROR");
-    // memset(&rightRecoveryData,0,sizeof(rightRecoveryData));
-    // rightStatus = false;
-    // }
-
-    //ESP_LOGI(TAG, "sizeof recovery data: %d,   %d", sizeof(leftRecoveryData), len);
-
-    // ESP_LOGI(TAG, "LEFT RECOVERY DATA: isArmed=%d isTeleActive=%d easyMiniFirstStage=%d easyMiniSecondStage=%d telemetrumFirstStage=%d telemetrumSecondStage=%d firstStageDone=%d secondStageDone=%d firstStageContinouity=%d secondStageContinouity=%d separationSwitch1=%d separationSwitch2=%d",
-    // leftRecoveryData.isArmed, leftRecoveryData.isTeleActive, leftRecoveryData.easyMiniFirstStage, leftRecoveryData.easyMiniSecondStage,
-    // leftRecoveryData.telemetrumFirstStage, leftRecoveryData.telemetrumSecondStage, leftRecoveryData.firstStageDone, leftRecoveryData.secondStageDone,
-    // leftRecoveryData.firstStageContinouity, leftRecoveryData.secondStageContinouity, leftRecoveryData.separationSwitch1, leftRecoveryData.separationSwitch2);
-    
-    gb.recovery_data.isArmed = leftRecoveryData.isArmed;
-    gb.recovery_data.isTeleActive = leftRecoveryData.isTeleActive;
-    //ESP_LOGI(TAG, "Arm status: %d", leftRecoveryData.isArmed);
-    //ESP_LOGI(TAG, "Telemetry status: %d", leftRecoveryData.isTeleActive);
-    gb.recovery_data.easyMiniFirstStage = leftRecoveryData.easyMiniFirstStage;
-    gb.recovery_data.easyMiniSecondStage = leftRecoveryData.easyMiniSecondStage;
-    gb.recovery_data.telemetrumFirstStage = leftRecoveryData.telemetrumFirstStage;
-    gb.recovery_data.telemetrumSecondStage = leftRecoveryData.telemetrumSecondStage;
-    gb.recovery_data.firstStageDone = leftRecoveryData.firstStageDone;
-    gb.recovery_data.secondStageDone = leftRecoveryData.secondStageDone;
-    gb.recovery_data.firstStageContinouity = leftRecoveryData.firstStageContinouity;
-    gb.recovery_data.secondStageContinouity = leftRecoveryData.secondStageContinouity;
-    gb.recovery_data.separationSwitch1 = leftRecoveryData.separationSwitch1;
-    //gb.recovery_data.separationSwitch2 = rightRecoveryData.separationSwitch1;
-    //gb.recovery_data.pressure2 = rightRecoveryData.pressure1;
-
+    gb.recovery_data.telemetrum_armed = leftRecoveryData.telemetrum_armed;
+    gb.recovery_data.telemetrum_apogee_detected = leftRecoveryData.telemetrum_apogee_detected;
+    gb.recovery_data.telemetrum_first_stage = leftRecoveryData.telemetrum_first_stage;
+    gb.recovery_data.telemetrum_second_stage = leftRecoveryData.telemetrum_second_stage;
+    gb.recovery_data.easymini_armed = leftRecoveryData.easymini_armed;
+    gb.recovery_data.easymini_apogee_detected = leftRecoveryData.easymini_apogee_detected;
+    gb.recovery_data.easymini_first_stage = leftRecoveryData.easymini_first_stage;
+    gb.recovery_data.easymini_second_stage = leftRecoveryData.easymini_second_stage;
+    gb.recovery_data.separation_one = leftRecoveryData.separation_one;
+    gb.recovery_data.separation_two = leftRecoveryData.separation_two;
+    gb.recovery_data.continuity = leftRecoveryData.continuity;
 
     return leftStatus;
 }

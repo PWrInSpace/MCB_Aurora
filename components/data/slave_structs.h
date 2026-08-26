@@ -84,18 +84,17 @@ typedef struct {
 } ox_main_valve_data_t;
 
 typedef struct {
-    bool isArmed : 1;
-    bool isTeleActive : 1;
-    bool easyMiniFirstStage : 1;
-    bool easyMiniSecondStage : 1;
-    bool telemetrumFirstStage : 1;
-    bool telemetrumSecondStage : 1;
-    bool firstStageDone : 1;
-    bool secondStageDone : 1;
-    bool firstStageContinouity : 1;
-    bool secondStageContinouity : 1;
-    bool separationSwitch1 : 1;
-    bool separationSwitch2 : 1;
+    bool telemetrum_armed: 1;
+    bool telemetrum_apogee_detected: 1;
+    bool telemetrum_first_stage: 1;
+    bool telemetrum_second_stage: 1;
+    bool easymini_armed: 1;
+    bool easymini_apogee_detected: 1;
+    bool easymini_first_stage: 1;
+    bool easymini_second_stage: 1;
+    bool separation_one: 1;
+    bool separation_two: 1;
+    bool continuity: 1;
 } recovery_data_t;
 
 typedef struct {

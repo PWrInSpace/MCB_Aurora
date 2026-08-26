@@ -26,7 +26,7 @@
 static bool state_change_check_countdown(void) {
     recovery_data_t data = rocket_data_get_recovery();
     tanwa_data_t tanwa = rocket_data_get_tanwa();
-    if (data.isArmed == false || data.isTeleActive == false || tanwa.soft_arm == false) {
+    if (data.telemetrum_armed == false || data.easymini_armed == false || tanwa.soft_arm == false) {
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_NOT_ARMED, 100);
         return false;
     }
