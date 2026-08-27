@@ -318,8 +318,8 @@ static void write_headers(sd_task_cfg_t *task_cfg) {
 
     size_t header_size = mem.get_sd_header_size_fnc();
 
-    char buffer[header_size];
-    mem.create_sd_header_fnc(buffer, header_size, NULL, 0);
+    char buffer[header_size + 1];
+    mem.create_sd_header_fnc(buffer, header_size + 1, NULL, 0);
 
     xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
     FILE *data_file = fopen(mem.data_path, "a");
