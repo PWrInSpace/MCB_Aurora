@@ -105,16 +105,6 @@ static void debug_data(void *arg) {
     ESP_LOGD(TAG, "%s", buffer);
 }
 
-static void on_camera_timer(void *arg) {
-    ESP_LOGI(TAG, "Camera turned on");
-    gpio_exp_camera_turn_on();
-}
-
-static void on_camera_off_timer(void *arg) {
-    ESP_LOGI(TAG, "Camera turned off");
-    gpio_exp_camera_turn_off();
-}
-
 bool initialize_timers(void) {
     sys_timer_t timers[] = {
     {.timer_id = TIMER_SD_DATA,             .timer_callback_fnc = on_sd_timer,              .timer_arg = NULL},
@@ -126,8 +116,6 @@ bool initialize_timers(void) {
     {.timer_id = TIMER_DEBUG,               .timer_callback_fnc = debug_data,               .timer_arg = NULL},
     {.timer_id = TIMER_BUZZER,              .timer_callback_fnc = buzzer_timer,             .timer_arg = NULL},
     {.timer_id = TIMER_CONNECTED_DEV,       .timer_callback_fnc = connected_dev,            .timer_arg = NULL},
-    {.timer_id = TIMER_CAMERA_ON,           .timer_callback_fnc = on_camera_timer,          .timer_arg = NULL},
-    {.timer_id = TIMER_CAMERA_OFF,          .timer_callback_fnc = on_camera_off_timer,      .timer_arg = NULL},
 };
     return sys_timer_init(timers, sizeof(timers) / sizeof(timers[0]));
 }
