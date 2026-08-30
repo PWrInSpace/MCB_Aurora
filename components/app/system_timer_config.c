@@ -107,12 +107,12 @@ static void debug_data(void *arg) {
 
 static void on_camera_timer(void *arg) {
     ESP_LOGI(TAG, "Camera turned on");
-    gpioexp_camera_turn_on();
+    gpio_exp_camera_turn_on();
 }
 
 static void on_camera_off_timer(void *arg) {
     ESP_LOGI(TAG, "Camera turned off");
-    gpioexp_camera_turn_off();
+    gpio_exp_camera_turn_off();
 }
 
 bool initialize_timers(void) {

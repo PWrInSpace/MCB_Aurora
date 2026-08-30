@@ -96,7 +96,7 @@ static void mcb_hold_in(uint32_t command, int32_t payload, bool privilege) {
 
     ESP_LOGI(TAG, "HOLD");
     SM_force_change_state(HOLD);
-    gpioexp_camera_turn_off();
+    gpio_exp_camera_turn_off();
 }
 
 static void mcb_hold_out(uint32_t command, int32_t payload, bool privilege) {
@@ -250,11 +250,11 @@ static void mcb_reset_disconnect_timer(uint32_t command, int32_t payload, bool p
 }
 
 static void mcb_cameras_on(uint32_t command, int32_t payload, bool privilege) {
-    gpioexp_camera_turn_on();
+    gpio_exp_camera_turn_on();
 }
 
 static void mcb_cameras_off(uint32_t command, int32_t payload, bool privilege) {
-    gpioexp_camera_turn_off();
+    gpio_exp_camera_turn_off();
 }
 
 static void mcb_calibrate_barometer(uint32_t command, int32_t payload, bool privilege) {

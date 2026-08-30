@@ -21,12 +21,12 @@
 static void on_init(void *arg) { ESP_LOGI(TAG, "ON INIT"); }
 
 static void on_idle(void *arg) {
-    gpioexp_led_set_color(GREEN);
+    gpio_exp_led_set_color(GREEN);
     ESP_LOGI(TAG, "ON IDLE");
 }
 
 static void on_recovery_arm(void *arg) {
-    gpioexp_led_set_color(YELLOW);
+    gpio_exp_led_set_color(YELLOW);
     if (recovery_send_cmd(RECOV_EASYMINI_ARM, 0x00) == false) {
         errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
         ESP_LOGE(TAG, "Recovery send error :C");
@@ -43,7 +43,7 @@ static void on_recovery_arm(void *arg) {
 }
 
 static void on_fueling(void *arg) {
-    gpioexp_led_set_color(YELLOW);
+    gpio_exp_led_set_color(YELLOW);
     cmd_message_t cmd = cmd_create_message(OX_MAIN_CLOSE, 0x00);
     ENA_send(&esp_now_ox_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 
@@ -63,7 +63,7 @@ static void on_fueling(void *arg) {
 }
 
 static void on_pressurizing(void *arg) {
-    gpioexp_led_set_color(CYAN);
+    gpio_exp_led_set_color(CYAN);
 
     cmd_message_t cmd = cmd_create_message(N2_MAIN_CLOSE, 0x00);
     ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
@@ -75,7 +75,7 @@ static void on_pressurizing(void *arg) {
 }
 
 static void on_armed_to_launch(void *arg) {
-    gpioexp_led_set_color(YELLOW);
+    gpio_exp_led_set_color(YELLOW);
 
 
     // po całej procedurze tankowania wprowadzamy kalibrację, (płytka powinna się już nagrzać)
@@ -86,7 +86,7 @@ static void on_armed_to_launch(void *arg) {
 }
 
 static void on_ready_to_lauch(void *arg) {
-    gpioexp_led_set_color(PURPLE);
+    gpio_exp_led_set_color(PURPLE);
     ESP_LOGI(TAG, "ON READY_TO_LAUNCH");
     Settings settings = settings_get_all();
 
@@ -119,7 +119,7 @@ static void on_countdown(void *arg) {
     ESP_LOGI(TAG, "Camera will turn off in %d seconds",
              (camera_countdown + CAMERA_ABORT_TIME) / 1000);
 
-    gpioexp_led_set_color(RED);
+    gpio_exp_led_set_color(RED);
     return;
 
 abort_countdown:
@@ -202,7 +202,7 @@ static void on_flight(void *arg) {
     ESP_LOGI(TAG, "----> ON FLIGHT <----");
 
     sensors_remove_process_function(1000);
-    gpioexp_led_set_color(RED);
+    gpio_exp_led_set_color(RED);
 }
 
 static void recovery_second_stage_process(recovery_data_t *data) {
@@ -283,9 +283,9 @@ static void on_ground(void *arg) {
         ESP_LOGE(TAG, "Unable to delete flash data timer");
     }
 
-    gpioexp_camera_turn_off();
+    gpio_exp_camera_turn_off();
     ESP_LOGI(TAG, "ON GROUND");
-    gpioexp_led_set_color(CYAN);
+    gpio_exp_led_set_color(CYAN);
 }
 
 static void close_valves(void) {
@@ -337,7 +337,7 @@ static void on_hold(void *arg) {
         ESP_LOGE(TAG, "Unable to restart disconnect timer");
     }
 
-    gpioexp_led_set_color(BLUE);
+    gpio_exp_led_set_color(BLUE);
 }
 
 static void on_abort(void *arg) {
@@ -381,7 +381,7 @@ static void on_abort(void *arg) {
         ESP_LOGE(TAG, "Recovery send error :C");
     }
 
-    gpioexp_led_set_color(NONE);
+    gpio_exp_led_set_color(NONE);
 }
 
 static state_config_t states_cfg[] = {

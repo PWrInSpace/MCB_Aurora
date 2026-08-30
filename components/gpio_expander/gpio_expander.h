@@ -27,7 +27,7 @@ typedef enum {
  * @return true :D
  * @return false :C
  */
-bool gpioexp_init(void);
+bool gpio_exp_init(void);
 
 /**
  * @brief Set LED color
@@ -36,7 +36,7 @@ bool gpioexp_init(void);
  * @return true :D
  * @return false :C
  */
-bool gpioexp_led_set_color(gpioexp_led_colors_t color);
+bool gpio_exp_led_set_color(gpioexp_led_colors_t color);
 
 /**
  * @brief Turn on camera
@@ -44,7 +44,7 @@ bool gpioexp_led_set_color(gpioexp_led_colors_t color);
  * @return true :D
  * @return false :C
  */
-bool gpioexp_camera_turn_on(void);
+bool gpio_exp_camera_turn_on(void);
 
 /**
  * @brief Turn off camera
@@ -52,7 +52,7 @@ bool gpioexp_camera_turn_on(void);
  * @return true :D
  * @return false :C
  */
-bool gpioexp_camera_turn_off(void);
+bool gpio_exp_camera_turn_off(void);
 
 /**
  * @brief Init buzzer
@@ -60,7 +60,7 @@ bool gpioexp_camera_turn_off(void);
  * @return true :D
  * @return false :C
  */
-bool gpioexp_buzzer_init(void);
+bool gpio_exp_buzzer_init(void);
 
 /**
  * @brief Turn on buzzer
@@ -68,7 +68,7 @@ bool gpioexp_buzzer_init(void);
  * @return true :D
  * @return false :C
  */
-bool gpioexp_buzzer_turn_on(void);
+bool gpio_exp_buzzer_turn_on(void);
 
 /**
  * @brief Turn off buzzer
@@ -76,6 +76,6 @@ bool gpioexp_buzzer_turn_on(void);
  * @return true :D
  * @return false :C
  */
-bool gpioexp_buzzer_turn_off(void);
+bool gpio_exp_buzzer_turn_off(void);
 
 #endif
