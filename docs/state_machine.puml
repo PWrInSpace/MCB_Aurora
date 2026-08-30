@@ -1,0 +1,43 @@
+@startuml
+scale 1920 width
+scale 1080 height 
+hide empty description
+[*] --> Init
+Init : Inicjalizacja oprogramowania
+
+Init --> Idle
+Idle --> RecoveryArm
+RecoveryArm --> Filling
+Filling --> ArmedToLaunch
+ArmedToLaunch --> ReadyToLaunch
+ReadyToLaunch --> Countdown
+Countdown --> Filght
+Filght --> FistStageRecovery
+FistStageRecovery --> SecondStageRecovery
+SecondStageRecovery --> OnGround
+
+Idle -left-> Abort
+RecoveryArm -left-> Abort
+Filling -left-> Abort
+ArmedToLaunch -left-> Abort
+ReadyToLaunch -left-> Abort
+Countdown -left-> Abort
+
+
+Idle -right-> Hold
+RecoveryArm -right-> Hold
+Filling -right-> Hold
+ArmedToLaunch -right-> Hold
+ReadyToLaunch -right-> Hold
+Countdown -right-> Hold
+
+Idle <-right- Hold
+RecoveryArm <-right- Hold
+Filling <-right- Hold
+ArmedToLaunch <-right- Hold
+ReadyToLaunch <-right- Hold
+Countdown <-right- Hold
+
+Abort --> [*]
+OnGround --> [*]
+@enduml

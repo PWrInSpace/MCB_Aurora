@@ -1,0 +1,70 @@
+@startuml
+scale 1920 width
+scale 1080 height 
+
+' zaimplementowana jest bardziej ogólna forma maszyny stanów
+' ze względu na plan używania jej w innnych projektach
+
+struct state_machine {
+    state_config_t states[]
+    uint8_t states_quanitity
+    uint8_t previous_state
+    uint8_t current_state
+    uint8_t new_state
+    TaskHandle_t state_task
+    SemaphoreHandle_t current_state_mutex;
+    
+    void initialize(void)
+    SM_Response set_states(state_config_t[],uint8_t quantity)
+    state_id get_current_state(void)
+    state_id get_previous_state(void)
+    SM_Response change_state_linear(state_id)
+    SM_Response change_state_to_previous(bool run_callback)
+    SM_Response force_change_state(state_id)
+    SM_Response change_state_ISR(state_id new_state);
+    SM_Response run(state_machine_task_cfg_t *cfg);
+    SM_Response destroy(void);
+}
+
+struct state_config_t {
+    state_id id
+    function state_transition
+    void* callback_arg
+}
+
+enum SM_Response {
+    SM_OK
+    SM_STATES_ERROR
+    SM_STATES_NUMBER_ERROR
+    SM_STATE_CHANGE_ERROR
+    SM_NO_MORE_STATES
+    SM_INVALID_STATE
+    SM_RUN_ERROR
+    SM_NULL_FUNCTION
+}
+
+state_machine <-- state_config_t
+state_machine <-- SM_Response
+
+' title tx interrupt
+' start
+
+' if (ack received) then (false)
+'     if (tx_nack timer not running) then (true)
+'         :start tx_nack timer;
+'     else (false)
+'     endif
+
+'     if (tx_nack timer expired) then (true)
+'         :set wakenUp to false;
+'     else (false)
+'     endif
+' else (true)
+'     if (tx_nack timer running) then (true)
+'         :disable tx_nack timer;
+'     else (false)
+'     endif
+' endif
+' stop
+
+@enduml

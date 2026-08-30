@@ -1,0 +1,26 @@
+@startuml
+scale 1920 width
+scale 1080 height 
+title change state linear
+!pragma useVerticalIf on
+start
+:acquire state mutex;
+if (arg_new_state exists) then (true)
+    if (arg_new_state == current_state + 1) then (true)
+        :new_state = arg_new_state;
+        :send new state notification to main loop;
+        :relase state mutex;
+        :return = SM_OK;
+        stop
+    else
+        :release state mutex;
+        :return = SM_STATE_CHANGE_ERROR;
+        stop
+    endif
+else
+    :release state mutex;
+    :return = SM_STATE_CHANGE_ERROR;
+    stop
+endif
+
+@enduml

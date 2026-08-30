@@ -1,0 +1,27 @@
+@startuml
+' scale 1920 width
+' scale 1080 height
+' !pragma useVerticalIf on 
+title rx interrupt
+start
+
+:inicjalizacja modułu RFM95W;
+:ustaw moduł na odbieranie;
+:uruchomienie zegara sygnałowego;
+while (true)
+:oczekuj na sygnał przerwania/zegara;
+if (dostepne dane) then (true)
+    :pobierz oraz przetwórz odebrane dane;
+else (false)
+endif
+:ustaw moduł na nadawanie;
+:wyślij telemetrię;
+:ustaw moduł na odbieranie;
+:uruchomienie zegara sygnałowego;
+
+endwhile
+
+stop
+
+
+@enduml

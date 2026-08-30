@@ -1,0 +1,45 @@
+@startuml
+scale 100000 width
+scale 1080 height 
+scale 1 as 50 pixels
+
+concise "Stacja naziemna" as gs
+concise "Moduł obsługujący" as obc
+concise "LoRa state" as lora
+@gs
+0 is {hidden}
+3 is "Odbiór"
+4 is "Komenda sterująca"
+8 is {hidden}
+13 is "Odbiór"
+14 is {hidden}
+21 is "Odbiór"
+22 is {hidden}
+
+
+@obc
+0 is "Wysłanie telemetrii"
+3 is {hidden}
+8 is "Odbór komendy"
+10 is "Wysłanie telemetrii"
+13 is {hidden}
+18 is "Wysłanie telemetrii"
+21 is {hidden}
+
+@lora
+0 is "LORA_TRANSMIT"
+3 is "LORA_RECEIVE"
+8 is "LORA_TRANSMIT"
+13 is "LORA_RECEIVE"
+18 is "LORA_TRANSMIT"
+21 is "LORA_RECEIVE"
+
+highlight 3 to 3.001 : Przerwanie d0
+highlight 8 to 8.001 : Przerwanie d0
+highlight 13 to 13.001 : Przerwanie d0
+highlight 18 to 18.001 : Przerwanie \nzegar sygnałowy
+highlight 21 to 21.001 : Przerwanie d0
+
+@13 <-> @18 : okres wysłania ramki telemtri
+
+@enduml

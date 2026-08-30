@@ -1,0 +1,25 @@
+@startuml
+
+title send_message
+|main loop|
+start
+:acquire transmiting lock;
+:send packet;
+|#AntiqueWhite|esp_now|
+:transmit packet;
+:generate tx status irq;
+|main loop|
+if (status) then (OK)
+:relase transmiting lock;
+else (NOK)
+    if (send_counter < retakes) then (true)
+        :send_packet;
+    else (false)
+        :realsae transmiting lock;
+        :throw error;
+    endif
+endif
+stop
+
+
+@enduml
