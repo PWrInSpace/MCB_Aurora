@@ -21,5 +21,6 @@
 esp_err_t console_init(void);
 esp_err_t console_register_commands(esp_console_cmd_t *commands, size_t number_of_cmd);
 esp_err_t console_deinit(void);
+esp_err_t console_start(void);
 
 #endif

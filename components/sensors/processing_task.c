@@ -12,12 +12,10 @@
 static struct {
     sensors_read sensors_read_fnc;
     sensors_process sensors_process_fnc;
-
     size_t data_buffer_size;
     void *data_buffer;
     SemaphoreHandle_t data_mutex;
     TaskHandle_t task_handle;
-
 } gb = {
     .sensors_read_fnc = NULL,
     .sensors_process_fnc = NULL,
@@ -27,10 +25,6 @@ static struct {
 };
 
 bool sensors_get_data(void *buffer, size_t buffer_size, uint32_t timeout_ms) {
-    if (gb.data_mutex == NULL) {
-        return false;
-    }
-
     if (gb.data_buffer == NULL || gb.data_mutex == NULL) {
         return false;
     }
@@ -39,7 +33,7 @@ bool sensors_get_data(void *buffer, size_t buffer_size, uint32_t timeout_ms) {
         return false;
     }
 
-    if (xSemaphoreTake(gb.data_mutex, pdMS_TO_TICKS(timeout_ms)) == pdFAIL) { // TODO: check return value
+    if (xSemaphoreTake(gb.data_mutex, pdMS_TO_TICKS(timeout_ms)) == pdFAIL) {
         ESP_LOGE(TAG, "Semaphore get data error");
         return false;
     }
@@ -99,7 +93,7 @@ static void process_data(void *data_buffer) {
 
 static void processing_task(void *arg) {
     while (1) {
-        if (xSemaphoreTake(gb.data_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+        if (xSemaphoreTake(gb.data_mutex, pdMS_TO_TICKS(10)) == pdTRUE) {
             read_data_from_sensors(gb.data_buffer);
             process_data(gb.data_buffer);
             xSemaphoreGive(gb.data_mutex);

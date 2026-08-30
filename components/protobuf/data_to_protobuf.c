@@ -1,125 +1,247 @@
-#include "slave_structs.h"
-#include "lora.pb-c.h"
-#include "rocket_data.h"
 #include "errors_config.h"
 #include "esp_log.h"
+#include "lora.pb-c.h"
+#include "math.h"
+#include "rocket_data.h"
 #include "settings_mem.h"
+#include "slave_structs.h"
 
 #define TAG "PBF"
 
-void create_porotobuf_data_frame(LoRaFrame *frame) {
+void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
     rocket_data_t data = rocket_data_get();
-    lo_ra_frame__init(frame);   // fill struct with 0
     error_data_t errors[MAX_NUMBER_OF_ERRORS];
     if (errors_get_all(errors, sizeof(errors)) == false) {
-        ESP_LOGI(TAG, "Unable to get errrors");
+        ESP_LOGI(TAG, "Unable to get errors");
     }
 
     // mcb
-    frame->obc_state = data.mcb.state;
-    frame->dc_time = data.mcb.disconnect_timer;
-    frame->flight_time = data.mcb.flight_time;
-    frame->mcb_battery = data.mcb.battery_voltage;
-    frame->gps_lat = data.mcb.latitude;
-    frame->gps_long = data.mcb.longitude;
-    frame->gps_sat = data.mcb.satelites_in_view;
+    frame->mcb_state.is_present = true;
+    frame->mcb_state.value = data.mcb.state;
 
-    frame->mcb_altitude = data.mcb.altitude;
-    frame->mcb_velocity = data.mcb.velocity;
-    frame->mcb_temperature = data.mcb.temperature;
-    frame->euler_psi = data.mcb.pitch;
-    frame->euler_theta = data.mcb.roll;
-    frame->euler_fi = data.mcb.yaw;
+    frame->uptime_ms.is_present = true;
+    frame->uptime_ms.value = data.mcb.disconnect_timer;
 
-    // recovery
-    frame->recov_pressure_1 = data.recovery.pressure1;
-    frame->recov_pressure_2 = data.recovery.pressure2;
+    frame->flight_time_ms.is_present = true;
+    frame->flight_time_ms.value = data.mcb.flight_time;
 
-    frame->recov_byte_data |= (data.recovery.isArmed << 0);
-    frame->recov_byte_data |= (data.recovery.isTeleActive << 1);
-    frame->recov_byte_data |= (data.recovery.easyMiniFirstStage << 2);
-    frame->recov_byte_data |= (data.recovery.easyMiniSecondStage << 3);
-    frame->recov_byte_data |= (data.recovery.telemetrumFirstStage << 4);
-    frame->recov_byte_data |= (data.recovery.telemetrumSecondStage<< 5);
-    frame->recov_byte_data |= (data.recovery.firstStageDone << 6);
-    frame->recov_byte_data |= (data.recovery.secondStageDone << 7);
+    frame->mcb_batt.is_present = true;
+    frame->mcb_batt.value = (uint32_t)(data.mcb.battery_voltage * 100.0f);
 
-    frame->recov_byte_data |= (data.recovery.firstStageContinouity << 8);
-    frame->recov_byte_data |= (data.recovery.secondStageContinouity << 9);
-    frame->recov_byte_data |= (data.recovery.separationSwitch1 << 10);
-    frame->recov_byte_data |= (data.recovery.separationSwitch2 << 11);
+    frame->gps_lat.is_present = true;
+    frame->gps_lat.value = data.mcb.latitude;
+
+    frame->gps_long.is_present = true;
+    frame->gps_long.value = data.mcb.longitude;
+
+    // gps_sat in proto is a bool — set true if number of satellites > 0
+    frame->gps_sat_ok.is_present = true;
+    frame->gps_sat_ok.value = data.mcb.satellites_in_view > 0;
+
+    frame->altitude_m.is_present = true;
+    frame->altitude_m.value = (int32_t)data.mcb.altitude;
+
+    frame->velocity_m_s.is_present = true;
+    frame->velocity_m_s.value = (int32_t)data.mcb.velocity;
+
+    frame->mcb_temperature.is_present = true;
+    frame->mcb_temperature.value = (int32_t)data.mcb.temperature;
+
+    frame->euler_psi.is_present = true;
+    frame->euler_psi.value = data.mcb.pitch;
+
+    frame->euler_theta.is_present = true;
+    frame->euler_theta.value = data.mcb.roll;
+
+    frame->euler_fi.is_present = true;
+    frame->euler_fi.value = data.mcb.yaw;
+
+    // recovery - pack various boolean fields into a single fixed32 recovery_flags
+    {
+        uint32_t recovery_flags = 0;
+        recovery_flags |= data.recovery.separationSwitch1 ? 1u << 0 : 0u;
+        recovery_flags |= data.recovery.separationSwitch2 ? 1u << 1 : 0u;
+        recovery_flags |= data.recovery.firstStageDone ? 1u << 2 : 0u;
+        recovery_flags |= data.recovery.secondStageDone ? 1u << 3 : 0u;
+        recovery_flags |= data.recovery.telemetrumFirstStage ? 1u << 4 : 0u;
+        recovery_flags |= data.recovery.telemetrumSecondStage ? 1u << 5 : 0u;
+        recovery_flags |= data.recovery.easyMiniFirstStage ? 1u << 6 : 0u;
+        recovery_flags |= data.recovery.easyMiniSecondStage ? 1u << 7 : 0u;
+        recovery_flags |= data.recovery.isTeleActive ? 1u << 8 : 0u;
+        recovery_flags |= data.recovery.isArmed ? 1u << 9 : 0u;
+        frame->recovery_flags.is_present = true;
+        frame->recovery_flags.value = recovery_flags;
+    }
 
     // pitot
-    frame->pitot_battery = data.pitot.vbat;
-    frame->pitot_altitude = data.pitot.alt;
-    frame->pitot_velocity = data.pitot.speed;
-    frame->pitot_temperature = data.pitot.temperature;
+    frame->pitot_battery.is_present = true;
+    frame->pitot_battery.value = (uint32_t)(data.pitot.vbat * 100.0f);
+
+    frame->pitot_altitude.is_present = true;
+    frame->pitot_altitude.value = (int32_t)data.pitot.alt;
+
+    frame->pitot_velocity.is_present = true;
+    frame->pitot_velocity.value = (int32_t)data.pitot.speed;
+
+    frame->pitot_temperature.is_present = true;
+    frame->pitot_temperature.value = (int32_t)data.pitot.temperature;
+
+    uint32_t valve_states_bitfield = 0;
+    valve_states_bitfield |= data.ox_main_valve.valve_1_state == 1 ? 1u << 0 : 0u;
+    valve_states_bitfield |= data.eth_vent_n2_main_valves.valve_2_state == 1 ? 1u << 1 : 0u;
+    valve_states_bitfield |= data.ox_vent_eth_main_valves.valve_1_state == 1 ? 1u << 2 : 0u;
+    valve_states_bitfield |= data.ox_vent_eth_main_valves.valve_2_state == 1 ? 1u << 3 : 0u;
+    valve_states_bitfield |= data.eth_vent_n2_main_valves.valve_1_state == 1 ? 1u << 4 : 0u;
+    valve_states_bitfield |= data.n2_vent_valve.valve_1_state == 1 ? 1u << 5 : 0u;
+
+    frame->main_vent_flags.is_present = true;
+    frame->main_vent_flags.value = valve_states_bitfield;
 
     // main valve
-    frame->mval_battery = data.main_valve.battery_voltage;
+    // mval bit data mapping not present in proto; skipping
 
-    frame->mval_byte_data |= data.main_valve.valve_state;
-    frame->mval_byte_data |= (data.vent_valve.thermistor1 << 8);
-    frame->mval_byte_data |= (data.vent_valve.thermistor2 << 16);
+    // Pack valve bit-data fields using lowest-index sensors as requested:
+    // Byte layout: [temp1 (8b)] [pressure1 high byte (8b)] [pressure2 high byte (8b)] [battery scaled (8b)]
 
-    // vent valve
-    frame->vent_battery = data.vent_valve.battery_voltage;
-    frame->tank_pressure = data.vent_valve.tank_pressure;
+    // ox vent eth main bit data (uses ox_vent_eth_main_valves struct)
+    {
+        uint32_t v = 0;
+        int16_t pressure = (int16_t)(data.ox_vent_eth_main_valves.pressure_1 * 100.0f);
+        v |= (uint32_t)(uint16_t)pressure << 16;
+        uint8_t battery_voltage = (uint8_t)(data.ox_vent_eth_main_valves.battery_voltage * 10.0f);
+        v |= (uint32_t)battery_voltage << 8;
+        uint8_t battery_consumption = (uint8_t)(data.ox_vent_eth_main_valves.battery_consumption * 10.0f);
+        v |= (uint32_t)battery_consumption << 0;
+        frame->ox_vent_eth_main_bit_data_a.is_present = true;
+        frame->ox_vent_eth_main_bit_data_a.value = v;
+    }
 
-    frame->vent_byte_data |= data.vent_valve.valve_state;
+    {
+        uint32_t v = 0;
+        v |= (uint32_t)data.ox_vent_eth_main_valves.is_charging << 31;
+        int8_t charger_temperature = (int8_t)data.ox_vent_eth_main_valves.charger_temperature;
+        v |= (uint32_t)(uint8_t)charger_temperature << 23;
+        int16_t pressure = (int16_t)(data.ox_vent_eth_main_valves.pressure_2 * 100);
+        v |= (uint32_t)(uint16_t)pressure << 7;
+        frame->ox_vent_eth_main_bit_data_b.is_present = true;
+        frame->ox_vent_eth_main_bit_data_b.value = v;
+    }
 
-    // tanwa
-    frame->tanwa_battery = data.tanwa.vbat;
-    frame->tanwa_state = data.tanwa.tanWaState;
-    frame->rocket_weight = data.tanwa.rocketWeight_val;
-    frame->tank_weight = data.tanwa.tankWeight_val;
-    frame->temperature1 = data.tanwa.rocketWeight_temp;
-    frame->temperature2 = data.tanwa.tankWeight_temp;
-    frame->pressure = data.tanwa.pressureSensor;
+    {
+        uint32_t v = 0;
+        v |= (uint32_t)data.ox_vent_eth_main_valves.auto_vent_activated << 31;
+        v |= (uint32_t)data.ox_vent_eth_main_valves.auto_vent_triggered << 30;
+        int8_t ox_temperature = (int8_t)data.ox_vent_eth_main_valves.ox_temperature;
+        v |= (uint32_t)(uint8_t)ox_temperature << 22;
+        frame->ox_vent_eth_main_bit_data_c.is_present = true;
+        frame->ox_vent_eth_main_bit_data_c.value = v;
+    }
 
-    frame->tanwa_byte_data |= data.tanwa.motorState_1;
-    frame->tanwa_byte_data |= (data.tanwa.motorState_2 << 3);
-    frame->tanwa_byte_data |= (data.tanwa.motorState_3 << 6);
-    frame->tanwa_byte_data |= (data.tanwa.motorState_4 << 9);
-    frame->tanwa_byte_data |= (data.tanwa.hxRequest_RCK << 20);
-    frame->tanwa_byte_data |= (data.tanwa.hxRequest_TANK << 22);
+    {
+        frame->auto_vent_setting.is_present = true;
+        frame->auto_vent_setting.value = data.ox_vent_eth_main_valves.auto_vent_pressure;
+    }
 
-    frame->tanwa_byte_data |= (data.tanwa.tankWeight_blink << 28);
-    frame->tanwa_byte_data |= (data.tanwa.rocketWeight_blink << 29);
-    frame->tanwa_byte_data |= (data.tanwa.igniterContinouity_1 << 30);
-    frame->tanwa_byte_data |= (data.tanwa.igniterContinouity_2 << 31);
+    // ox main bit data (uses ox_main_valve struct)
+    {
+        uint32_t v = 0;
+        int16_t pressure = (int16_t)(data.ox_main_valve.pressure_1 * 100.0f);
+        v |= (uint32_t)(uint16_t)pressure << 16;
+        v |= (uint32_t)data.ox_main_valve.dump_valve_arm << 15;
+        v |= (uint32_t)data.ox_main_valve.dump_valve_cont << 14;
+        int8_t temperature = (int8_t)data.ox_main_valve.temperature_1;
+        v |= (uint32_t)(uint8_t)temperature << 6;
+        frame->ox_main_bit_data_a.is_present = true;
+        frame->ox_main_bit_data_a.value = v;
+    }
+
+    {
+        uint32_t v = 0;
+        uint8_t battery_voltage = (uint8_t)(data.ox_main_valve.battery_voltage * 10.0f);
+        v |= (uint32_t)battery_voltage << 24;
+        uint8_t battery_consumption = (uint8_t)(data.ox_main_valve.battery_consumption * 10.0f);
+        v |= (uint32_t)battery_consumption << 16;
+        v |= (uint32_t)data.ox_main_valve.is_charging << 15;
+        int8_t charger_temperature = (int8_t)data.ox_main_valve.charger_temperature;
+        v |= (uint32_t)(uint8_t)charger_temperature << 7;
+        frame->ox_main_bit_data_b.is_present = true;
+        frame->ox_main_bit_data_b.value = v;
+    }
+
+    // n2 vent bit data (uses n2_vent_valve struct)
+    {
+        uint32_t v = 0;
+        uint8_t battery_voltage = (uint8_t)(data.n2_vent_valve.battery_voltage * 10.0f);
+        v |= (uint32_t)battery_voltage << 24;
+        uint8_t battery_consumption = (uint8_t)(data.n2_vent_valve.battery_consumption * 10.0f);
+        v |= (uint32_t)battery_consumption << 16;
+        v |= (uint32_t)data.n2_vent_valve.is_charging << 15;
+        int8_t charger_temperature = (int8_t)data.n2_vent_valve.charger_temperature;
+        v |= (uint32_t)(uint8_t)charger_temperature << 7;
+        frame->n2_vent_bit_data_a.is_present = true;
+        frame->n2_vent_bit_data_a.value = v;
+    }
+
+    // eth vent n2 main bit data (uses eth_vent_n2_main_valve struct)
+    {
+        uint32_t v = 0;
+        uint8_t battery_voltage = (uint8_t)(data.eth_vent_n2_main_valves.battery_voltage * 10.0f);
+        v |= (uint32_t)battery_voltage << 24;
+        uint8_t battery_consumption = (uint8_t)(data.eth_vent_n2_main_valves.battery_consumption * 10.0f);
+        v |= (uint32_t)battery_consumption << 16;
+        v |= (uint32_t)data.eth_vent_n2_main_valves.is_charging << 15;
+        int8_t charger_temperature = (int8_t)data.eth_vent_n2_main_valves.charger_temperature;
+        v |= (uint32_t)(uint8_t)charger_temperature << 7;
+        frame->eth_vent_n2_main_bit_data_a.is_present = true;
+        frame->eth_vent_n2_main_bit_data_a.value = v;
+    }
+
+    {
+        uint32_t v = 0;
+        int16_t pressure_1 = (int16_t)(data.eth_vent_n2_main_valves.pressure_1 * 100);
+        v |= (uint32_t)(uint16_t)pressure_1 << 16;
+        int16_t pressure_2 = (int16_t)(data.eth_vent_n2_main_valves.pressure_2 * 100);
+        v |= (uint32_t)(uint16_t)pressure_2;
+        frame->eth_vent_n2_main_bit_data_b.is_present = true;
+        frame->eth_vent_n2_main_bit_data_b.value = v;
+    }
 
     // payload
-    frame->payload_battery = data.payload.vbat;
+    frame->payload_battery.is_present = true;
+    frame->payload_battery.value = (uint32_t)(data.payload.vbat * 100.0f);
 
-    // esp now
-    frame->esp_now_byte_data |= (data.pitot.waken_up << 0);
-    frame->esp_now_byte_data |= (data.main_valve.waken_up << 1);
-    frame->esp_now_byte_data |= (data.vent_valve.waken_up << 2);
-    frame->esp_now_byte_data |= (data.payload.waken_up << 3);
+    {
+        uint32_t conn = 0;
+        conn |= data.connected_dev.payload ? 1u << 0 : 0u; // payload_connected
+        conn |= data.connected_dev.tanwa ? 1u << 1 : 0u; // tanwa_connected
+        conn |= data.connected_dev.eth_vent_n2_main_valves ? 1u << 2 : 0u;
+        conn |= data.connected_dev.ox_main_valve ? 1u << 3 : 0u;
+        conn |= data.connected_dev.ox_vent_eth_main_valves ? 1u << 4 : 0u;
+        conn |= data.connected_dev.n2_vent_valve ? 1u << 5 : 0u;
+        conn |= data.connected_dev.pitot ? 1u << 6 : 0u;
+        frame->esp_now_connected_flags.is_present = true;
+        frame->esp_now_connected_flags.value = conn;
+    }
 
-    frame->esp_now_byte_data |= (data.connected_dev.pitot << 16);
-    frame->esp_now_byte_data |= (data.connected_dev.main_valve << 17);
-    frame->esp_now_byte_data |= (data.connected_dev.vent_valve << 18);
-    frame->esp_now_byte_data |= (data.connected_dev.tanwa << 19);
-    frame->esp_now_byte_data |= (data.connected_dev.payload << 20);
+    {
+        uint32_t wk = 0;
+        wk |= data.payload.waken_up ? 1u << 0 : 0u;
+        wk |= data.eth_vent_n2_main_valves.waken_up ? 1u << 1 : 0u;
+        wk |= data.ox_main_valve.waken_up ? 1u << 2 : 0u;
+        wk |= data.ox_vent_eth_main_valves.waken_up ? 1u << 3 : 0u;
+        wk |= data.n2_vent_valve.waken_up ? 1u << 4 : 0u;
+        wk |= data.pitot.waken_up ? 1u << 5 : 0u;
+        frame->esp_now_wkup_flags.is_present = true;
+        frame->esp_now_wkup_flags.value = wk;
+    }
 
-
-    // errors
-    frame->errors |= errors[ERROR_TYPE_LAST_EXCEPTION];
-    frame->errors |= (errors[ERROR_TYPE_RECOVERY] << 8);
-    frame->errors |= (errors[ERROR_TYPE_ESP_NOW] << 12);
-    frame->errors |= (errors[ERROR_TYPE_MEMORY] << 16);
-    frame->errors |= (errors[ERROR_TYPE_MCB] << 24);
-    frame->errors |= (errors[ERROR_TYPE_SENSORS] << 28);
-}
-
-void create_protobuf_settings_frame(LoRaSettings *frame) {
-    Settings settings = settings_get_all();
-    frame->countdown_time = settings.countdownTime;
-    frame->ingition_time = settings.ignitTime;
-    frame->lora_freq_khz = settings.loraFreq_KHz;
-    frame->lora_transmit_ms = settings.lora_transmit_ms;
-    frame->buzzer_enable = settings.buzzer_on;
-    frame->flash_enable = settings.flash_on;
+    // errors - pack into single uint32 value as before
+    frame->errors.is_present = true;
+    frame->errors.value = 0;
+    frame->errors.value |= errors[ERROR_TYPE_LAST_EXCEPTION];
+    frame->errors.value |= errors[ERROR_TYPE_RECOVERY] << 8;
+    frame->errors.value |= errors[ERROR_TYPE_ESP_NOW] << 12;
+    frame->errors.value |= errors[ERROR_TYPE_MEMORY] << 16;
+    frame->errors.value |= errors[ERROR_TYPE_MCB] << 24;
+    frame->errors.value |= errors[ERROR_TYPE_SENSORS] << 28;
 }

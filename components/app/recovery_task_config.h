@@ -6,7 +6,9 @@
 #include <stddef.h>
 #include "rocket_data.h"
 
-#define RECOVERY_ADDRESS 0x30  // move to kconfig
+#define RECOVERY_ADDRESS 0x00
+#define RECOVERY_ADDRESS_LEFT 0x0B  // move to kconfig
+#define RECOVERY_ADDRESS_RIGHT 0x0A
 
 typedef void (*recovery_task_process_fnc)(recovery_data_t *data);
 

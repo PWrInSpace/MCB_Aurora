@@ -7,8 +7,12 @@
 
 typedef struct {
     mcb_data_t mcb;
-    vent_valve_data_t vent_valve;
-    main_valve_data_t main_valve;
+
+    eth_vent_n2_main_valves_data_t eth_vent_n2_main_valves;
+    ox_vent_eth_main_valves_data_t ox_vent_eth_main_valves;
+    n2_vent_valve_data_t n2_vent_valve;
+    ox_main_valve_data_t ox_main_valve;
+
     recovery_data_t recovery;
     payload_data_t payload;
     tanwa_data_t tanwa;
@@ -26,9 +30,13 @@ bool rocket_data_init(void);
 
 void rocket_data_update_connected_dev(esp_now_connected_devices_t *data);
 
-void rocket_data_update_main_valve(main_valve_data_t *data);
+void rocket_data_update_n2_vent_valve(n2_vent_valve_data_t *data);
 
-void rocket_data_update_vent_valve(vent_valve_data_t *data);
+void rocket_data_update_eth_vent_n2_main_valves(eth_vent_n2_main_valves_data_t *data);
+
+void rocket_data_update_ox_vent_eth_main_valves(ox_vent_eth_main_valves_data_t *data);
+
+void rocket_data_update_ox_main_valve(ox_main_valve_data_t *data);
 
 void rocket_data_update_recovery(recovery_data_t *data);
 
@@ -42,11 +50,18 @@ void rocket_data_update_pitot(pitot_data_t *data);
 
 rocket_data_t rocket_data_get(void);
 
+/* Copy current rocket data into provided buffer under mutex. */
+void rocket_data_copy(rocket_data_t *out);
+
 mcb_data_t rocket_data_get_mcb(void);
 
-main_valve_data_t rocket_data_get_main_valve(void);
+n2_vent_valve_data_t rocket_data_get_n2_vent_valve(void);
 
-vent_valve_data_t rocket_data_get_vent_valve(void);
+eth_vent_n2_main_valves_data_t rocket_data_get_eth_vent_n2_main_valves(void);
+
+ox_vent_eth_main_valves_data_t rocket_data_get_ox_vent_eth_main_valves(void);
+
+ox_main_valve_data_t rocket_data_get_ox_main_valve(void);
 
 recovery_data_t rocket_data_get_recovery(void);
 
@@ -57,5 +72,7 @@ tanwa_data_t rocket_data_get_tanwa(void);
 pitot_data_t rocket_data_get_pitot(void);
 
 bool rocket_data_woken_up(void);
+
+esp_now_connected_devices_t rocket_data_get_connected_dev(void);
 
 #endif

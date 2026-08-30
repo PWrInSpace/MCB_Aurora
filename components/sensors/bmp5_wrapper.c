@@ -3,7 +3,9 @@
 #include "i2c.h"
 
 #include "esp_log.h"
-#define TAG "DUPA"
+#include <math.h>            // <-- added
+
+#define TAG "BMP5"
 
 static struct {
     struct bmp5_dev bmp;
@@ -97,8 +99,7 @@ bool bmp5_wrapper_init(void) {
 }
 
 bool bmp5_wrapper_get_data(struct bmp5_sensor_data *data) {
-    int8_t res;
-    res = bmp5_get_sensor_data(data, &gb.odr_press_cfg, &gb.bmp);
+    int8_t res = bmp5_get_sensor_data(data, &gb.odr_press_cfg, &gb.bmp);
 
     return res == BMP5_OK ? true : false;
 }
@@ -116,17 +117,32 @@ bool bmp5_calculate_altitude_offset(void) {
         if (bmp5_get_sensor_data(&data, &gb.odr_press_cfg, &gb.bmp) != BMP5_OK) {
             return false;
         }
+        // pressure given in Pa -> convert to hPa before altitude calculation where expected
         sum += bmp5_wrapper_altitude(BMP5_Pa_TO_hPa(data.pressure));
-        vTaskDelay(pdTICKS_TO_MS(25));
+        vTaskDelay(pdMS_TO_TICKS(25));
     }
 
-    gb.altitude_offset = sum / 10.0f;
+    // divide by actual number of measurements (was hardcoded to 10)
+    gb.altitude_offset = sum / (float)BMP5_CALIBRATE_NB_OF_MEAS;
 
     return true;
 }
 
-float bmp5_wrapper_altitude(float pressure) {
-    float altitude = 44330 * (1 - pow((pressure / BMP5_AVERAGE_PRESSURE), 1.f / 5.255f));
+float bmp5_wrapper_altitude(float pressure_hpa) {
+    // protect against invalid pressure
+    if (!(pressure_hpa > 0.0f)) {
+        return 0.0f;
+    }
+
+    // Barometric formula (pressure in hPa, reference pressure BMP5_AVERAGE_PRESSURE in hPa)
+    // h = 44330 * (1 - (P / P0)^(1/5.255))
+    const float inv_exp = 1.0f / 5.255f;     // ~0.190263
+    float ratio = pressure_hpa / BMP5_AVERAGE_PRESSURE;
+    // ensure ratio in reasonable range to avoid NaNs for extreme values
+    if (ratio <= 0.0f) {
+        return 0.0f;
+    }
+    float altitude = 44330.0f * (1.0f - powf(ratio, inv_exp));
     altitude -= gb.altitude_offset;
     return altitude;
 }

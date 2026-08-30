@@ -5,18 +5,18 @@
 #include "freertos/semphr.h"
 
 static struct {
-    int64_t tzero_time;
+    uint32_t t_zero_time;
     bool enable;
-    int64_t disableValue;
+    int32_t disableValue;
     SemaphoreHandle_t time_mutex;
 } gb = {
-    .tzero_time = 0,
+    .t_zero_time = 0,
     .enable = false,
     .disableValue = 999,
     .time_mutex = NULL,
 };
 
-bool mission_timer_init(int64_t timer_disable_value) {
+bool mission_timer_init(int32_t timer_disable_value) {
     gb.time_mutex = xSemaphoreCreateMutex();
     if (gb.time_mutex == NULL) {
         return false;
@@ -25,8 +25,9 @@ bool mission_timer_init(int64_t timer_disable_value) {
     return true;
 }
 
-bool mission_timer_start(int64_t countdown_begin_time_ms) {
+bool mission_timer_start(int32_t countdown_begin_time_ms) {
     assert(countdown_begin_time_ms < 0);
+
     if (countdown_begin_time_ms > 0) {
         return false;
     }
@@ -34,21 +35,22 @@ bool mission_timer_start(int64_t countdown_begin_time_ms) {
     if (xSemaphoreTake(gb.time_mutex, 1000) != pdTRUE) {
         return false;
     }
-    gb.tzero_time = get_uptime_ms() - countdown_begin_time_ms;
+    gb.t_zero_time = get_uptime_ms() - countdown_begin_time_ms;
     gb.enable = true;
     xSemaphoreGive(gb.time_mutex);
 
     return true;
 }
 
-int mission_timer_get_time() {
-    int ret = 0;
+int32_t mission_timer_get_time() {
+    int32_t ret = 0;
+
     if (xSemaphoreTake(gb.time_mutex, 100) != pdTRUE) {
         return gb.disableValue;
     }
 
     if (gb.enable == true) {
-        ret = get_uptime_ms() - gb.tzero_time;
+        ret = (int32_t)get_uptime_ms() - gb.t_zero_time;
     } else {
         ret = gb.disableValue;
     }
@@ -67,7 +69,7 @@ bool mission_timer_stop() {
         return false;
     }
 
-    gb.tzero_time = 0;
+    gb.t_zero_time = 0;
     gb.enable = false;
 
     xSemaphoreGive(gb.time_mutex);

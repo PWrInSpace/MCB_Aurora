@@ -16,10 +16,11 @@ typedef struct {
     float latitude;
     float longitude;
     float gps_altitude;
-    uint8_t satelites_in_view;
+    uint8_t satellites_in_view;
     float acc_x;
     float acc_y;
     float acc_z;
+    float acc_vertical;
     float gyr_x;
     float gyr_y;
     float gyr_z;

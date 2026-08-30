@@ -10,7 +10,7 @@
  * @return true :D
  * @return false :C
  */
-bool hybrid_mission_timer_init();
+bool liquid_mission_timer_init();
 
 /**
  * @brief Start hybrid rocket mission timer
@@ -20,7 +20,7 @@ bool hybrid_mission_timer_init();
  * @return true :D
  * @return false :C
  */
-bool hybrid_mission_timer_start(int32_t countdown_time, int32_t ignition_time);
+bool liquid_mission_timer_start(int32_t countdown_time, int32_t ignition_time);
 
 /**
  * @brief Stop mission timer
@@ -28,16 +28,16 @@ bool hybrid_mission_timer_start(int32_t countdown_time, int32_t ignition_time);
  * @return true :D
  * @return false :C
  */
-bool hybrid_mission_timer_stop();
+bool liquid_mission_timer_stop();
 
 /**
  * @brief Get hybrid rocket mission time
  *
  * @return int time in microseconds
  */
-int hybrid_mission_timer_get_time();
+int liquid_mission_timer_get_time();
 
 
-void hybrid_mission_timer_set_disable_val(int64_t time);
+void liquid_mission_timer_set_disable_val(int64_t time);
 
 #endif

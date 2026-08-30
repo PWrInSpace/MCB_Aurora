@@ -2,6 +2,7 @@
 #include "i2c.h"
 #include "sdkconfig.h"
 #include "esp_log.h"
+// #include "stdio.h"
 #define TAG "TEST"
 
 static struct {
@@ -23,6 +24,7 @@ bool I2C_master_init(i2c_t *i2c, i2c_port_t port, uint8_t sda, uint8_t scl, uint
     res = i2c_driver_install(port, i2c->mode, 0, 0, 0);
     return res == ESP_OK;
 }
+
 
 // bool I2C_master_read(i2c_port_t port, uint8_t dev_addr, uint8_t reg_addr, uint8_t *data,
 //                           size_t len) {
@@ -68,7 +70,6 @@ bool I2C_master_write(i2c_port_t port, uint8_t dev_addr, uint8_t reg_addr, const
     i2c_master_stop(cmd);
 
     res = i2c_master_cmd_begin(port, cmd, pdMS_TO_TICKS(10));
-
     i2c_cmd_link_delete(cmd);
 
     return res == ESP_OK;
@@ -96,8 +97,7 @@ bool I2C_master_read(i2c_port_t port, uint8_t dev_addr, uint8_t reg_addr, uint8_
     }
     i2c_master_stop(cmd);
 
-    res = i2c_master_cmd_begin(port, cmd, pdMS_TO_TICKS(10));
-
+    i2c_master_cmd_begin(port, cmd, pdMS_TO_TICKS(10));
     i2c_cmd_link_delete(cmd);
 
     return res == ESP_OK;
@@ -127,6 +127,42 @@ static bool I2C_master_only_read(i2c_port_t port, uint8_t dev_addr, uint8_t *dat
 
     return res == ESP_OK;
 }
+
+bool I2C_master_read_from_slave(i2c_port_t port, uint8_t dev_addr, uint8_t *data, size_t len) {
+    esp_err_t ret = i2c_master_read_from_device(port, dev_addr, data,len, pdMS_TO_TICKS(100));
+
+    if (ret != ESP_OK) {
+        return false;
+    }
+
+    return true;
+}
+
+bool I2C_master_write_to_slave(i2c_port_t port, uint8_t dev_addr, uint8_t *data,
+                          size_t len){
+    esp_err_t ret;
+    ret = i2c_master_write_to_device(port, dev_addr, data, 8, pdMS_TO_TICKS(5000));
+    ESP_LOGE(TAG, "Error in i2c_master_write: %s", esp_err_to_name(ret));
+    // i2c_cmd_handle_t cmd = i2c_cmd_link_create();    
+    // i2c_master_start(cmd);
+    // ESP_ERROR_CHECK(i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_WRITE, true));
+    // ret = i2c_master_write(cmd, data, len, true);
+    // if (ret != ESP_OK) {
+    //     ESP_LOGE(TAG, "Error in i2c_master_write: %s", esp_err_to_name(ret));
+    //     if (ret == ESP_ERR_TIMEOUT) {
+    //         ESP_LOGE(TAG, "I2C write timeout occurred");
+    //     } else if (ret == ESP_FAIL) {
+    //         ESP_LOGE(TAG, "I2C write failure");
+    //     } else {
+    //         ESP_LOGE(TAG, "I2C write returned unexpected error: %d", ret);
+    //     }
+    // }
+    // i2c_master_stop(cmd);
+    // ESP_ERROR_CHECK(i2c_master_cmd_begin(port, cmd, pdMS_TO_TICKS(100)));
+    // i2c_cmd_link_delete(cmd);
+    return ret;
+}
+
 
 bool i2c_sensors_init(void) {
     return I2C_master_init(&gb.i2c_num_1, I2C_NUM_0, CONFIG_SDA_SEN, CONFIG_SCL_SEN, 40000);
@@ -167,7 +203,7 @@ bool i2c_com_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data,
 
 
 bool i2c_com_only_read(uint8_t dev_addr, uint8_t *data, size_t len) {
-    if (I2C_master_only_read(I2C_NUM_1, dev_addr, data, len)) {
+    if (I2C_master_read_from_slave(I2C_NUM_1, dev_addr, data, len)) {
         return true;
     }
 
@@ -175,11 +211,10 @@ bool i2c_com_only_read(uint8_t dev_addr, uint8_t *data, size_t len) {
 }
 
 
-bool i2c_com_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *data,
+bool i2c_com_write(uint8_t dev_addr, uint8_t *data,
                           size_t len) {
-    if (I2C_master_write(I2C_NUM_1, dev_addr, reg_addr, data, len)) {
+    if (I2C_master_write_to_slave(I2C_NUM_1, dev_addr, data, len) == ESP_OK) {
         return true;
     }
-
     return false;
 }

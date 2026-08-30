@@ -5,6 +5,11 @@
 #include "system_timer.h"
 #include "stdbool.h"
 
+#define DISCONNECT_TIMER_PERIOD_MS (15 * 60 * 1000)
+#define DISCONNECT_TIMER_PERIOD_S (DISCONNECT_TIMER_PERIOD_MS / 1000)
+#define CAMERA_COUNTDOWN_TIME 10000
+#define CAMERA_ABORT_TIME 240000
+
 typedef enum {
     TIMER_SD_DATA = 0,
     TIMER_ESP_NOW_BROADCAST,
@@ -15,10 +20,9 @@ typedef enum {
     TIMER_BUZZER,
     TIMER_CONNECTED_DEV,
     TIMER_DEBUG,
+    TIMER_CAMERA_ON,
+    TIMER_CAMERA_OFF,
 } timers_id_def;
-
-#define DISCONNECT_TIMER_PERIOD_MS 15 * 60 * 1000
-#define DISCONNECT_TIMER_PERIOD_S DISCONNECT_TIMER_PERIOD_MS / 1000
 
 /**
  * @brief Initialize timers

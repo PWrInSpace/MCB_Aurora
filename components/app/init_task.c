@@ -4,6 +4,7 @@
 #include "buzzer_pwm.h"
 #include "console_config.h"
 #include "errors_config.h"
+#include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "esp_now_config.h"
 #include "esp_system.h"
@@ -33,7 +34,7 @@
 
 #define TAG "INIT"
 
-inline static void CHECK_RESULT_ESP(esp_err_t res, char *message) {
+static void CHECK_RESULT_ESP(esp_err_t res, char *message) {
     if (res == ESP_OK) {
         ESP_LOGI(TAG, "Initialized %s", message);
         return;
@@ -43,7 +44,7 @@ inline static void CHECK_RESULT_ESP(esp_err_t res, char *message) {
     esp_restart();
 }
 
-inline static void CHECK_RESULT_BOOL(esp_err_t res, char *message) {
+static void CHECK_RESULT_BOOL(esp_err_t res, char *message) {
     if (res == true) {
         ESP_LOGI(TAG, "Initialized %s", message);
         return;
@@ -53,27 +54,34 @@ inline static void CHECK_RESULT_BOOL(esp_err_t res, char *message) {
 }
 
 static void TASK_init(void *arg) {
-    CHECK_RESULT_ESP(settings_init(), "Change state");
+    /* Log reset reason and free heap to help diagnose unexpected resets */
+    esp_reset_reason_t rr = esp_reset_reason();
+    ESP_LOGI(TAG, "Reset reason (esp_reset_reason): %d", rr);
+    size_t free_heap = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
+    ESP_LOGI(TAG, "Free heap at init: %u bytes", (unsigned)free_heap);
+
+        // CHECK_RESULT_ESP(settings_init(), "Change state");
+    settings_init_default();
     Settings settings = settings_get_all();
 
     CHECK_RESULT_BOOL(rocket_data_init(), "data");
     CHECK_RESULT_BOOL(initialize_errors(), "Errors");
-    CHECK_RESULT_BOOL(hybrid_mission_timer_init(settings.countdownTime), "Mission timer");
+    CHECK_RESULT_BOOL(liquid_mission_timer_init(settings.countdownTime), "Mission timer");
     CHECK_RESULT_BOOL(vbat_init(), "VBAT MEASUREMENT");
     CHECK_RESULT_BOOL(buzzer_init(), "Buzzer");
-
     CHECK_RESULT_BOOL(i2c_sensors_init(), "i2c sensors");
     CHECK_RESULT_BOOL(i2c_com_init(), "i2c com");
     CHECK_RESULT_BOOL(spi_init(VSPI_HOST, CONFIG_SPI_MOSI, CONFIG_SPI_MISO, CONFIG_SPI_SCK), "SPI");
     CHECK_RESULT_BOOL(
         uart_init(CONFIG_UART_PORT_NUM, CONFIG_UART_TX, CONFIG_UART_RX, CONFIG_UART_BAUDRATE),
         "UART init");
-
+    // CHECK_RESULT_BOOL(
+    //     uart_init_logical(UART_LOGICAL_TELEMETRY, LORA_UART_PORT, LORA_UART_TX, LORA_UART_RX, LORA_UART_BAUDRATE),
+    //     "UART LORA");
     CHECK_RESULT_BOOL(gpioexp_init(), "GPIO Expander");
     CHECK_RESULT_BOOL(gpioexp_led_set_color(WHITE), "GPIO Expander change color");
 
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
-    CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
     CHECK_RESULT_BOOL(initialize_esp_now(), "ESP_NOW");
     CHECK_RESULT_BOOL(initialize_flash_memory(), "FLASH");
     CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
@@ -81,27 +89,27 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_recovery(), "Recovery task");
 
     CHECK_RESULT_BOOL(initialize_timers(), "TIMERS");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_ESP_NOW_BROADCAST, 500, TIMER_TYPE_PERIODIC),
-                      "ESP_NOW_TIMER");
-    CHECK_RESULT_BOOL(
-        sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT),
-        "DC TIMER");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_ESP_NOW_BROADCAST, 500, TIMER_TYPE_PERIODIC), "ESP_NOW_TIMER");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT), "DC TIMER");
     // CHECK_RESULT_BOOL(sys_timer_start(TIMER_BUZZER, 2000, TIMER_TYPE_PERIODIC), "BUZZER TIMER");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_CONNECTED_DEV, 40000, TIMER_TYPE_PERIODIC),
-                      "CONNECTED TIMER");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 50, TIMER_TYPE_PERIODIC), "SD TIMER");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_CONNECTED_DEV, 40000, TIMER_TYPE_PERIODIC), "CONNECTED TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_DEBUG, 1000, TIMER_TYPE_PERIODIC), "DEBUG TIMER");
 
     CHECK_RESULT_BOOL(initialize_lora(settings.loraFreq_KHz, settings.lora_transmit_ms), "LORA");
+
+    CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 1000, TIMER_TYPE_PERIODIC), "SD TIMER");
     CHECK_RESULT_ESP(init_console(), "CLI");
-    // esp_log_level_set("*", ESP_LOG_INFO);
+    // esp_log_level_set("*", ESP_LOG_DEBUG);
 
     CHECK_RESULT_ESP(SM_change_state(IDLE), "Change state to idle");
 
-    // if (settings.buzzer_on != 0) {
-    //     // CHECK_RESULT_BOOL(buzzer_init(), "Buzzer");
-    //     buzzer_turn_on();
-    // }
+    // buzzer_turn_on();
+
+    {
+        UBaseType_t high = uxTaskGetStackHighWaterMark(NULL);
+        ESP_LOGI(TAG, "Init task stack high water mark: %u", (unsigned)high);
+    }
     vTaskDelete(NULL);
 }
 

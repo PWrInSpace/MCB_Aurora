@@ -1,17 +1,19 @@
 // Copyright 2022 PWrInSpace
 #include "processing_task_config.h"
 
+#include <math.h>
+
 #include "bmi08_wrapper.h"
 #include "bmp5_wrapper.h"
 #include "errors_config.h"
 #include "esp_log.h"
 #include "mag_wrapper.h"
 #include "magdwick.h"
-#include "rocket_data.h"
+#include "state_machine.h"
 
 #define TAG "SENSORS_CFG"
 
-#define FILTER_CONST 0.95
+#define FILTER_CONST 0.95f
 
 static struct bmi08_sensor_data_f acc;
 static struct bmi08_sensor_data_f gyro;
@@ -20,7 +22,7 @@ static struct bmp5_sensor_data bar;
 static struct mgos_imu_madgwick madgwick;
 
 static void sensors_read_data(void *data_buffer) {
-    sensors_data_t *data = (sensors_data_t *)data_buffer;
+    sensors_data_t *data = data_buffer;
 
     if (mag_data_ready() == true) {
         if (mag_get_data(&mag) == false) {
@@ -40,8 +42,7 @@ static void sensors_read_data(void *data_buffer) {
         errors_add(ERROR_TYPE_SENSORS, ERROR_SENSOR_BAR, 100);
     }
 
-    mgos_imu_madgwick_update(&madgwick, gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y,
-                             mag.z);
+    mgos_imu_madgwick_update(&madgwick, gyro.x, gyro.y, gyro.z, acc.x, acc.y, acc.z, mag.x, mag.y, mag.z);
 
     data->acc_x = acc.x;
     data->acc_y = acc.y;
@@ -59,11 +60,21 @@ static void sensors_read_data(void *data_buffer) {
     data->temperature = bar.temperature;
     float prev_altitude = data->altitude;
     data->altitude = bmp5_wrapper_altitude(data->pressure) * FILTER_CONST + (1 - FILTER_CONST) * data->altitude;
-    data->velocity = (data->altitude - prev_altitude) / CONFIG_SENSORS_TASK_PERIOD_MS;
+    data->velocity = (data->altitude - prev_altitude) / CONFIG_SENSORS_TASK_PERIOD_MS * 1000; // to jest prędkość w m / ms zatem trzeba przemnożyć przez 1000
 
     mgos_imu_madgwick_get_angles(&madgwick, &data->roll, &data->pitch, &data->yaw);
-}
+    
+    // Szybka kalkulacja przyspieszenia pionowego
+    // Madgwick zwraca kąty w STOPNIACH, więc konwertujemy na radiany
+    float roll_rad = data->roll * ((float)M_PI / 180.0f);
+    float pitch_rad = data->pitch * ((float)M_PI / 180.0f);
+    
+    float acc_earth_z = -acc.x * sinf(pitch_rad) + 
+                                acc.y * sinf(roll_rad) * cosf(pitch_rad) + 
+                                acc.z * cosf(roll_rad) * cosf(pitch_rad);
 
+    data->acc_vertical = acc_earth_z;
+}
 
 bool initialize_processing_task(void) {
     if (bmi08_wrapper_init() == false) {
@@ -96,7 +107,7 @@ bool initialize_processing_task(void) {
         return false;
     }
 
-    if (mgos_imu_madgwick_set_params(&madgwick, 100, 0.01) == false) {
+    if (mgos_imu_madgwick_set_params(&madgwick, 100, 0.01f) == false) {
         ESP_LOGE(TAG, "MADGWICK 2");
         return false;
     }

@@ -2,8 +2,6 @@
 #define DATA_TO_PROTOBUF
 #include "lora.pb-c.h"
 
-void create_porotobuf_data_frame(LoRaFrame *frame);
-
-void create_protobuf_settings_frame(LoRaSettings *frame);
+void create_protobuf_data_frame(struct obc_mcb_frame_t *frame);
 
 #endif

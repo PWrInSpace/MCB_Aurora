@@ -13,6 +13,7 @@
 #define TAG "LORA_C"
 
 static bool settings_frame = false;
+static uint8_t workspace[1024];
 
 void lora_send_settings_frame(void) { settings_frame = true; }
 
@@ -36,22 +37,14 @@ static uint8_t calculate_checksum(uint8_t* buffer, size_t size) {
     for (size_t i = 0; i < size; ++i) {
         sum += buffer[i];
     }
-
     return sum;
 }
 
 static void lora_process(uint8_t* packet, size_t packet_size) {
-    if (packet_size > 40) {
-        ESP_LOGI(TAG, "Recevied packet is too big");
-        errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 100);
-        return;
-    }
-
     if (check_prefix(packet, packet_size) == false) {
         ESP_LOGE(TAG, "LoRa invalid prefix");
         return;
     }
-
 
     uint8_t prefix_size = sizeof(PACKET_PREFIX) - 1;
     if (calculate_checksum(packet + prefix_size, packet_size - prefix_size - 1) != packet[packet_size - 1]) {
@@ -59,27 +52,42 @@ static void lora_process(uint8_t* packet, size_t packet_size) {
         return;
     }
 
-    LoRaCommand* received =
-        lo_ra_command__unpack(NULL, packet_size - prefix_size - 1, packet + prefix_size);
-    if (received != NULL) {
-        ESP_LOGI(TAG, "Received LORA_ID %d, DEV_ID %d, COMMAND %d, PLD %d", received->lora_dev_id,
-                 received->sys_dev_id, received->command, received->payload);
+    struct obc_lo_ra_frame_t* received = obc_lo_ra_frame_new(&workspace, sizeof(workspace));
 
-        cmd_message_t received_command = cmd_create_message(received->command, received->payload);
-        lo_ra_command__free_unpacked(received, NULL);
-        if (lora_cmd_process_command(received->lora_dev_id, received->sys_dev_id,
+    size_t decoded_size =
+        obc_lo_ra_frame_decode(received, packet + prefix_size, packet_size - prefix_size - 1);
+
+    ESP_LOGI(TAG, "Received frame type: %d", received->frame);
+
+    if (received->frame != obc_lo_ra_frame_frame_app_frame_e) {
+        ESP_LOGE(TAG, "Received frame is not an app frame");
+        return;
+    }
+
+    if (decoded_size > 0 && received->app_frame_p->lora_dev_id.is_present &&
+        received->app_frame_p->sys_dev_id.is_present && received->app_frame_p->command.is_present &&
+        received->app_frame_p->payload.is_present) {
+        cmd_message_t received_command = cmd_create_message(received->app_frame_p->command.value,
+                                                            received->app_frame_p->payload.value);
+        ESP_LOGI(TAG,
+                 "Received command from LoRa -> lora_dev_id: %d, sys_dev_id: %d, command: %d, "
+                 "payload: %d",
+                 received->app_frame_p->lora_dev_id.value, received->app_frame_p->sys_dev_id.value,
+                 received->app_frame_p->command.value, received->app_frame_p->payload.value);
+
+        if (lora_cmd_process_command(received->app_frame_p->lora_dev_id.value,
+                                     received->app_frame_p->sys_dev_id.value,
                                      &received_command) == false) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_COMMAND_NOT_FOUND, 200);
-            ESP_LOGE(TAG, "Unable to prcess command :C");
+            ESP_LOGE(TAG, "Unable to process command :C");
             return;
         }
-
-        if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
-            ESP_LOGE(TAG, "Unable to restart timer");
-        }
     } else {
-        errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_LORA_DECODE, 200);
         ESP_LOGE(TAG, "Unable to decode received package");
+    }
+
+    if (sys_timer_restart(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS) == false) {
+        ESP_LOGE(TAG, "Unable to restart timer");
     }
 }
 
@@ -93,40 +101,44 @@ static size_t add_prefix(uint8_t* buffer, size_t size) {
     return sizeof(PACKET_PREFIX) - 1;
 }
 
-static size_t lora_create_settings_packet(uint8_t* buffer, size_t size) {
-    LoRaSettings frame = LO_RA_SETTINGS__INIT;
-    create_protobuf_settings_frame(&frame);
-
-    uint8_t data_size = 0;
-    uint8_t prefix_size = 0;
-    prefix_size = add_prefix(buffer, size);
-    data_size = lo_ra_settings__pack(&frame, buffer + prefix_size);
-
-    return prefix_size + data_size;
-}
-
 static size_t lora_create_data_packet(uint8_t* buffer, size_t size) {
-    LoRaFrame frame;
-    create_porotobuf_data_frame(&frame);
+    /* create data protobuf into buffer, reserve 1 byte at the end for checksum */
+    if (buffer == NULL || size == 0) return 0;
 
-    uint8_t data_size = 0;
-    uint8_t prefix_size = 0;
-    prefix_size = add_prefix(buffer, size);
-    data_size = lo_ra_frame__pack(&frame, buffer + prefix_size);
+    struct obc_lo_ra_frame_t* frame = obc_lo_ra_frame_new(&workspace, sizeof(workspace));
+    frame->frame = obc_lo_ra_frame_frame_mcb_frame_e;
+    struct obc_mcb_frame_t mcb_frame = {0};
+    frame->mcb_frame_p = &mcb_frame;
+    create_protobuf_data_frame(frame->mcb_frame_p);
 
-    return prefix_size + data_size;
+    size_t prefix_size = add_prefix(buffer, size);
+    if (prefix_size == 0) return 0; /* not enough room for prefix */
+
+    /* reserve 1 byte for checksum */
+    if (size <= prefix_size) return 0;
+    size_t max_payload = size - prefix_size;
+
+    size_t data_size = obc_lo_ra_frame_encode(frame, buffer + prefix_size, max_payload);
+    if (data_size == 0 || data_size > max_payload) return 0;
+
+    ESP_LOGI(TAG, "Data frame size: %zu", data_size);
+
+    uint8_t checksum = calculate_checksum(buffer + prefix_size, data_size);
+    if (prefix_size + data_size + sizeof(checksum) > size) return 0;
+    buffer[prefix_size + data_size] = checksum;
+
+    if (prefix_size + data_size + 1 > 255) {
+        ESP_LOGE(TAG, "Data frame too large to send over LoRa");
+        return 0;
+    }
+
+    return prefix_size + data_size + 1;
 }
 
 static size_t lora_packet(uint8_t* buffer, size_t buffer_size) {
     size_t size = 0;
 
-    if (settings_frame == true) {
-        size = lora_create_settings_packet(buffer, buffer_size);
-        settings_frame = false;
-        ESP_LOGI(TAG, "Transmiting settings frame");
-    } else {
-        size = lora_create_data_packet(buffer, buffer_size);
-    }
+    size = lora_create_data_packet(buffer, buffer_size);
 
     ESP_LOGI(TAG, "Sending LoRa frame -> size: %d", size);
 

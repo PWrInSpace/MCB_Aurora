@@ -1,4 +1,3 @@
-
 #include <math.h>
 #include "bmi08.h"
 #include "bmi088_mm.h"
@@ -44,11 +43,9 @@ static float lsb_to_mps2(int16_t val, float g_range, uint8_t bit_width)
 
 static float lsb_to_dps(int16_t val, float dps, uint8_t bit_width)
 {
-    double power = 2;
+    float half_scale = powf(2.0f, bit_width);
 
-    float half_scale = (float)((pow((double)power, (double)bit_width) / 2.0f));
-
-    return (dps / (half_scale)) * (val);
+    return dps / half_scale * (float)val;
 }
 
 bool bmi08_wrapper_init(void) {
@@ -101,13 +98,6 @@ bool bmi08_wrapper_init(void) {
 
     return true;
 }
-
-// bool bmp5_wrapper_get_data(struct bmp5_sensor_data *data) {
-//     int8_t res;
-//     res = bmp5_get_sensor_data(data, &gb.odr_press_cfg, &gb.bmp);
-
-//     return res == BMP5_OK ? true : false;
-// }
 
 bool bmi08_acc_data_ready(void) {
     uint8_t status;

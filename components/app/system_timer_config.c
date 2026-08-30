@@ -1,20 +1,28 @@
 // Copyright 2022 PWrInSpace, Kuba
 #include "system_timer_config.h"
-#include "sd_task.h"
-#include "rocket_data.h"
-#include "esp_now_config.h"
+
+#include "buzzer_pwm.h"
 #include "commands.h"
+#include "commands_config.h"
+#include "errors_config.h"
+#include "esp_log.h"
+#include "esp_now_config.h"
+#include "flash_task.h"
+#include "gen_pysd.h"
+#include "rocket_data.h"
+#include "sd_task.h"
 #include "state_machine.h"
 #include "state_machine_config.h"
-#include "flash_task.h"
-#include "esp_log.h"
-#include "errors_config.h"
-#include "gen_pysd.h"
-#include "buzzer_pwm.h"
+#include "gpio_expander.h"
+
+#define TAG "TIM"
 
 void on_sd_timer(void *arg){
-    rocket_data_t test = rocket_data_get();
-    if (SDT_send_data(&test, sizeof(test)) == false) {
+    static rocket_data_t p;
+
+    rocket_data_copy(&p);
+
+    if (SDT_send_data(&p, sizeof(p)) == false) {
         errors_add(ERROR_TYPE_MCB, ERROR_MCB_SD_QUEUE_ADD, 0);
     }
 }
@@ -25,19 +33,22 @@ static void on_broadcast_timer(void *arg) {
 }
 
 static void on_flash_data_timer(void *arg) {
-    rocket_data_t data = rocket_data_get();
-    if (FT_send_data(&data) == false) {
+    static rocket_data_t p;
+
+    rocket_data_copy(&p);
+
+    if (FT_send_data(&p) == false) {
         errors_add(ERROR_TYPE_MCB, ERROR_MCB_FLASH_QUEUE_ADD, 0);
     }
 }
 
 static void on_ignition_timer(void *arg) {
-    cmd_message_t mess = cmd_create_message(0x88, 0x00);
+    cmd_message_t mess = cmd_create_message(TANWA_FIRE, 0x00);
     ENA_send(&esp_now_tanwa, mess.raw, sizeof(mess.raw), 3);
 }
 
 static void on_liftoff_timer(void *arg) {
-    if (SM_change_state(FLIGHT) != SM_OK) {
+    if (SM_change_state(LIFT_OFF) != SM_OK) {
         errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 100);
     }
 }
@@ -45,8 +56,6 @@ static void on_liftoff_timer(void *arg) {
 static void on_disconnect_timer(void *arg) {
     SM_force_change_state(ABORT);
 }
-
-#define TAG "TIM"
 
 static void buzzer_timer(void *arg) {
     static uint8_t state = 1;
@@ -64,13 +73,46 @@ static void connected_dev(void *arg) {
     esp_now_get_connected_dev(&dev);
     rocket_data_update_connected_dev(&dev);
     esp_now_clear_connected_dev();
+    n2_vent_valve_data_t n2_data = rocket_data_get_n2_vent_valve();
+    n2_data.waken_up = false;
+    rocket_data_update_n2_vent_valve(&n2_data);
+    eth_vent_n2_main_valves_data_t vent_data = rocket_data_get_eth_vent_n2_main_valves();
+    vent_data.waken_up = false;
+    rocket_data_update_eth_vent_n2_main_valves(&vent_data);
+    ox_main_valve_data_t ox_main_data = rocket_data_get_ox_main_valve();
+    ox_main_data.waken_up = false;
+    rocket_data_update_ox_main_valve(&ox_main_data);
+    ox_vent_eth_main_valves_data_t ox_vent_eth_main_data = rocket_data_get_ox_vent_eth_main_valves();
+    ox_vent_eth_main_data.waken_up = false;
+    rocket_data_update_ox_vent_eth_main_valves(&ox_vent_eth_main_data);
 }
 
 static void debug_data(void *arg) {
-    char buffer[512];
-    rocket_data_t rocket_data = rocket_data_get();
-    pysd_create_sd_frame(buffer, sizeof(buffer), rocket_data, false);
+    // --- KOD DIAGNOSTYCZNY ---
+    size_t free_heap = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+    size_t max_block = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
+
+    // ESP_LOGW("MEM_DEBUG", "Całkowity wolny RAM: %d bajtow | Najwiekszy ciągły blok: %d bajtow", free_heap, max_block);
+    // -------------------------
+
+    const size_t buf_sz = 2048;
+    static char buffer[2048];
+    static rocket_data_t p;
+
+    rocket_data_copy(&p);
+
+    pysd_create_sd_frame(buffer, buf_sz, p, true);
     ESP_LOGD(TAG, "%s", buffer);
+}
+
+static void on_camera_timer(void *arg) {
+    ESP_LOGI(TAG, "Camera turned on");
+    gpioexp_camera_turn_on();
+}
+
+static void on_camera_off_timer(void *arg) {
+    ESP_LOGI(TAG, "Camera turned off");
+    gpioexp_camera_turn_off();
 }
 
 bool initialize_timers(void) {
@@ -84,6 +126,8 @@ bool initialize_timers(void) {
     {.timer_id = TIMER_DEBUG,               .timer_callback_fnc = debug_data,               .timer_arg = NULL},
     {.timer_id = TIMER_BUZZER,              .timer_callback_fnc = buzzer_timer,             .timer_arg = NULL},
     {.timer_id = TIMER_CONNECTED_DEV,       .timer_callback_fnc = connected_dev,            .timer_arg = NULL},
+    {.timer_id = TIMER_CAMERA_ON,           .timer_callback_fnc = on_camera_timer,          .timer_arg = NULL},
+    {.timer_id = TIMER_CAMERA_OFF,          .timer_callback_fnc = on_camera_off_timer,      .timer_arg = NULL},
 };
     return sys_timer_init(timers, sizeof(timers) / sizeof(timers[0]));
 }

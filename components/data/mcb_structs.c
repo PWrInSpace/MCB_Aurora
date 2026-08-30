@@ -4,35 +4,38 @@
 #include "utils.h"
 #include "esp_log.h"
 #include "mission_timer_config.h"
-#include "system_timer_config.h"
 #include "processing_task_config.h"
+#include "state_machine.h"
+#include "system_timer_config.h"
+#include "utils.h"
 #include "vbat_wrapper.h"
 
 #define TAG "MS"
 bool mcb_update_struct(mcb_data_t *mcb) {
     mcb->state = SM_get_current_state();
     mcb->uptime = get_uptime_ms();
-    mcb->flight_time = hybrid_mission_timer_get_time();
+    mcb->flight_time = liquid_mission_timer_get_time();
     mcb->battery_voltage = vbat_read();
 
     uint64_t dc_timer_expire = 0;
     if (sys_timer_get_expiry_time(TIMER_DISCONNECT, &dc_timer_expire) == false) {
         mcb->disconnect_timer = DISCONNECT_TIMER_PERIOD_S;
     } else {
-        mcb->disconnect_timer = ((dc_timer_expire / 1000) - get_uptime_ms()) / 1000.0;
+        mcb->disconnect_timer = ((uint32_t)dc_timer_expire / 1000 - get_uptime_ms()) / 1000;
     }
 
-    gps_positioning_t gps_posiotion = gps_get_positioning();
-    mcb->gps_altitude = gps_posiotion.altitude;
-    mcb->latitude = gps_posiotion.latitude;
-    mcb->longitude = gps_posiotion.longitude;
-    mcb->satelites_in_view = gps_posiotion.sats_in_view;
+    gps_positioning_t gps_position = gps_get_positioning();
+    mcb->gps_altitude = gps_position.altitude;
+    mcb->latitude = gps_position.latitude;
+    mcb->longitude = gps_position.longitude;
+    mcb->satellites_in_view = gps_position.sats_in_view;
 
     sensors_data_t sensors_data;
     sensors_get_data(&sensors_data, sizeof(sensors_data), 100);
     mcb->acc_x = sensors_data.acc_x;
     mcb->acc_y = sensors_data.acc_y;
     mcb->acc_z = sensors_data.acc_z;
+    mcb->acc_vertical = sensors_data.acc_vertical;
     mcb->gyr_x = sensors_data.gyr_x;
     mcb->gyr_y = sensors_data.gyr_y;
     mcb->gyr_z = sensors_data.gyr_z;

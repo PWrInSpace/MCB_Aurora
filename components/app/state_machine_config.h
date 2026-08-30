@@ -10,9 +10,12 @@ typedef enum {
     IDLE,
     RECOVERY_ARM,
     FUELING,
+    PRESSURIZING,
     ARMED_TO_LAUNCH,
     RDY_TO_LAUNCH,
     COUNTDOWN,
+    LIFT_OFF,
+    BURN,
     FLIGHT,
     FIRST_STAGE_RECOVERY,
     SECOND_STAGE_RECOVERY,
@@ -23,7 +26,7 @@ typedef enum {
 
 /**
  * @brief Initialize state machine task
- * 
+ *
  * @return true :D
  * @return false :C
  */

@@ -8,6 +8,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_heap_caps.h"
 
 #define TAG "W25Q64"
 #define _DEBUG_ 1
@@ -81,16 +82,17 @@ void W25Q64_init(W25Q64_t *dev) {
 //
 esp_err_t W25Q64_readStatusReg1(W25Q64_t *dev, uint8_t *reg1) {
   spi_transaction_t SPITransaction;
-  uint8_t data[2];
+  uint8_t *data = heap_caps_malloc(2, MALLOC_CAP_DMA);
+  if (data == NULL) return ESP_ERR_NO_MEM;
   data[0] = CMD_READ_STATUS_R1;
   memset(&SPITransaction, 0, sizeof(spi_transaction_t));
   SPITransaction.length = 2 * 8;
   SPITransaction.tx_buffer = data;
   SPITransaction.rx_buffer = data;
   esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
-  assert(ret == ESP_OK);
-  if (_DEBUG_) ESP_LOGI(TAG, "W25Q64_readStatusReg1=%x", data[1]);
-  *reg1 = data[1];
+  if (ret == ESP_OK && _DEBUG_) ESP_LOGI(TAG, "W25Q64_readStatusReg1=%x", data[1]);
+  if (ret == ESP_OK) *reg1 = data[1];
+  heap_caps_free(data);
   return ret;
 }
 
@@ -100,16 +102,17 @@ esp_err_t W25Q64_readStatusReg1(W25Q64_t *dev, uint8_t *reg1) {
 //
 esp_err_t W25Q64_readStatusReg2(W25Q64_t *dev, uint8_t *reg2) {
   spi_transaction_t SPITransaction;
-  uint8_t data[2];
+  uint8_t *data = heap_caps_malloc(2, MALLOC_CAP_DMA);
+  if (data == NULL) return ESP_ERR_NO_MEM;
   data[0] = CMD_READ_STATUS_R2;
   memset(&SPITransaction, 0, sizeof(spi_transaction_t));
   SPITransaction.length = 2 * 8;
   SPITransaction.tx_buffer = data;
   SPITransaction.rx_buffer = data;
   esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
-  assert(ret == ESP_OK);
-  if (_DEBUG_) ESP_LOGI(TAG, "W25Q64_readStatusReg2=%x", data[1]);
-  *reg2 = data[1];
+  if (ret == ESP_OK && _DEBUG_) ESP_LOGI(TAG, "W25Q64_readStatusReg2=%x", data[1]);
+  if (ret == ESP_OK) *reg2 = data[1];
+  heap_caps_free(data);
   return ret;
 }
 
@@ -119,16 +122,17 @@ esp_err_t W25Q64_readStatusReg2(W25Q64_t *dev, uint8_t *reg2) {
 //
 esp_err_t W25Q64_readUniqieID(W25Q64_t *dev, uint8_t *id) {
   spi_transaction_t SPITransaction;
-  uint8_t data[13];
+  uint8_t *data = heap_caps_malloc(13, MALLOC_CAP_DMA);
+  if (data == NULL) return ESP_ERR_NO_MEM;
   data[0] = CMD_READ_UNIQUE_ID;
   memset(&SPITransaction, 0, sizeof(spi_transaction_t));
   SPITransaction.length = 13 * 8;
   SPITransaction.tx_buffer = data;
   SPITransaction.rx_buffer = data;
   esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
-  assert(ret == ESP_OK);
-  if (_DEBUG_) W25Q64_dump("readUniqieID", ret, data, 13);
-  memcpy(id, &data[5], 8);
+  if (ret == ESP_OK && _DEBUG_) W25Q64_dump("readUniqieID", ret, data, 13);
+  if (ret == ESP_OK) memcpy(id, &data[5], 8);
+  heap_caps_free(data);
   return ret;
 }
 
@@ -138,16 +142,17 @@ esp_err_t W25Q64_readUniqieID(W25Q64_t *dev, uint8_t *id) {
 //
 esp_err_t W25Q64_readManufacturer(W25Q64_t *dev, uint8_t *id) {
   spi_transaction_t SPITransaction;
-  uint8_t data[4];
+  uint8_t *data = heap_caps_malloc(4, MALLOC_CAP_DMA);
+  if (data == NULL) return ESP_ERR_NO_MEM;
   data[0] = CMD_JEDEC_ID;
   memset(&SPITransaction, 0, sizeof(spi_transaction_t));
   SPITransaction.length = 4 * 8;
   SPITransaction.tx_buffer = data;
   SPITransaction.rx_buffer = data;
   esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
-  assert(ret == ESP_OK);
-  if (_DEBUG_) W25Q64_dump("readManufacturer", ret, data, 4);
-  memcpy(id, &data[1], 3);
+  if (ret == ESP_OK && _DEBUG_) W25Q64_dump("readManufacturer", ret, data, 4);
+  if (ret == ESP_OK) memcpy(id, &data[1], 3);
+  heap_caps_free(data);
   return ret;
 }
 
@@ -157,17 +162,21 @@ esp_err_t W25Q64_readManufacturer(W25Q64_t *dev, uint8_t *id) {
 //
 bool W25Q64_IsBusy(W25Q64_t *dev) {
   spi_transaction_t SPITransaction;
-  uint8_t data[2];
+  uint8_t *data = heap_caps_malloc(2, MALLOC_CAP_DMA);
+  if (data == NULL) return false;
   data[0] = CMD_READ_STATUS_R1;
   memset(&SPITransaction, 0, sizeof(spi_transaction_t));
   SPITransaction.length = 2 * 8;
   SPITransaction.tx_buffer = data;
   SPITransaction.rx_buffer = data;
   esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
-  assert(ret == ESP_OK);
-  if (ret != ESP_OK) return false;
-  if ((data[1] & SR1_BUSY_MASK) != 0) return true;
-  return false;
+  if (ret != ESP_OK) {
+    heap_caps_free(data);
+    return false;
+  }
+  bool busy = ((data[1] & SR1_BUSY_MASK) != 0);
+  heap_caps_free(data);
+  return busy;
 }
 
 //
@@ -175,14 +184,15 @@ bool W25Q64_IsBusy(W25Q64_t *dev) {
 //
 esp_err_t W25Q64_powerDown(W25Q64_t *dev) {
   spi_transaction_t SPITransaction;
-  uint8_t data[1];
+  uint8_t *data = heap_caps_malloc(1, MALLOC_CAP_DMA);
+  if (data == NULL) return ESP_ERR_NO_MEM;
   data[0] = CMD_POWER_DOWN;
   memset(&SPITransaction, 0, sizeof(spi_transaction_t));
   SPITransaction.length = 1 * 8;
   SPITransaction.tx_buffer = data;
   SPITransaction.rx_buffer = data;
   esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
-  assert(ret == ESP_OK);
+  heap_caps_free(data);
   return ret;
 }
 
@@ -191,14 +201,15 @@ esp_err_t W25Q64_powerDown(W25Q64_t *dev) {
 //
 esp_err_t W25Q64_WriteEnable(W25Q64_t *dev) {
   spi_transaction_t SPITransaction;
-  uint8_t data[1];
+  uint8_t *data = heap_caps_malloc(1, MALLOC_CAP_DMA);
+  if (data == NULL) return ESP_ERR_NO_MEM;
   data[0] = CMD_WRITE_ENABLE;
   memset(&SPITransaction, 0, sizeof(spi_transaction_t));
   SPITransaction.length = 1 * 8;
   SPITransaction.tx_buffer = data;
   SPITransaction.rx_buffer = data;
   esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
-  assert(ret == ESP_OK);
+  heap_caps_free(data);
   return ret;
 }
 
@@ -207,14 +218,15 @@ esp_err_t W25Q64_WriteEnable(W25Q64_t *dev) {
 //
 esp_err_t W25Q64_WriteDisable(W25Q64_t *dev) {
   spi_transaction_t SPITransaction;
-  uint8_t data[1];
+  uint8_t *data = heap_caps_malloc(1, MALLOC_CAP_DMA);
+  if (data == NULL) return ESP_ERR_NO_MEM;
   data[0] = CMD_WRITE_DISABLE;
   memset(&SPITransaction, 0, sizeof(spi_transaction_t));
   SPITransaction.length = 1 * 8;
   SPITransaction.tx_buffer = data;
   SPITransaction.rx_buffer = data;
   esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
-  assert(ret == ESP_OK);
+  heap_caps_free(data);
   return ret;
 }
 
@@ -228,7 +240,7 @@ esp_err_t W25Q64_WriteDisable(W25Q64_t *dev) {
 uint16_t W25Q64_read(W25Q64_t *dev, uint32_t addr, uint8_t *buf, uint16_t n) {
   spi_transaction_t SPITransaction;
   uint8_t *data;
-  data = (uint8_t *)malloc(n + 5);
+  data = heap_caps_malloc(n + 5, MALLOC_CAP_DMA);
   size_t offset;
   if (dev->_4bmode) {
     data[0] = CMD_READ_DATA4B;
@@ -249,9 +261,8 @@ uint16_t W25Q64_read(W25Q64_t *dev, uint32_t addr, uint8_t *buf, uint16_t n) {
   SPITransaction.tx_buffer = data;
   SPITransaction.rx_buffer = data;
   esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
-  assert(ret == ESP_OK);
-  memcpy(buf, &data[offset], n);
-  free(data);
+  if (ret == ESP_OK) memcpy(buf, &data[offset], n);
+  heap_caps_free(data);
   if (ret != ESP_OK) return 0;
   return n;
 }
@@ -266,7 +277,7 @@ uint16_t W25Q64_read(W25Q64_t *dev, uint32_t addr, uint8_t *buf, uint16_t n) {
 uint16_t W25Q64_fastread(W25Q64_t *dev, uint32_t addr, uint8_t *buf, uint16_t n) {
   spi_transaction_t SPITransaction;
   uint8_t *data;
-  data = (uint8_t *)malloc(n + 6);
+  data = heap_caps_malloc(n + 6, MALLOC_CAP_DMA);
   size_t offset;
   if (dev->_4bmode) {
     data[0] = CMD_FAST_READ4B;
@@ -289,9 +300,8 @@ uint16_t W25Q64_fastread(W25Q64_t *dev, uint32_t addr, uint8_t *buf, uint16_t n)
   SPITransaction.tx_buffer = data;
   SPITransaction.rx_buffer = data;
   esp_err_t ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
-  assert(ret == ESP_OK);
-  memcpy(buf, &data[offset], n);
-  free(data);
+  if (ret == ESP_OK) memcpy(buf, &data[offset], n);
+  heap_caps_free(data);
   if (ret != ESP_OK) return 0;
   return n;
 }
@@ -493,7 +503,7 @@ int16_t W25Q64_pageWrite(W25Q64_t *dev, uint16_t sect_no, uint16_t inaddr, uint8
   // Busy check
   if (W25Q64_IsBusy(dev)) return 0;
 
-  data = (unsigned char *)malloc(n + 4);
+  data = heap_caps_malloc(n + 4, MALLOC_CAP_DMA);
   data[0] = CMD_PAGE_PROGRAM;
   data[1] = (addr >> 16) & 0xff;
   data[2] = (addr >> 8) & 0xff;
@@ -504,7 +514,7 @@ int16_t W25Q64_pageWrite(W25Q64_t *dev, uint16_t sect_no, uint16_t inaddr, uint8
   SPITransaction.tx_buffer = data;
   SPITransaction.rx_buffer = data;
   ret = spi_device_transmit(dev->_SPIHandle, &SPITransaction);
-  free(data);
+  heap_caps_free(data);
   assert(ret == ESP_OK);
   if (ret != ESP_OK) return 0;
 

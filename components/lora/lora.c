@@ -251,8 +251,8 @@ int16_t lora_receive_packet(lora_struct_t *lora, uint8_t *buf, int16_t size) {
    * Check interrupts.
    */
   int16_t irq = lora_read_reg(lora, REG_IRQ_FLAGS);
-  lora_write_reg(lora, REG_IRQ_FLAGS, irq);
   if ((irq & IRQ_RX_DONE_MASK) == 0) return 0;
+  lora_write_reg(lora, REG_IRQ_FLAGS, irq);
   if (irq & IRQ_PAYLOAD_CRC_ERROR_MASK) return 0;
 
   /*
@@ -276,6 +276,9 @@ int16_t lora_receive_packet(lora_struct_t *lora, uint8_t *buf, int16_t size) {
   for (int16_t i = 0; i < len; i++) {
     buf[i] = lora_read_reg(lora, REG_FIFO);
   }
+
+  // Wymagane przez notę katalogową dla Continuous RX: reset wskaźnika FIFO
+  lora_write_reg(lora, REG_FIFO_ADDR_PTR, 0x00);
 
   return len;
 }
