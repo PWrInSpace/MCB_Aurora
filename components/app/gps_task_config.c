@@ -8,12 +8,12 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "uart.h"
-#include "ublox_m8.h"
+#include "ublox_m10.h"
 
-#define TAG "GPS"
+static const char *TAG = "GPS";
 
 static struct {
-    ublox_m8_t ubx;
+    ublox_m10_t ubx;
     gps_positioning_t position;
     SemaphoreHandle_t data_mutex;
     basic_task_t task;
@@ -27,36 +27,13 @@ static struct {
     .processing_mutex = NULL,
 };
 
-// --- Konfiguracja GPS ---
-static uint8_t disableNmeaAll[]     = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x00, 0x01, 0x00, 0x00, 0x02, 0x00, 0x01, 0x00, 0x00, 0x9D, 0xDF};
-static uint8_t disableInfMessages[] = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x00, 0x01, 0x00, 0x00, 0x02, 0x00, 0x92, 0x20, 0x00, 0xB0, 0x63};
-static uint8_t setRocketMode4G[]    = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x00, 0x01, 0x00, 0x00, 0x21, 0x00, 0x11, 0x20, 0x08, 0x94, 0xB7};
-static uint8_t enableNavPvt[]       = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0x01, 0x07, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x18, 0xE1};
-static uint8_t setRate1Hz_M10[]     = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x00, 0x01, 0x00, 0x00, 0x01, 0x00, 0x21, 0x30, 0xE8, 0x03, 0xF1, 0xAE};
-static char setUart1OnlyUbxNmea[] = "$PUBX,41,1,0003,0001,9600,0*16\r\n";
-
-static void configure_gps_hardware(void) {
-    ESP_LOGI(TAG, "Wysyłanie konfiguracji (Rocket Mode, 1Hz, PVT)...");
-
-    gb.ubx.uart_write_fnc((uint8_t*)setUart1OnlyUbxNmea, (uint8_t)sizeof(setUart1OnlyUbxNmea)-1);
-    vTaskDelay(pdMS_TO_TICKS(50));
-    gb.ubx.uart_write_fnc((uint8_t*)disableInfMessages, sizeof(disableInfMessages));
-    vTaskDelay(pdMS_TO_TICKS(50));
-    gb.ubx.uart_write_fnc((uint8_t*)disableNmeaAll, sizeof(disableNmeaAll));
-    vTaskDelay(pdMS_TO_TICKS(50));
-    gb.ubx.uart_write_fnc((uint8_t*)setRocketMode4G, sizeof(setRocketMode4G));
-    vTaskDelay(pdMS_TO_TICKS(50));
-    gb.ubx.uart_write_fnc((uint8_t*)enableNavPvt, sizeof(enableNavPvt));
-    vTaskDelay(pdMS_TO_TICKS(50));
-    gb.ubx.uart_write_fnc((uint8_t*)setRate1Hz_M10, sizeof(setRate1Hz_M10));
-    vTaskDelay(pdMS_TO_TICKS(100));
-
-    uart_flush_rx();
+static void gps_delay_ms(uint32_t ms) {
+    vTaskDelay(pdMS_TO_TICKS(ms));
 }
 
 static void process_gps_data(void) {
-    ublox_m8_pvt_t pvt;
-    if (ublox_m8_get_PVT(&gb.ubx, &pvt) == false) {
+    ublox_m10_pvt_t pvt;
+    if (ublox_m10_get_PVT(&gb.ubx, &pvt) == false) {
         uart_flush_rx();
         uart_flush_tx();
         gb.read_error_counter += 1;
@@ -69,9 +46,9 @@ static void process_gps_data(void) {
     gb.read_error_counter = 0;
 
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
-    gb.position.latitude = (float)(pvt.lat.data / 10e6);
-    gb.position.longitude = (float)(pvt.lon.data / 10e6);
-    gb.position.altitude = (float)(pvt.height.data / 10e3);
+    gb.position.latitude = (float)pvt.lat / 1000.0f;
+    gb.position.longitude = (float)pvt.lon / 1000.0f;
+    gb.position.altitude = (float)pvt.height / 1000.0f;
     gb.position.sats_in_view = pvt.numSV;
     gb.position.fix_type = pvt.fix_type;
     xSemaphoreGive(gb.data_mutex);
@@ -110,12 +87,11 @@ bool gps_remove_process_fnc(void) {
 bool initialize_gps(void) {
     gb.ubx.uart_read_fnc = uart_ublox_read;
     gb.ubx.uart_write_fnc = uart_ublox_write;
+    gb.ubx.delay_fnc = gps_delay_ms;
 
-    if (ublox_m8_init(&gb.ubx) == false) {
+    if (ublox_m10_init(&gb.ubx) == false) {
         return false;
     }
-
-    configure_gps_hardware();
 
     gb.data_mutex = xSemaphoreCreateMutex();
     if (gb.data_mutex == NULL) {
@@ -141,7 +117,6 @@ bool initialize_gps(void) {
 
     return true;
 }
-
 
 gps_positioning_t gps_get_positioning(void) {
     gps_positioning_t pos;
