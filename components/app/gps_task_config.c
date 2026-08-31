@@ -27,40 +27,32 @@ static struct {
     .processing_mutex = NULL,
 };
 
-static void ubx_delay(uint32_t millis) {
-    vTaskDelay(pdMS_TO_TICKS(millis));
-}
-
 // --- Konfiguracja GPS ---
-static const uint8_t disableNmeaAll[]          = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x00, 0x01, 0x00, 0x00, 0x02, 0x00, 0x01, 0x00, 0x00, 0x9D, 0xDF};
-static const uint8_t disableInfMessages[]      = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x00, 0x01, 0x00, 0x00, 0x02, 0x00, 0x92, 0x20, 0x00, 0xB0, 0x63};
-static const uint8_t setRocketMode4G[]         = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x00, 0x01, 0x00, 0x00, 0x21, 0x00, 0x11, 0x20, 0x08, 0x94, 0xB7};
-// static const uint8_t enableNavPvt[]            = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0x01, 0x07, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x18, 0xE1};
-static const uint8_t setRate1Hz_M10[]          = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x00, 0x01, 0x00, 0x00, 0x01, 0x00, 0x21, 0x30, 0xE8, 0x03, 0xF1, 0xAE};
-static const char* setUart1OnlyUbxNmea         = "$PUBX,41,1,0003,0001,9600,0*16\r\n";
+static uint8_t disableNmeaAll[]     = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x00, 0x01, 0x00, 0x00, 0x02, 0x00, 0x01, 0x00, 0x00, 0x9D, 0xDF};
+static uint8_t disableInfMessages[] = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x00, 0x01, 0x00, 0x00, 0x02, 0x00, 0x92, 0x20, 0x00, 0xB0, 0x63};
+static uint8_t setRocketMode4G[]    = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x00, 0x01, 0x00, 0x00, 0x21, 0x00, 0x11, 0x20, 0x08, 0x94, 0xB7};
+static uint8_t enableNavPvt[]       = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0x01, 0x07, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x18, 0xE1};
+static uint8_t setRate1Hz_M10[]     = {0xB5, 0x62, 0x06, 0x8A, 0x09, 0x00, 0x00, 0x01, 0x00, 0x00, 0x01, 0x00, 0x21, 0x30, 0xE8, 0x03, 0xF1, 0xAE};
+static char setUart1OnlyUbxNmea[] = "$PUBX,41,1,0003,0001,9600,0*16\r\n";
 
 static void configure_gps_hardware(void) {
     ESP_LOGI(TAG, "Wysyłanie konfiguracji (Rocket Mode, 1Hz, PVT)...");
 
-    // Używamy wskaźnika do funkcji UART, tak jak robi to reszta biblioteki
-    gb.ubx.uart_write_fnc((uint8_t*)setUart1OnlyUbxNmea, strlen(setUart1OnlyUbxNmea));
-    ubx_delay(50);
+    gb.ubx.uart_write_fnc((uint8_t*)setUart1OnlyUbxNmea, (uint8_t)sizeof(setUart1OnlyUbxNmea)-1);
+    vTaskDelay(pdMS_TO_TICKS(50));
     gb.ubx.uart_write_fnc((uint8_t*)disableInfMessages, sizeof(disableInfMessages));
-    ubx_delay(50);
+    vTaskDelay(pdMS_TO_TICKS(50));
     gb.ubx.uart_write_fnc((uint8_t*)disableNmeaAll, sizeof(disableNmeaAll));
-    ubx_delay(50);
+    vTaskDelay(pdMS_TO_TICKS(50));
     gb.ubx.uart_write_fnc((uint8_t*)setRocketMode4G, sizeof(setRocketMode4G));
-    ubx_delay(50);
-    // gb.ubx.uart_write_fnc((uint8_t*)enableNavPvt, sizeof(enableNavPvt));
-    // ubx_delay(50);
+    vTaskDelay(pdMS_TO_TICKS(50));
+    gb.ubx.uart_write_fnc((uint8_t*)enableNavPvt, sizeof(enableNavPvt));
+    vTaskDelay(pdMS_TO_TICKS(50));
     gb.ubx.uart_write_fnc((uint8_t*)setRate1Hz_M10, sizeof(setRate1Hz_M10));
-    ubx_delay(100);
+    vTaskDelay(pdMS_TO_TICKS(100));
 
-    // Czyszczenie bufora RX, żeby pozbyć się starych śmieci/odpowiedzi z GPS
-    // (Odpowiednik HAL_UARTEx_ReceiveToIdle_DMA ze STM32)
     uart_flush_rx();
 }
-// ------------------------
 
 static void process_gps_data(void) {
     ublox_m8_pvt_t pvt;
@@ -77,9 +69,9 @@ static void process_gps_data(void) {
     gb.read_error_counter = 0;
 
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
-    gb.position.latitude = pvt.lat.data / 10e6;
-    gb.position.longitude = pvt.lon.data / 10e6;
-    gb.position.altitude = pvt.height.data / 10e3;
+    gb.position.latitude = (float)(pvt.lat.data / 10e6);
+    gb.position.longitude = (float)(pvt.lon.data / 10e6);
+    gb.position.altitude = (float)(pvt.height.data / 10e3);
     gb.position.sats_in_view = pvt.numSV;
     gb.position.fix_type = pvt.fix_type;
     xSemaphoreGive(gb.data_mutex);
@@ -116,7 +108,6 @@ bool gps_remove_process_fnc(void) {
 }
 
 bool initialize_gps(void) {
-    gb.ubx.delay_fnc = ubx_delay;
     gb.ubx.uart_read_fnc = uart_ublox_read;
     gb.ubx.uart_write_fnc = uart_ublox_write;
 
@@ -124,9 +115,7 @@ bool initialize_gps(void) {
         return false;
     }
 
-    // --- WSTRZYKNIĘCIE KONFIGURACJI SPRZĘTOWEJ ---
     configure_gps_hardware();
-    // ---------------------------------------------
 
     gb.data_mutex = xSemaphoreCreateMutex();
     if (gb.data_mutex == NULL) {
