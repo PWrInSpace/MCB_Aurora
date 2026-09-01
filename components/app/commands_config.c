@@ -8,6 +8,7 @@
 #include "esp_now_config.h"
 #include "flash_task.h"
 #include "gpio_expander.h"
+#include "lora_task.h"
 #include "lora_task_config.h"
 #include "mission_timer_config.h"
 #include "recovery_task_config.h"
@@ -256,6 +257,11 @@ static void mcb_cameras_off(uint32_t command, int32_t payload, bool privilege) {
     gpioexp_camera_turn_off();
 }
 
+static void mcb_lora_sync(uint32_t command, int32_t payload, bool privilege) {
+    // ESP_LOGI(TAG, "LoRa sync (0xBA) - request MCB frame TX");
+    lora_task_request_mcb_frame_tx();
+}
+
 static cmd_command_t mcb_commands[] = {
     {MCB_STATE_CHANGE, mcb_state_change},
     {MCB_ABORT, mcb_abort},
@@ -273,6 +279,7 @@ static cmd_command_t mcb_commands[] = {
     {MCB_CAMERAS_ON, mcb_cameras_on},
     {MCB_CAMERAS_OFF, mcb_cameras_off},
     {MCB_RESET_DEV, mcb_reset_dev},
+    {MCB_LORA_SYNC, mcb_lora_sync},
     {MCB_RESET_DISCONNECT_TIMER, mcb_reset_disconnect_timer},
 };
 

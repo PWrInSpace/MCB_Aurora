@@ -1,7 +1,11 @@
 // Copyright 2023 PWr in Space, Krzysztof Gliwiński
 #include "lora.h"
 
+#include "esp_timer.h"
+
 #define TAG "LORA"
+
+static uint32_t last_tx_duration_us = 0;
 
 lora_err_t lora_init(lora_struct_t *lora) {
   lora_err_t ret = LORA_OK;
@@ -229,16 +233,20 @@ lora_err_t lora_write_irq_flags(lora_struct_t *lora) {
   return lora_write_reg(lora, REG_IRQ_FLAGS, IRQ_TX_DONE_MASK);
 }
 
+uint32_t lora_get_llast_tx_duration_us(void) { return last_tx_duration_us; }
+
 lora_err_t lora_send_packet(lora_struct_t *lora, uint8_t *buf, int16_t size) {
   lora_err_t ret = LORA_OK;
   ret |= lora_fill_fifo_buf_to_send(lora, buf, size);
   ret |= lora_start_transmission(lora);
 
+  int64_t tx_start_us = esp_timer_get_time();
   while (!lora_check_tx_done(lora)) {
     // int8_t read_reg = lora_read_reg(lora,REG_IRQ_FLAGS);
     // lora->log("SEND FREEZES");
     lora->_delay(2);
   }
+  last_tx_duration_us = (uint32_t)(esp_timer_get_time() - tx_start_us);
 
   ret |= lora_write_irq_flags(lora);
   return ret == LORA_OK ? LORA_OK : LORA_TRANSMIT_ERR;

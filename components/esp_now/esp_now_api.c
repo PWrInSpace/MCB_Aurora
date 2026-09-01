@@ -229,7 +229,7 @@ esp_err_t ENA_register_device(const ENA_device_t *dev) {
         return ESP_FAIL;
     }
 
-    if ((gb.number_of_devices + 1) >= MAX_DEV_NB) {
+    if (gb.number_of_devices >= MAX_DEV_NB) {
         ESP_LOGE(TAG, "Max number of devices reached, you can extend number in menuconfig");
         return ESP_FAIL;
     }

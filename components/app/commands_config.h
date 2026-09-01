@@ -58,6 +58,7 @@ typedef enum {
     MCB_CAMERAS_ON = 0x19,
     MCB_CAMERAS_OFF = 0x20,
     MCB_RESET_DEV = 0x82,
+    MCB_LORA_SYNC = 0XBA,
     MCB_RESET_DISCONNECT_TIMER = 0xFF,
 } mcb_commands_t;
 

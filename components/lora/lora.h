@@ -309,6 +309,12 @@ lora_err_t lora_write_irq_flags(lora_struct_t *lora);
 lora_err_t lora_send_packet(lora_struct_t *lora, uint8_t *buf, int16_t size);
 
 /*!
+ * \brief Duration of the last on-air transmission in microseconds.
+ *        Measured from TX start until TX_DONE IRQ.
+ */
+uint32_t lora_get_llast_tx_duration_us(void);
+
+/*!
  * \brief Read a received packet.
  * \param buf Buffer for the data.
  * \param size Available size in buffer (bytes).
