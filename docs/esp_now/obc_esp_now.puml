@@ -1,0 +1,52 @@
+@startuml
+
+skinparam NoteBackgroundColor white
+
+participant program as "program"
+participant ena_api as "ena_api"
+participant ena_main as "ena_main_loop"
+participant ena_rx as "ena_rx_interrupt"
+participant ena_tx as "ena_tx_interrupt"
+participant esp_now as "esp_now"
+
+== Transmit ==
+group Send data request
+program -> ena_api: ENA_send()
+ena_api -> ena_main: add_to_send_queue()
+group return
+program <- ena_main: ESP_OK
+else
+program <- ena_main: ESP_FAIL
+end
+end
+
+... Waiting for end of previous transmission ...
+rnote over ena_main
+acquitre tranmition lock
+end rnote
+
+
+
+group while [retakes_number > send_counter]
+ena_main -> esp_now: esp_now_send()
+... Waiting for transmition status ...
+ena_api <-- ena_tx: transmission status
+ena_api -> ena_main: add_to_transmit_status_queue()
+alt status OK
+rnote over ena_main
+relase  transmission lock
+end rnote
+rnote over ena_main
+return
+end rnote
+end
+end
+
+rnote over ena_main
+relase  transmission lock
+end rnote
+
+program <- ena_main: raise transmission error
+
+
+@enduml

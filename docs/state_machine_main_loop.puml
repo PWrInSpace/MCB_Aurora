@@ -1,0 +1,20 @@
+@startuml
+scale 1920 width
+scale 1080 height 
+title state machine main loop
+start
+'''stan jest zmienany natychmiastowo natomiast sama funkcja
+'''może być wykonana lekko później
+while (True)
+    :wait until new change notification;
+    if (run state translation function) then (true)
+        :acquire state mutex;
+        :current_state = new_state;
+        :release state mutex;
+    else (false)
+    endif
+endwhile
+
+stop
+
+@enduml
