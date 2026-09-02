@@ -1,14 +1,11 @@
 // Copyright 2022 PWrInSpace, Kuba
-#include "ublox_m8.h"
+#include "ublox_m10.h"
 #include "esp_log.h"
 #include "assert.h"
 #include <stdio.h>
 #include <memory.h>
 
 #define TAG "GPS"
-
-
-static uint8_t configUBX[]={0xB5,0x62,0x06,0x00,0x14,0x00,0x01,0x00,0x00,0x00,0xD0,0x08,0x00,0x00,0x80,0x25,0x00,0x00,0x01,0x00,0x01,0x00,0x00,0x00,0x00,0x00,0x9A,0x79};
 
 /**
  * @brief Calculate ublox checksum
@@ -79,21 +76,32 @@ bool check_received_message(uint8_t *received, uint8_t length) {
     return true;
 }
 
-bool ublox_m8_init(ublox_m8_t *ubx) {
-    assert(ubx->uart_read_fnc != NULL);
-    assert(ubx->uart_write_fnc != NULL);
-    if (ubx->uart_read_fnc == NULL || ubx->uart_write_fnc == NULL) {
+bool ublox_m10_init(ublox_m10_t *ubx) {
+    if (ubx->uart_read_fnc == NULL || ubx->uart_write_fnc == NULL || ubx->delay_fnc == NULL) {
         return false;
     }
 
-    if (ubx->uart_write_fnc(configUBX, sizeof(configUBX)) !=  sizeof(configUBX)) {
+    ESP_LOGI(TAG, "Inicjalizacja u-blox M10 (Rocket Mode, 1Hz, PVT)...");
+
+    if (ubx->uart_write_fnc(configUBX, sizeof(configUBX)) != sizeof(configUBX)) {
         return false;
     }
 
+    ubx->delay_fnc(50);
+    ubx->uart_write_fnc(disableInfMessages, sizeof(disableInfMessages));
+    ubx->delay_fnc(50);
+    ubx->uart_write_fnc(disableNmeaAll, sizeof(disableNmeaAll));
+    ubx->delay_fnc(50);
+    ubx->uart_write_fnc(setRocketMode4G, sizeof(setRocketMode4G));
+    ubx->delay_fnc(50);
+    ubx->uart_write_fnc(enableNavPvt, sizeof(enableNavPvt));
+    ubx->delay_fnc(50);
+    ubx->uart_write_fnc(setRate1Hz_M10, sizeof(setRate1Hz_M10));
+    ubx->delay_fnc(100);
     return true;
 }
 
-bool ublox_m8_get_PVT(ublox_m8_t *ubx, ublox_m8_pvt_t *pvt) {
+bool ublox_m10_get_PVT(ublox_m10_t *ubx, ublox_m10_pvt_t *pvt) {
     uint8_t message_size = create_request_message(
         ubx->send_buffer, UBX_CLASS_NAV, UBX_NAV_ID_PVT);
 
@@ -109,9 +117,9 @@ bool ublox_m8_get_PVT(ublox_m8_t *ubx, ublox_m8_pvt_t *pvt) {
 
     pvt->fix_type = ubx->read_buffer[26];
     pvt->numSV = ubx->read_buffer[29];
-    memcpy(pvt->lon.raw, &ubx->read_buffer[30], sizeof(pvt->lon));
-    memcpy(pvt->lat.raw, &ubx->read_buffer[34], sizeof(pvt->lat));
-    memcpy(pvt->height.raw, &ubx->read_buffer[38], sizeof(pvt->height));
+    memcpy(&pvt->lon, &ubx->read_buffer[30], sizeof(pvt->lon));
+    memcpy(&pvt->lat, &ubx->read_buffer[34], sizeof(pvt->lat));
+    memcpy(&pvt->height, &ubx->read_buffer[38], sizeof(pvt->height));
 
     return true;
 }
