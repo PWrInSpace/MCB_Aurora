@@ -78,8 +78,8 @@ static void TASK_init(void *arg) {
     // CHECK_RESULT_BOOL(
     //     uart_init_logical(UART_LOGICAL_TELEMETRY, LORA_UART_PORT, LORA_UART_TX, LORA_UART_RX, LORA_UART_BAUDRATE),
     //     "UART LORA");
-    CHECK_RESULT_BOOL(gpioexp_init(), "GPIO Expander");
-    CHECK_RESULT_BOOL(gpioexp_led_set_color(WHITE), "GPIO Expander change color");
+    CHECK_RESULT_BOOL(gpio_exp_init(), "GPIO Expander");
+    CHECK_RESULT_BOOL(gpio_exp_led_set_color(WHITE), "GPIO Expander change color");
 
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
     CHECK_RESULT_BOOL(initialize_esp_now(), "ESP_NOW");
@@ -89,7 +89,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_recovery(), "Recovery task");
 
     CHECK_RESULT_BOOL(initialize_timers(), "TIMERS");
-    // CHECK_RESULT_BOOL(sys_timer_start(TIMER_ESP_NOW_BROADCAST, 500, TIMER_TYPE_PERIODIC), "ESP_NOW_TIMER");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_ESP_NOW_BROADCAST, 500, TIMER_TYPE_PERIODIC), "ESP_NOW_TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT), "DC TIMER");
     // CHECK_RESULT_BOOL(sys_timer_start(TIMER_BUZZER, 2000, TIMER_TYPE_PERIODIC), "BUZZER TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_CONNECTED_DEV, 40000, TIMER_TYPE_PERIODIC), "CONNECTED TIMER");

@@ -96,7 +96,8 @@ static void mcb_hold_in(uint32_t command, int32_t payload, bool privilege) {
 
     ESP_LOGI(TAG, "HOLD");
     SM_force_change_state(HOLD);
-    gpioexp_camera_turn_off();
+    gpio_exp_sd_camera_turn_off();
+    gpio_exp_live_camera_turn_off();
 }
 
 static void mcb_hold_out(uint32_t command, int32_t payload, bool privilege) {
@@ -250,11 +251,29 @@ static void mcb_reset_disconnect_timer(uint32_t command, int32_t payload, bool p
 }
 
 static void mcb_cameras_on(uint32_t command, int32_t payload, bool privilege) {
-    gpioexp_camera_turn_on();
+    gpio_exp_sd_camera_turn_on();
+    gpio_exp_live_camera_turn_on();
 }
 
 static void mcb_cameras_off(uint32_t command, int32_t payload, bool privilege) {
-    gpioexp_camera_turn_off();
+    gpio_exp_sd_camera_turn_off();
+    gpio_exp_live_camera_turn_off();
+}
+
+static void mcb_sd_cameras_on(uint32_t command, int32_t payload, bool privilege) {
+    gpio_exp_sd_camera_turn_on();
+}
+
+static void mcb_sd_cameras_off(uint32_t command, int32_t payload, bool privilege) {
+    gpio_exp_sd_camera_turn_off();
+}
+
+static void mcb_live_camera_on(uint32_t command, int32_t payload, bool privilege) {
+    gpio_exp_live_camera_turn_on();
+}
+
+static void mcb_live_camera_off(uint32_t command, int32_t payload, bool privilege) {
+    gpio_exp_live_camera_turn_off();
 }
 
 static void mcb_calibrate_barometer(uint32_t command, int32_t payload, bool privilege) {
@@ -277,6 +296,10 @@ static cmd_command_t mcb_commands[] = {
     {MCB_BUZZER_ENABLE, mcb_buzzer_enable},
     {MCB_CAMERAS_ON, mcb_cameras_on},
     {MCB_CAMERAS_OFF, mcb_cameras_off},
+    {MCB_SD_CAMERAS_ON, mcb_sd_cameras_on},
+    {MCB_SD_CAMERAS_OFF, mcb_sd_cameras_off},
+    {MCB_LIVE_CAMERA_ON, mcb_live_camera_on},
+    {MCB_LIVE_CAMERA_OFF, mcb_live_camera_off},
     {MCB_RESET_DEV, mcb_reset_dev},
     {MCB_RESET_DISCONNECT_TIMER, mcb_reset_disconnect_timer},
     {MCB_CALIBRATE_BAROMETER, mcb_calibrate_barometer},
