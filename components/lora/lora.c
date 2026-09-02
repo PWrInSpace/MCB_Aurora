@@ -233,7 +233,7 @@ lora_err_t lora_write_irq_flags(lora_struct_t *lora) {
   return lora_write_reg(lora, REG_IRQ_FLAGS, IRQ_TX_DONE_MASK);
 }
 
-uint32_t lora_get_llast_tx_duration_us(void) { return last_tx_duration_us; }
+uint32_t lora_get_last_tx_duration_us(void) { return last_tx_duration_us; }
 
 lora_err_t lora_send_packet(lora_struct_t *lora, uint8_t *buf, int16_t size) {
   lora_err_t ret = LORA_OK;

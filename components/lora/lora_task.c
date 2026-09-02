@@ -99,8 +99,8 @@ static void transmit_packet(void) {
 
     lora_send_packet(&gb.lora, gb.tx_buffer, gb.tx_buffer_size);
     ESP_LOGI(TAG, "LoRa on-air time: %lu us (%lu ms), packet size: %u",
-             (unsigned long)lora_get_llast_tx_duration_us(),
-             (unsigned long)(lora_get_llast_tx_duration_us() / 1000),
+             (unsigned long)lora_get_last_tx_duration_us(),
+             (unsigned long)(lora_get_last_tx_duration_us() / 1000),
              (unsigned)gb.tx_buffer_size);
 }
 
