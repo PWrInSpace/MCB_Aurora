@@ -21,15 +21,6 @@ bool liquid_mission_timer_start(int32_t countdown_time, int32_t ignition_time) {
         return false;
     }
 
-    //rocket_data_t data = rocket_data_get();
-
-    // if(data.tanwa.soft_arm == false || data.recovery.isTeleActive == false) {
-    //     ESP_LOGE(TAG, "Tanwa is not armed or telemetry is not active");
-    //     SM_change_to_previous_state(true);
-    //     errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_NOT_ARMED, 100);
-    //     return false;
-    // }
-
     if (countdown_time >= ignition_time) {
         return false;
     }
