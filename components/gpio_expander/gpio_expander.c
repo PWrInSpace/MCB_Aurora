@@ -19,7 +19,7 @@ bool gpio_exp_init(void) {
     return PCAL6408A_set_mode(&gb.pca, PCAL6408A_OUTPUT);
 }
 
-bool gpio_exp_led_set_color(gpioexp_led_colors_t color) {
+bool gpio_exp_led_set_color(gpio_exp_led_colors_t color) {
     // red
     if (PCAL6408A_set_level_pin(&gb.pca, color & 0x01, EXPANDER_LED_PIN_RED) == false) {
         return false;
@@ -38,18 +38,18 @@ bool gpio_exp_led_set_color(gpioexp_led_colors_t color) {
     return true;
 }
 
-bool gpio_exp_camera_three_turn_on(void) {
+bool gpio_exp_sd_camera_turn_on(void) {
     return PCAL6408A_set_level_pin(&gb.pca, PCAL6408A_HIGH, EXPANDER_CAMERA_THREE_PIN);
 }
 
-bool gpio_exp_camera_three_turn_off(void) {
+bool gpio_exp_sd_camera_turn_off(void) {
     return PCAL6408A_set_level_pin(&gb.pca, PCAL6408A_LOW, EXPANDER_CAMERA_THREE_PIN);
 }
 
-bool gpio_exp_camera_four_turn_on(void) {
+bool gpio_exp_live_camera_turn_on(void) {
     return PCAL6408A_set_level_pin(&gb.pca, PCAL6408A_HIGH, EXPANDER_CAMERA_FOUR_PIN);
 }
 
-bool gpio_exp_camera_four_turn_off(void) {
+bool gpio_exp_live_camera_turn_off(void) {
     return PCAL6408A_set_level_pin(&gb.pca, PCAL6408A_LOW, EXPANDER_CAMERA_FOUR_PIN);
 }

@@ -21,7 +21,7 @@ typedef enum {
     BLUE = 0x05,
     RED = 0x06,
     NONE = 0x07
-} gpioexp_led_colors_t;
+} gpio_exp_led_colors_t;
 
 /**
  * @brief Initalize GPIO expander
@@ -38,14 +38,14 @@ bool gpio_exp_init(void);
  * @return true :D
  * @return false :C
  */
-bool gpio_exp_led_set_color(gpioexp_led_colors_t color);
+bool gpio_exp_led_set_color(gpio_exp_led_colors_t color);
 
-bool gpio_exp_camera_three_turn_on(void);
+bool gpio_exp_sd_camera_turn_on(void);
 
-bool gpio_exp_camera_three_turn_off(void);
+bool gpio_exp_sd_camera_turn_off(void);
 
-bool gpio_exp_camera_four_turn_on(void);
+bool gpio_exp_live_camera_turn_on(void);
 
-bool gpio_exp_camera_four_turn_off(void);
+bool gpio_exp_live_camera_turn_off(void);
 
 #endif
