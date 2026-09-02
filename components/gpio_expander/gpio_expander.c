@@ -53,3 +53,11 @@ bool gpio_exp_live_camera_turn_on(void) {
 bool gpio_exp_live_camera_turn_off(void) {
     return PCAL6408A_set_level_pin(&gb.pca, PCAL6408A_LOW, EXPANDER_CAMERA_FOUR_PIN);
 }
+
+    bool gpio_exp_reset_lora(void) {
+    if (!PCAL6408A_set_level_pin(&gb.pca, PCAL6408A_LOW, EXPANDER_LORA_RESET_PIN)) {
+        return false;
+    }
+    vTaskDelay(pdMS_TO_TICKS(10));
+    return PCAL6408A_set_level_pin(&gb.pca, PCAL6408A_HIGH, EXPANDER_LORA_RESET_PIN);
+}
