@@ -1,7 +1,6 @@
 // Copyright 2023 PWr in Space, Krzysztof Gliwiński
 #include "lora.h"
-
-#include "../gpio_expander/gpio_expander.h"
+#include "gpio_expander.h"
 
 #define TAG "LORA"
 
