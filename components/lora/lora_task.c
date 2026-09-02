@@ -76,7 +76,6 @@ static void transmit_packet(void) {
     }
 
     gb.tx_buffer_size = gb.get_tx_packet_fnc(gb.tx_buffer, sizeof(gb.tx_buffer));
-    // uart_write_logical(UART_LOGICAL_TELEMETRY, gb.tx_buffer, gb.tx_buffer_size);
     lora_send_packet(&gb.lora, gb.tx_buffer, gb.tx_buffer_size);
 }
 
@@ -177,7 +176,6 @@ bool lora_task_init(lora_api_config_t *cfg) {
 
     ESP_LOGD(TAG, "Starting timer");
     lora_change_state_to_receive();
-    // turn_on_receive_window_timer();
 
     xTaskCreatePinnedToCore(lora_task, "LoRa task", LORA_TASK_STACK_DEPTH, NULL, LORA_TASK_PRIORITY,
                             &gb.task, LORA_TASK_CPU_NUM);

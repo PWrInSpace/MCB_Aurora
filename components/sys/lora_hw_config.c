@@ -33,7 +33,7 @@ bool lora_hw_spi_add_device(spi_host_device_t host) {
     return ret == ESP_OK ? true : false;
 }
 bool lora_hw_set_gpio() {
-    RETURN_FALSE_ON_ERROR(gpio_set_direction(CONFIG_LORA_RS, GPIO_MODE_OUTPUT));
+    // RETURN_FALSE_ON_ERROR(gpio_set_direction(CONFIG_LORA_RS, GPIO_MODE_OUTPUT)); now through gpio expander
     RETURN_FALSE_ON_ERROR(gpio_set_direction(CONFIG_LORA_CS, GPIO_MODE_OUTPUT));
     RETURN_FALSE_ON_ERROR(gpio_set_direction(CONFIG_LORA_D0, GPIO_MODE_INPUT));
     return true;

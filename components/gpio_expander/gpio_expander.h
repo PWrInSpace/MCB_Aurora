@@ -48,4 +48,6 @@ bool gpio_exp_live_camera_turn_on(void);
 
 bool gpio_exp_live_camera_turn_off(void);
 
+bool gpio_exp_reset_lora(void);
+
 #endif
