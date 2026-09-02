@@ -88,13 +88,6 @@ static void connected_dev(void *arg) {
 }
 
 static void debug_data(void *arg) {
-    // --- KOD DIAGNOSTYCZNY ---
-    size_t free_heap = heap_caps_get_free_size(MALLOC_CAP_8BIT);
-    size_t max_block = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
-
-    // ESP_LOGW("MEM_DEBUG", "Całkowity wolny RAM: %d bajtow | Najwiekszy ciągły blok: %d bajtow", free_heap, max_block);
-    // -------------------------
-
     const size_t buf_sz = 2048;
     static char buffer[2048];
     static rocket_data_t p;
@@ -105,14 +98,9 @@ static void debug_data(void *arg) {
     ESP_LOGD(TAG, "%s", buffer);
 }
 
-static void on_camera_timer(void *arg) {
-    ESP_LOGI(TAG, "Camera turned on");
-    gpioexp_camera_turn_on();
-}
-
-static void on_camera_off_timer(void *arg) {
-    ESP_LOGI(TAG, "Camera turned off");
-    gpioexp_camera_turn_off();
+static void on_cameras_off_timer(void *arg) {
+    gpio_exp_sd_camera_turn_off();
+    gpio_exp_live_camera_turn_off();
 }
 
 bool initialize_timers(void) {
@@ -126,8 +114,8 @@ bool initialize_timers(void) {
     {.timer_id = TIMER_DEBUG,               .timer_callback_fnc = debug_data,               .timer_arg = NULL},
     {.timer_id = TIMER_BUZZER,              .timer_callback_fnc = buzzer_timer,             .timer_arg = NULL},
     {.timer_id = TIMER_CONNECTED_DEV,       .timer_callback_fnc = connected_dev,            .timer_arg = NULL},
-    {.timer_id = TIMER_CAMERA_ON,           .timer_callback_fnc = on_camera_timer,          .timer_arg = NULL},
-    {.timer_id = TIMER_CAMERA_OFF,          .timer_callback_fnc = on_camera_off_timer,      .timer_arg = NULL},
-};
+    {.timer_id = TIMER_CAMERAS_OFF,         .timer_callback_fnc = on_cameras_off_timer,     .timer_arg = NULL},
+    };
+
     return sys_timer_init(timers, sizeof(timers) / sizeof(timers[0]));
 }
