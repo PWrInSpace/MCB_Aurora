@@ -59,7 +59,8 @@ uint8_t lora_read_reg(lora_struct_t *lora, int16_t reg) {
 }
 
 void lora_reset(lora_struct_t *lora) {
-    gpio_exp_reset_lora();
+    ESP_LOGI(TAG, "Lora reset diabled");
+    // gpio_exp_reset_lora();
 }
 
 lora_err_t lora_explicit_header_mode(lora_struct_t *lora) {
