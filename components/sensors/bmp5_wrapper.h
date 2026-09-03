@@ -6,7 +6,7 @@
 #define BMP5_AVERAGE_PRESSURE 1001.67f
 #define BMP5_CALIBRATE_NB_OF_MEAS 10
 
-#define BMP5_Pa_TO_hPa(x) x / 100.0
+#define BMP5_Pa_TO_hPa(x) (x / 100.0)
 
 bool bmp5_wrapper_init(void);
 bool bmp5_wrapper_get_data(struct bmp5_sensor_data *data);

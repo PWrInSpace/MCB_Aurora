@@ -32,4 +32,7 @@ typedef struct {
  * @return false :C
  */
 bool initialize_processing_task(void);
+
+void sensors_reset_altitude_filter(void);
+
 #endif

@@ -7,6 +7,7 @@
 #include "bmp5_wrapper.h"
 #include "errors_config.h"
 #include "esp_log.h"
+#include "esp_timer.h"
 #include "mag_wrapper.h"
 #include "magdwick.h"
 #include "state_machine.h"
@@ -21,8 +22,12 @@ static mmc5983_mag_t mag;
 static struct bmp5_sensor_data bar;
 static struct mgos_imu_madgwick madgwick;
 
+static bool reset_alt_flag = false;
+void sensors_reset_altitude_filter(void) { reset_alt_flag = true; }
+
 static void sensors_read_data(void *data_buffer) {
     sensors_data_t *data = data_buffer;
+    static uint64_t last_time = 0;
 
     if (mag_data_ready() == true) {
         if (mag_get_data(&mag) == false) {
@@ -58,9 +63,26 @@ static void sensors_read_data(void *data_buffer) {
 
     data->pressure = BMP5_Pa_TO_hPa(bar.pressure);
     data->temperature = bar.temperature;
+
     float prev_altitude = data->altitude;
-    data->altitude = bmp5_wrapper_altitude(data->pressure) * FILTER_CONST + (1 - FILTER_CONST) * data->altitude;
-    data->velocity = (data->altitude - prev_altitude) / CONFIG_SENSORS_TASK_PERIOD_MS * 1000; // to jest prędkość w m / ms zatem trzeba przemnożyć przez 1000
+    float current_alt = bmp5_wrapper_altitude(data->pressure);
+
+    if (reset_alt_flag) {
+        data->altitude = current_alt;
+        prev_altitude = current_alt;
+        reset_alt_flag = false;
+    } else {
+        data->altitude = current_alt * FILTER_CONST + (1 - FILTER_CONST) * data->altitude;
+    }
+
+    uint64_t current_time = esp_timer_get_time();
+    float dt = 0.02f;
+    if (last_time != 0) {
+        dt = (float)(current_time - last_time) / 1000000.0f;
+    }
+    last_time = current_time;
+
+    data->velocity = (data->altitude - prev_altitude) / dt;
 
     mgos_imu_madgwick_get_angles(&madgwick, &data->roll, &data->pitch, &data->yaw);
     

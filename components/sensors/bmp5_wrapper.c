@@ -113,6 +113,9 @@ bool bmp5_calculate_altitude_offset(void) {
         return false;
     }
 
+    // Reset offset so wrapper altitude returns pure absolute altitude
+    gb.altitude_offset = 0.0f;
+
     for (int i = 0; i < BMP5_CALIBRATE_NB_OF_MEAS; ++i) {
         if (bmp5_get_sensor_data(&data, &gb.odr_press_cfg, &gb.bmp) != BMP5_OK) {
             return false;
