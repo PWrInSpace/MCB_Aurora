@@ -1,5 +1,6 @@
 // Copyright 2023 PWr in Space, Krzysztof Gliwiński
 #include "lora.h"
+#include "gpio_expander.h"
 
 #include "esp_timer.h"
 
@@ -62,17 +63,14 @@ uint8_t lora_read_reg(lora_struct_t *lora, int16_t reg) {
 }
 
 void lora_reset(lora_struct_t *lora) {
-  assert(lora->_gpio_set_level(lora->rst_gpio_num, 0) == true);
-  lora->_delay(1);
-  assert(lora->_gpio_set_level(lora->rst_gpio_num, 1) == true);
-  lora->_delay(10);
+    ESP_LOGI(TAG, "Lora reset diabled");
+    // gpio_exp_reset_lora();
 }
 
 lora_err_t lora_explicit_header_mode(lora_struct_t *lora) {
   lora_err_t ret = LORA_OK;
   lora->implicit_header = 0;
-  ret |= lora_write_reg(lora, REG_MODEM_CONFIG_1,
-                        lora_read_reg(lora, REG_MODEM_CONFIG_1) & 0xfe);
+  ret |= lora_write_reg(lora, REG_MODEM_CONFIG_1, lora_read_reg(lora, REG_MODEM_CONFIG_1) & 0xfe);
   return ret;
 }
 

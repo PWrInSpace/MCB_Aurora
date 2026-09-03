@@ -2,6 +2,7 @@
 
 #include "commands_config.h"
 
+#include "bmp5_wrapper.h"
 #include "buzzer_pwm.h"
 #include "errors_config.h"
 #include "esp_log.h"
@@ -96,7 +97,8 @@ static void mcb_hold_in(uint32_t command, int32_t payload, bool privilege) {
 
     ESP_LOGI(TAG, "HOLD");
     SM_force_change_state(HOLD);
-    gpioexp_camera_turn_off();
+    gpio_exp_sd_camera_turn_off();
+    gpio_exp_live_camera_turn_off();
 }
 
 static void mcb_hold_out(uint32_t command, int32_t payload, bool privilege) {
@@ -250,11 +252,33 @@ static void mcb_reset_disconnect_timer(uint32_t command, int32_t payload, bool p
 }
 
 static void mcb_cameras_on(uint32_t command, int32_t payload, bool privilege) {
-    gpioexp_camera_turn_on();
+    gpio_exp_sd_camera_turn_on();
+    gpio_exp_live_camera_turn_on();
 }
 
 static void mcb_cameras_off(uint32_t command, int32_t payload, bool privilege) {
-    gpioexp_camera_turn_off();
+    gpio_exp_sd_camera_turn_off();
+    gpio_exp_live_camera_turn_off();
+}
+
+static void mcb_sd_cameras_on(uint32_t command, int32_t payload, bool privilege) {
+    gpio_exp_sd_camera_turn_on();
+}
+
+static void mcb_sd_cameras_off(uint32_t command, int32_t payload, bool privilege) {
+    gpio_exp_sd_camera_turn_off();
+}
+
+static void mcb_live_camera_on(uint32_t command, int32_t payload, bool privilege) {
+    gpio_exp_live_camera_turn_on();
+}
+
+static void mcb_live_camera_off(uint32_t command, int32_t payload, bool privilege) {
+    gpio_exp_live_camera_turn_off();
+}
+
+static void mcb_calibrate_barometer(uint32_t command, int32_t payload, bool privilege) {
+    bmp5_calculate_altitude_offset();
 }
 
 static void mcb_lora_sync(uint32_t command, int32_t payload, bool privilege) {
@@ -278,9 +302,14 @@ static cmd_command_t mcb_commands[] = {
     {MCB_BUZZER_ENABLE, mcb_buzzer_enable},
     {MCB_CAMERAS_ON, mcb_cameras_on},
     {MCB_CAMERAS_OFF, mcb_cameras_off},
+    {MCB_SD_CAMERAS_ON, mcb_sd_cameras_on},
+    {MCB_SD_CAMERAS_OFF, mcb_sd_cameras_off},
+    {MCB_LIVE_CAMERA_ON, mcb_live_camera_on},
+    {MCB_LIVE_CAMERA_OFF, mcb_live_camera_off},
     {MCB_RESET_DEV, mcb_reset_dev},
     {MCB_LORA_SYNC, mcb_lora_sync},
     {MCB_RESET_DISCONNECT_TIMER, mcb_reset_disconnect_timer},
+    {MCB_CALIBRATE_BAROMETER, mcb_calibrate_barometer},
 };
 
 // TANWA
@@ -568,8 +597,7 @@ static cmd_device_t devices[] = {
     {DEVICE_N2_VENT_VALVE, n2_vent_valve_commands, SIZE_OF(n2_vent_valve_commands)},
     {DEVICE_ETH_VENT_N2_MAIN_VALVES, eth_vent_n2_main_valves_commands, SIZE_OF(eth_vent_n2_main_valves_commands)},
     {DEVICE_OX_MAIN_VALVE, ox_main_valve_commands, SIZE_OF(ox_main_valve_commands)},
-    {DEVICE_OX_VENT_ETH_MAIN_VALVES, ox_vent_eth_main_valves_commands,
-     SIZE_OF(ox_vent_eth_main_valves_commands)},
+    {DEVICE_OX_VENT_ETH_MAIN_VALVES, ox_vent_eth_main_valves_commands,SIZE_OF(ox_vent_eth_main_valves_commands)},
     {DEVICE_TANWA, tanwa_commands, SIZE_OF(tanwa_commands)},
 };
 

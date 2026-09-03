@@ -1,59 +1,63 @@
 #include "gpio_expander.h"
-#include "PCA9574.h"
+
+#include "PCAL6408A.h"
 #include "i2c.h"
 
-
 static struct {
-    PCA9574_t pca;
+    PCAL6408A_t pca;
 } gb;
 
-bool gpioexp_init(void) {
-    gb.pca.dev_address = 0x20;
+bool gpio_exp_init(void) {
+    gb.pca.dev_address = PCAL6408A_DEV_ADDRESS;
     gb.pca.i2c_read_fnc = i2c_sensors_read;
     gb.pca.i2c_write_fnc = i2c_sensors_write;
 
-    if(PCA9574_init(&gb.pca) == false) {
+    if(PCAL6408A_init(&gb.pca) == false) {
         return false;
     }
 
-    return PCA9574_set_mode(&gb.pca, PCA9574_OUTPUT);
+    return PCAL6408A_set_mode(&gb.pca, PCAL6408A_OUTPUT);
 }
 
-bool gpioexp_led_set_color(gpioexp_led_colors_t color) {
+bool gpio_exp_led_set_color(gpio_exp_led_colors_t color) {
     // red
-    if (PCA9574_set_level_pin(&gb.pca, (color & 0x01), EXPANDER_LED_PIN_RED) == false) {
+    if (PCAL6408A_set_level_pin(&gb.pca, color & 0x01, EXPANDER_LED_PIN_RED) == false) {
         return false;
     }
 
     // green
-    if (PCA9574_set_level_pin(&gb.pca, ((color >> 1) & 0x01), EXPANDER_LED_PIN_GREEN) == false) {
+    if (PCAL6408A_set_level_pin(&gb.pca, (color >> 1) & 0x01, EXPANDER_LED_PIN_GREEN) == false) {
         return false;
     }
 
     // blue
-    if (PCA9574_set_level_pin(&gb.pca, ((color >> 2) & 0x01), EXPANDER_LED_PIN_BLUE) == false) {
+    if (PCAL6408A_set_level_pin(&gb.pca, (color >> 2) & 0x01, EXPANDER_LED_PIN_BLUE) == false) {
         return false;
     }
 
     return true;
 }
 
-bool gpioexp_camera_turn_on(void) {
-    return PCA9574_set_level_pin(&gb.pca, PCA9574_HIGH, EXPANDER_CAMERA_PIN);
+bool gpio_exp_sd_camera_turn_on(void) {
+    return PCAL6408A_set_level_pin(&gb.pca, PCAL6408A_HIGH, EXPANDER_CAMERA_THREE_PIN);
 }
 
-bool gpioexp_camera_turn_off(void) {
-    return PCA9574_set_level_pin(&gb.pca, PCA9574_LOW, EXPANDER_CAMERA_PIN);
+bool gpio_exp_sd_camera_turn_off(void) {
+    return PCAL6408A_set_level_pin(&gb.pca, PCAL6408A_LOW, EXPANDER_CAMERA_THREE_PIN);
 }
 
-bool gpioexp_buzzer_init(void) {
-    return PCA9574_set_level_pin(&gb.pca, PCA9574_LOW, EXPANDER_BUZZER_PIN);
+bool gpio_exp_live_camera_turn_on(void) {
+    return PCAL6408A_set_level_pin(&gb.pca, PCAL6408A_HIGH, EXPANDER_CAMERA_FOUR_PIN);
 }
 
-bool gpioexp_buzzer_turn_on(void) {
-    return PCA9574_set_level_pin(&gb.pca, PCA9574_HIGH, EXPANDER_BUZZER_PIN);
+bool gpio_exp_live_camera_turn_off(void) {
+    return PCAL6408A_set_level_pin(&gb.pca, PCAL6408A_LOW, EXPANDER_CAMERA_FOUR_PIN);
 }
 
-bool gpioexp_buzzer_turn_off(void) {
-    return PCA9574_set_level_pin(&gb.pca, PCA9574_LOW, EXPANDER_BUZZER_PIN);
+    bool gpio_exp_reset_lora(void) {
+    if (!PCAL6408A_set_level_pin(&gb.pca, PCAL6408A_LOW, EXPANDER_LORA_RESET_PIN)) {
+        return false;
+    }
+    vTaskDelay(pdMS_TO_TICKS(10));
+    return PCAL6408A_set_level_pin(&gb.pca, PCAL6408A_HIGH, EXPANDER_LORA_RESET_PIN);
 }

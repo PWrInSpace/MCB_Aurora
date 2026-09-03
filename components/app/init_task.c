@@ -72,19 +72,14 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(i2c_sensors_init(), "i2c sensors");
     CHECK_RESULT_BOOL(i2c_com_init(), "i2c com");
     CHECK_RESULT_BOOL(spi_init(VSPI_HOST, CONFIG_SPI_MOSI, CONFIG_SPI_MISO, CONFIG_SPI_SCK), "SPI");
-    CHECK_RESULT_BOOL(
-        uart_init(CONFIG_UART_PORT_NUM, CONFIG_UART_TX, CONFIG_UART_RX, CONFIG_UART_BAUDRATE),
-        "UART init");
-    // CHECK_RESULT_BOOL(
-    //     uart_init_logical(UART_LOGICAL_TELEMETRY, LORA_UART_PORT, LORA_UART_TX, LORA_UART_RX, LORA_UART_BAUDRATE),
-    //     "UART LORA");
-    CHECK_RESULT_BOOL(gpioexp_init(), "GPIO Expander");
-    CHECK_RESULT_BOOL(gpioexp_led_set_color(WHITE), "GPIO Expander change color");
+    CHECK_RESULT_BOOL(uart_init(CONFIG_UART_PORT_NUM, CONFIG_UART_TX, CONFIG_UART_RX, CONFIG_UART_BAUDRATE),"UART init");
+    // CHECK_RESULT_BOOL(gpio_exp_init(), "GPIO Expander");
+    // CHECK_RESULT_BOOL(gpio_exp_led_set_color(WHITE), "GPIO Expander change color");
 
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
     CHECK_RESULT_BOOL(initialize_esp_now(), "ESP_NOW");
     CHECK_RESULT_BOOL(initialize_flash_memory(), "FLASH");
-    CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
+    // CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
     CHECK_RESULT_BOOL(initialize_gps(), "Gps task");
     CHECK_RESULT_BOOL(initialize_recovery(), "Recovery task");
 
@@ -97,10 +92,9 @@ static void TASK_init(void *arg) {
 
     CHECK_RESULT_BOOL(initialize_lora(settings.loraFreq_KHz, settings.lora_transmit_ms), "LORA");
 
-    CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 1000, TIMER_TYPE_PERIODIC), "SD TIMER");
+    // CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
+    // CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 1000, TIMER_TYPE_PERIODIC), "SD TIMER");
     CHECK_RESULT_ESP(init_console(), "CLI");
-    // esp_log_level_set("*", ESP_LOG_DEBUG);
 
     CHECK_RESULT_ESP(SM_change_state(IDLE), "Change state to idle");
 
