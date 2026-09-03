@@ -11,6 +11,9 @@
 
 #define TAG "LORA_T"
 
+#define LORA_NOTIFY_RX (1u << 0)
+#define LORA_NOTIFY_TX (1u << 1)
+
 static uint8_t buffer[1024];
 static StaticMessageBuffer_t message_buffer;
 
@@ -31,13 +34,17 @@ static struct {
 
 void IRAM_ATTR lora_task_irq_notify(void *arg) {
     BaseType_t higher_priority_task_woken = pdFALSE;
-    /* Defensive: ensure gb.task is valid before notifying from ISR. If it's NULL or corrupted,
-       calling vTaskNotifyGiveFromISR may dereference invalid pointer and crash. */
     if (gb.task != NULL) {
-        vTaskNotifyGiveFromISR(gb.task, &higher_priority_task_woken);
+        xTaskNotifyFromISR(gb.task, LORA_NOTIFY_RX, eSetBits, &higher_priority_task_woken);
     }
     if (higher_priority_task_woken == pdTRUE) {
         portYIELD_FROM_ISR();
+    }
+}
+
+void lora_task_request_mcb_frame_tx(void) {
+    if (gb.task != NULL) {
+        xTaskNotify(gb.task, LORA_NOTIFY_TX, eSetBits);
     }
 }
 
@@ -70,14 +77,31 @@ static size_t on_lora_receive(uint8_t *rx_buffer, size_t buffer_len) {
     return len;
 }
 
+static void handle_rx_packet(uint8_t *rx_buffer, size_t buffer_len) {
+    size_t rx_packet_size = on_lora_receive(rx_buffer, buffer_len);
+    if (rx_packet_size > 0) {
+        lora_set_receive_mode(&gb.lora);
+    } else {
+        lora_write_reg(&gb.lora, REG_IRQ_FLAGS, 0xFF);
+    }
+}
+
 static void transmit_packet(void) {
     if (gb.get_tx_packet_fnc == NULL) {
         return;
     }
 
     gb.tx_buffer_size = gb.get_tx_packet_fnc(gb.tx_buffer, sizeof(gb.tx_buffer));
-    // uart_write_logical(UART_LOGICAL_TELEMETRY, gb.tx_buffer, gb.tx_buffer_size);
+    if (gb.tx_buffer_size == 0) {
+        ESP_LOGE(TAG, "LoRa TX skipped - empty packet");
+        return;
+    }
+
     lora_send_packet(&gb.lora, gb.tx_buffer, gb.tx_buffer_size);
+    ESP_LOGI(TAG, "LoRa on-air time: %lu us (%lu ms), packet size: %u",
+             (unsigned long)lora_get_last_tx_duration_us(),
+             (unsigned long)(lora_get_last_tx_duration_us() / 1000),
+             (unsigned)gb.tx_buffer_size);
 }
 
 static void lora_receive_task(void *arg) {
@@ -92,52 +116,33 @@ static void lora_receive_task(void *arg) {
 
 void lora_task(void *arg) {
     uint8_t rx_buffer[512];
-    size_t rx_packet_size = 0;
 
     while (1) {
-        // 1. Zawsze wymuszamy przejście w tryb nasłuchu i czyścimy flagi
-        // (to wykasuje to, co przyszło w trakcie samego nadawania, ale to nieuniknione w
-        // Half-Duplex)
         lora_change_state_to_receive();
+        xTaskNotifyStateClear(gb.task);
 
-        TickType_t start_tick = xTaskGetTickCount();
-        TickType_t delay_ticks = pdMS_TO_TICKS(gb.receive_window_period);
-
-        // Wyczyść ewentualne zaległe powiadomienia z przerwań RTOS
-        ulTaskNotifyTake(pdTRUE, 0);
-
-        // Safety net: ratunek jeśli coś wpadło ułamek sekundy temu
         if (lora_read_reg(&gb.lora, REG_IRQ_FLAGS) & IRQ_RX_DONE_MASK) {
-            rx_packet_size = on_lora_receive(rx_buffer, sizeof(rx_buffer));
-            if (rx_packet_size > 0) {
-                lora_set_receive_mode(&gb.lora);
-            } else {
-                lora_write_reg(&gb.lora, REG_IRQ_FLAGS, 0xFF);
-            }
+            handle_rx_packet(rx_buffer, sizeof(rx_buffer));
         }
 
-        // 2. GŁÓWNE OKIENKO 500 ms
-        while (1) {
-            TickType_t current_tick = xTaskGetTickCount();
-            if (current_tick - start_tick >= delay_ticks) {
-                break;  // Czas okienka minął, wychodzimy nadawać!
+        bool tx_requested = false;
+        while (!tx_requested) {
+            uint32_t notify = 0;
+            if (xTaskNotifyWait(0, ULONG_MAX, &notify, portMAX_DELAY) != pdTRUE) {
+                continue;
             }
-            TickType_t remaining_ticks = delay_ticks - (current_tick - start_tick);
 
-            // Czekamy na przerwanie (RXDONE) przez pozostały czas
-            if (ulTaskNotifyTake(pdTRUE, remaining_ticks) == pdTRUE) {
-                rx_packet_size = on_lora_receive(rx_buffer, sizeof(rx_buffer));
-
-                if (rx_packet_size > 0) {
-                    lora_set_receive_mode(&gb.lora);
-                } else {
-                    // Dobra praktyka: zabezpieczenie przed zablokowaniem DIO0 na błędnej ramce
-                    lora_write_reg(&gb.lora, REG_IRQ_FLAGS, 0xFF);
+            if (notify & LORA_NOTIFY_RX) {
+                if (lora_read_reg(&gb.lora, REG_IRQ_FLAGS) & IRQ_RX_DONE_MASK) {
+                    handle_rx_packet(rx_buffer, sizeof(rx_buffer));
                 }
             }
+
+            if (notify & LORA_NOTIFY_TX) {
+                tx_requested = true;
+            }
         }
 
-        // 3. OKIENKO SIĘ SKOŃCZYŁO - NADAWANIE
         lora_change_state_to_transmit();
         transmit_packet();
         vTaskDelay(pdMS_TO_TICKS(10));
