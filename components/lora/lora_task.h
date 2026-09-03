@@ -58,4 +58,10 @@ bool lora_change_receive_window_period(uint32_t period_ms);
 
 bool lora_change_frequency(uint32_t frequency_khz);
 
+/**
+ * @brief Request a single MCB telemetry frame transmission.
+ *        LoRa task returns to RX-only mode after sending.
+ */
+void lora_task_request_mcb_frame_tx(void);
+
 #endif

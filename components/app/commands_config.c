@@ -9,6 +9,7 @@
 #include "esp_now_config.h"
 #include "flash_task.h"
 #include "gpio_expander.h"
+#include "lora_task.h"
 #include "lora_task_config.h"
 #include "mission_timer_config.h"
 #include "recovery_task_config.h"
@@ -280,6 +281,11 @@ static void mcb_calibrate_barometer(uint32_t command, int32_t payload, bool priv
     bmp5_calculate_altitude_offset();
 }
 
+static void mcb_lora_sync(uint32_t command, int32_t payload, bool privilege) {
+    // ESP_LOGI(TAG, "LoRa sync (0xBA) - request MCB frame TX");
+    lora_task_request_mcb_frame_tx();
+}
+
 static cmd_command_t mcb_commands[] = {
     {MCB_STATE_CHANGE, mcb_state_change},
     {MCB_ABORT, mcb_abort},
@@ -301,6 +307,7 @@ static cmd_command_t mcb_commands[] = {
     {MCB_LIVE_CAMERA_ON, mcb_live_camera_on},
     {MCB_LIVE_CAMERA_OFF, mcb_live_camera_off},
     {MCB_RESET_DEV, mcb_reset_dev},
+    {MCB_LORA_SYNC, mcb_lora_sync},
     {MCB_RESET_DISCONNECT_TIMER, mcb_reset_disconnect_timer},
     {MCB_CALIBRATE_BAROMETER, mcb_calibrate_barometer},
 };
