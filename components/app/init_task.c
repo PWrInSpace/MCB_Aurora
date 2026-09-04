@@ -92,18 +92,21 @@ static void TASK_init(void *arg) {
 
     CHECK_RESULT_BOOL(initialize_lora(settings.loraFreq_KHz, settings.lora_transmit_ms), "LORA");
 
-    // CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
-    // CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 1000, TIMER_TYPE_PERIODIC), "SD TIMER");
+    CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 1000, TIMER_TYPE_PERIODIC), "SD TIMER");
     CHECK_RESULT_ESP(init_console(), "CLI");
 
     CHECK_RESULT_ESP(SM_change_state(IDLE), "Change state to idle");
-
-    // buzzer_turn_on();
 
     {
         UBaseType_t high = uxTaskGetStackHighWaterMark(NULL);
         ESP_LOGI(TAG, "Init task stack high water mark: %u", (unsigned)high);
     }
+
+    buzzer_turn_on();
+    vTaskDelay(pdMS_TO_TICKS(1500));
+    buzzer_turn_off();
+
     vTaskDelete(NULL);
 }
 
