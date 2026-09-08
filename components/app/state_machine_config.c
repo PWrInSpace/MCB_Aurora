@@ -71,7 +71,7 @@ static void on_pressurizing(void *arg) {
     cmd = cmd_create_message(N2_VENT_CLOSE, 0x00);
     ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
 
-    gpio_exp_live_camera_turn_on();
+    // gpio_exp_live_camera_turn_on();
 
     ESP_LOGI(TAG, "ON PRESSURIZING");
 }
@@ -83,7 +83,7 @@ static void on_armed_to_launch(void *arg) {
     ESP_LOGI(TAG, "CALIBRATING");
     bmp5_calculate_altitude_offset();
 
-    gpio_exp_sd_camera_turn_on();
+    // gpio_exp_sd_camera_turn_on();
 
     ESP_LOGI(TAG, "ON ARMED TO LAUNCH");
 }
@@ -283,8 +283,8 @@ static void on_ground(void *arg) {
         ESP_LOGE(TAG, "Unable to delete flash data timer");
     }
 
-    gpio_exp_sd_camera_turn_off();
-    gpio_exp_live_camera_turn_off();
+    // gpio_exp_sd_camera_turn_off();
+    // gpio_exp_live_camera_turn_off();
     ESP_LOGI(TAG, "ON GROUND");
     // gpio_exp_led_set_color(CYAN);
 }
@@ -365,8 +365,8 @@ static void on_abort(void *arg) {
         close_valves();
     }
 
-    if (sys_timer_delete(TIMER_DISCONNECT) == false) {
-        ESP_LOGE(TAG, "Unable to delete disconnect timer");
+    if (sys_timer_stop(TIMER_DISCONNECT) == false) {
+        ESP_LOGE(TAG, "Unable to stop disconnect timer");
     }
 
     // disarm recovery module
