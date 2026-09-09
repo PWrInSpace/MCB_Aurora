@@ -1,0 +1,13 @@
+@startuml
+
+title on_receive
+start
+
+if (get dev with mac) then (dev)
+    :run dev on receive function;
+else (NULL)
+    :raise error;
+endif
+
+
+@enduml

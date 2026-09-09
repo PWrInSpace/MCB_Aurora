@@ -1,0 +1,30 @@
+@startuml
+' scale 1920 width
+' scale 1080 height
+' !pragma useVerticalIf on 
+title rx interrupt
+start
+
+:inicjalizacja modułu RFM95W;
+
+while (true)
+:oczekuj na sygnał przerwania;
+
+if (lora_state == LORA_TRANSMIT) then (true)
+    :change lora state to LORA_RECEIVE;
+    :restart receive window timer;
+elseif(lora_state == LORA_RECEIVE) then (true)
+    :load received data;
+    :parse received data;
+    :exectue function related to command;
+    :change state to transmit;
+    :transmit packet;
+    :turn receive window timer;
+endif
+
+endwhile
+
+stop
+
+
+@enduml

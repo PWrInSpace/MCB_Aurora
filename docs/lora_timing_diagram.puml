@@ -1,0 +1,23 @@
+@startuml
+scale 1920 width
+scale 1080 height 
+scale 1 as 50 pixels
+
+concise "Stacja naziemna" as gs
+concise "Komputer pokładowy" as obc
+
+@gs
+0 is "Odbór danych"
+3 is "Wysłanie komendy"
+6 is "Odbór danych"
+13 is "Wysłanie komendy"
+16 is {hidden}
+@obc
+0 is "Wysłanie telemetrii"
+3 is "Odbór danych"
+10 is "Wysłanie telemetrii"
+13 is "Odbór danych"
+16 is {hidden}
+
+highlight 3 to 3.001 : Odebranie danych
+@enduml

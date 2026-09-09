@@ -72,18 +72,18 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(i2c_com_init(), "i2c com");
     CHECK_RESULT_BOOL(spi_init(VSPI_HOST, CONFIG_SPI_MOSI, CONFIG_SPI_MISO, CONFIG_SPI_SCK), "SPI");
     CHECK_RESULT_BOOL(uart_init(CONFIG_UART_PORT_NUM, CONFIG_UART_TX, CONFIG_UART_RX, CONFIG_UART_BAUDRATE),"UART init");
-    CHECK_RESULT_BOOL(gpioexp_init(), "GPIO Expander");
-    CHECK_RESULT_BOOL(gpioexp_led_set_color(WHITE), "GPIO Expander change color");
+    // CHECK_RESULT_BOOL(gpio_exp_init(), "GPIO Expander");
+    // CHECK_RESULT_BOOL(gpio_exp_led_set_color(WHITE), "GPIO Expander change color");
 
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
     CHECK_RESULT_BOOL(initialize_esp_now(), "ESP_NOW");
     CHECK_RESULT_BOOL(initialize_flash_memory(), "FLASH");
-    CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
+    // CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
     CHECK_RESULT_BOOL(initialize_gps(), "Gps task");
     CHECK_RESULT_BOOL(initialize_recovery(), "Recovery task");
 
     CHECK_RESULT_BOOL(initialize_timers(), "TIMERS");
-    // CHECK_RESULT_BOOL(sys_timer_start(TIMER_ESP_NOW_BROADCAST, 500, TIMER_TYPE_PERIODIC), "ESP_NOW_TIMER");
+    CHECK_RESULT_BOOL(sys_timer_start(TIMER_ESP_NOW_BROADCAST, 500, TIMER_TYPE_PERIODIC), "ESP_NOW_TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT), "DC TIMER");
     // CHECK_RESULT_BOOL(sys_timer_start(TIMER_BUZZER, 2000, TIMER_TYPE_PERIODIC), "BUZZER TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_CONNECTED_DEV, 40000, TIMER_TYPE_PERIODIC), "CONNECTED TIMER");
@@ -101,6 +101,11 @@ static void TASK_init(void *arg) {
         UBaseType_t high = uxTaskGetStackHighWaterMark(NULL);
         ESP_LOGI(TAG, "Init task stack high water mark: %u", (unsigned)high);
     }
+
+    buzzer_turn_on();
+    vTaskDelay(pdMS_TO_TICKS(1500));
+    buzzer_turn_off();
+
     vTaskDelete(NULL);
 }
 

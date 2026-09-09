@@ -1,0 +1,24 @@
+@startuml
+scale 1920 width
+scale 1080 height 
+title rx interrupt
+start
+
+if (broadcast message) then (yes)
+    :save current state;
+    if (stateInWakenUp) then (yes)
+        :set wakenUp to true;
+    else (no)
+        :set wakenUp to false;
+    endif 
+else (no)
+    :parse message;
+    if (valid commnad) then (yes)
+        :add command to command queue;
+    else (no)
+    endif
+endif
+
+stop
+
+@enduml

@@ -1,0 +1,49 @@
+@startuml
+scale 1920 width
+scale 1080 height 
+
+' participant "On-board computer" as obc
+' participant "Module" as slave
+' participant "Software template" as template
+
+' == Tx Loop == 
+' autonumber
+' obc -> slave : mission state  
+' template -> obc: send data
+' slave -> template: stateInWakenUp()
+
+' alt True
+' template -> slave: turn off sleep mode
+' else False
+' template -> slave: go to sleep
+' end group
+
+' == Main Loop ==
+
+' group initialization
+
+' end group
+title main loop
+start
+
+:initialization;
+
+:init_delay;
+
+repeat
+:take measurements;
+
+:execute command from command queue;
+
+:run function defined for module;
+
+if (time_to_send_data) then (true)
+    :send data to OBC;
+    else (false)
+endif
+repeatwhile (wakenUp) ->true
+->false;
+:go to sleep;
+stop
+
+@enduml
