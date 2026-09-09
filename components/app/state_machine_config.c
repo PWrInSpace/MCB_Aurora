@@ -133,8 +133,9 @@ static void recovery_first_stage_process(recovery_data_t *data) {
         return;
     }
 
-    ESP_LOGI(TAG, "Recovery first stage process, firstStageDone: %d", data->firstStageDone);
-    if (data->firstStageDone == true) {
+    bool first_stage = data->easymini_first_stage || data->telemetrum_first_stage;
+    ESP_LOGI(TAG, "Recovery first stage process, firstStageDone: %d", first_stage);
+    if (first_stage == true) {
         if (SM_change_state(FIRST_STAGE_RECOVERY) != SM_OK) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
         }
@@ -210,7 +211,9 @@ static void recovery_second_stage_process(recovery_data_t *data) {
         return;
     }
 
-    if (data->secondStageDone == true) {
+    bool second_stage = data->easymini_second_stage || data->telemetrum_second_stage;
+
+    if (second_stage == true) {
         if (SM_change_state(SECOND_STAGE_RECOVERY) != SM_OK) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
         }
