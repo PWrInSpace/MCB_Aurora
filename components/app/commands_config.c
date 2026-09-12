@@ -286,6 +286,14 @@ static void mcb_lora_sync(uint32_t command, int32_t payload, bool privilege) {
     lora_task_request_mcb_frame_tx();
 }
 
+static void mcb_next_state(uint32_t command, int32_t payload, bool privilege) {
+    if (SM_get_current_state() >= RDY_TO_LAUNCH) {
+        return;
+    }
+
+    SM_force_change_state(SM_get_current_state() + 1);
+}
+
 static cmd_command_t mcb_commands[] = {
     {MCB_STATE_CHANGE, mcb_state_change},
     {MCB_ABORT, mcb_abort},
@@ -310,6 +318,7 @@ static cmd_command_t mcb_commands[] = {
     {MCB_LORA_SYNC, mcb_lora_sync},
     {MCB_RESET_DISCONNECT_TIMER, mcb_reset_disconnect_timer},
     {MCB_CALIBRATE_BAROMETER, mcb_calibrate_barometer},
+    {MCB_NEXT_STATE, mcb_next_state},
 };
 
 // TANWA
