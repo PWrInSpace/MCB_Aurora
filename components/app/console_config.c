@@ -386,14 +386,6 @@ int buzzer_off(int argc, char **argv) {
     return 0;
 }
 
-int baro_calibrate(int argc, char **argv) {
-    if (!bmp5_calculate_altitude_offset()) {
-        return -1;
-    }
-    sensors_reset_altitude_filter();
-    return 0;
-}
-
 static esp_console_cmd_t cmd[] = {
     {"flash-read", "Read data from flash memory", NULL, read_flash, NULL, NULL, NULL},
     {"reset-dev", "Restart device", NULL, reset_device, NULL, NULL, NULL},
@@ -431,7 +423,6 @@ static esp_console_cmd_t cmd[] = {
     {"auto_vent_set", "set auto vent value", NULL, auto_vent_set, NULL, NULL, NULL},
     {"buzzer_on", "turn on buzzer", NULL, buzzer_on, NULL, NULL, NULL},
     {"buzzer_off", "turn off buzzer", NULL, buzzer_off, NULL, NULL, NULL},
-    {"baro_calibrate", "calibrate barometer", NULL, baro_calibrate, NULL, NULL, NULL},
 };
 
 static void console_register_task(void *arg) {

@@ -77,11 +77,6 @@ static void on_pressurizing(void *arg) {
 static void on_armed_to_launch(void *arg) {
     gpioexp_led_set_color(YELLOW);
 
-
-    // po całej procedurze tankowania wprowadzamy kalibrację, (płytka powinna się już nagrzać)
-    ESP_LOGI(TAG, "CALIBRATING");
-    bmp5_calculate_altitude_offset();
-
     ESP_LOGI(TAG, "ON ARMED TO LAUNCH");
 }
 

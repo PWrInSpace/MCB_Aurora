@@ -64,3 +64,11 @@ bool fusion_wrapper_update(FusionAhrs *ahrs, float gx, float gy, float gz, float
     return true;
 }
 
+fusion_data_t fusion_wrapper_get_data(FusionAhrs *ahrs) {
+    fusion_data_t data;
+    data.quaternion = FusionAhrsGetQuaternion(ahrs);
+    data.acceleration = FusionAhrsGetLinearAcceleration(ahrs);
+    data.acceleration = FusionAhrsGetEarthAcceleration(ahrs);
+    return data;
+}
+

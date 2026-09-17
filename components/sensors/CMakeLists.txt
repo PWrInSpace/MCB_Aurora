@@ -9,6 +9,12 @@ idf_component_register(SRCS "bmi08_wrapper.c"
                         "BMI08x-Sensor-API/bmi08xa.c"
                         "BMI08x-Sensor-API/bmi088_mma.c"
                         "fusion_wrapper.c"
+                        "physics.c"
+                        "Fusion/Fusion/FusionAhrs.c"
+                        "Fusion/Fusion/FusionBias.c"
+                        "Fusion/Fusion/FusionCompass.c"
+                        "Fusion/Fusion/FusionConvention.c"
+                        "Fusion/Fusion/FusionRemap.c"
                     INCLUDE_DIRS "." "BMP5-Sensor-API" "BMI08x-Sensor-API" "Fusion/Fusion"
                     REQUIRES cmock data sys)
 

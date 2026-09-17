@@ -9,15 +9,24 @@ typedef struct {
     float acc_x;
     float acc_y;
     float acc_z;
-    float acc_vertical;  // Przyspieszenie pionowe (bez grawitacji)
+
     float gyr_x;
     float gyr_y;
     float gyr_z;
+
     float mag_x;
     float mag_y;
     float mag_z;
+
     float temperature;
+    float pressure0;
     float pressure;
+
+    uint64_t timestamp;
+    float dt;
+
+    // processed data
+    float acc_vertical;  // Przyspieszenie pionowe (bez grawitacji)
     float altitude;
     float velocity;
     float yaw;
@@ -32,7 +41,5 @@ typedef struct {
  * @return false :C
  */
 bool initialize_processing_task(void);
-
-void sensors_reset_altitude_filter(void);
 
 #endif

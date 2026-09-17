@@ -257,10 +257,6 @@ static void mcb_cameras_off(uint32_t command, int32_t payload, bool privilege) {
     gpioexp_camera_turn_off();
 }
 
-static void mcb_calibrate_barometer(uint32_t command, int32_t payload, bool privilege) {
-    bmp5_calculate_altitude_offset();
-}
-
 static cmd_command_t mcb_commands[] = {
     {MCB_STATE_CHANGE, mcb_state_change},
     {MCB_ABORT, mcb_abort},
@@ -279,7 +275,6 @@ static cmd_command_t mcb_commands[] = {
     {MCB_CAMERAS_OFF, mcb_cameras_off},
     {MCB_RESET_DEV, mcb_reset_dev},
     {MCB_RESET_DISCONNECT_TIMER, mcb_reset_disconnect_timer},
-    {MCB_CALIBRATE_BAROMETER, mcb_calibrate_barometer},
 };
 
 // TANWA
