@@ -1,13 +1,17 @@
 // Copyright 2022 PWrInSpace Kuba
-#include <memory.h>
 #include "processing_task.h"
+
+#include <math.h>
+#include <memory.h>
+
+#include "bmp5_wrapper.h"
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 #include "freertos/portmacro.h"
 #include "freertos/semphr.h"
-#include "esp_log.h"
+#include "freertos/task.h"
 
-#define TAG "SENSORS"
+static const char *TAG = "SENSORS";
 
 static struct {
     sensors_read sensors_read_fnc;
@@ -37,6 +41,7 @@ bool sensors_get_data(void *buffer, size_t buffer_size, uint32_t timeout_ms) {
         ESP_LOGE(TAG, "Semaphore get data error");
         return false;
     }
+
     memcpy(buffer, gb.data_buffer, buffer_size);
     xSemaphoreGive(gb.data_mutex);
 
@@ -75,9 +80,7 @@ bool sensors_remove_process_function(uint32_t timeout) {
     xSemaphoreGive(gb.data_mutex);
 
     return true;
-
 }
-
 
 static void read_data_from_sensors(void *data_buffer) {
     if (gb.sensors_read_fnc != NULL) {
@@ -100,7 +103,6 @@ static void processing_task(void *arg) {
         } else {
             ESP_LOGE(TAG, "Semaphore error");
         }
-
         vTaskDelay(pdMS_TO_TICKS(SENSORS_TASK_PERIOD_MS));
     }
 }
@@ -113,14 +115,8 @@ static bool initialize_rtos(void) {
         return false;
     }
 
-    xTaskCreatePinnedToCore(
-        processing_task,
-        "Processing",
-        SENSORS_TASK_DEPTH,
-        NULL,
-        SENSORS_TASK_PRIORITY,
-        &gb.task_handle,
-        SENSORS_TASK_CPU);
+    xTaskCreatePinnedToCore(processing_task, "Processing", SENSORS_TASK_DEPTH, NULL,
+                            SENSORS_TASK_PRIORITY, &gb.task_handle, SENSORS_TASK_CPU);
 
     if (gb.task_handle == NULL) {
         ESP_LOGE(TAG, "Task create error");
@@ -147,9 +143,8 @@ bool sensors_create_task(sensors_task_cfg_t *cfg) {
     gb.sensors_process_fnc = cfg->sensors_process_fnc;
     gb.data_buffer_size = cfg->data_size;
 
-    gb.data_buffer = (void*)calloc(1, gb.data_buffer_size);
     if (gb.data_buffer == NULL) {
-        ESP_LOGE(TAG, "Malloc error");
+        ESP_LOGE(TAG, "Data buffer");
         return false;
     }
 
