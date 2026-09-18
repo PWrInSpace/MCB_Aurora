@@ -1,6 +1,7 @@
 // Copyright 2022 PWrInSpace, Kuba
 #include "init_task.h"
 
+#include "buzzer_config.h"
 #include "buzzer_pwm.h"
 #include "console_config.h"
 #include "errors_config.h"
@@ -102,10 +103,8 @@ static void TASK_init(void *arg) {
         UBaseType_t high = uxTaskGetStackHighWaterMark(NULL);
         ESP_LOGI(TAG, "Init task stack high water mark: %u", (unsigned)high);
     }
-
-    buzzer_turn_on();
-    vTaskDelay(pdMS_TO_TICKS(1500));
-    buzzer_turn_off();
+    
+    buzzer_play_notes(dlugosc_dzwieku_samotnosci, sizeof(dlugosc_dzwieku_samotnosci) / sizeof(dlugosc_dzwieku_samotnosci[0]));
 
     vTaskDelete(NULL);
 }

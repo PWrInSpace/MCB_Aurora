@@ -66,6 +66,9 @@ bool buzzer_turn_off(void) {
 }
 
 bool buzzer_change_freq(uint16_t freq) {
+    if (freq == 0) {
+        return buzzer_turn_off();
+    }
     if (ledc_set_freq(LEDC_MODE, LEDC_TIMER, freq) != ESP_OK) {
         return false;
     }
