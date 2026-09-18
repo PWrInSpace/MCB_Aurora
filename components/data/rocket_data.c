@@ -79,19 +79,6 @@ void rocket_data_update_recovery(recovery_data_t *data) {
         ESP_LOGE(TAG, "Data semaphore errror :C");
         return;
     }
-
-    ESP_LOGI(TAG, "telemetrum armed: %d", gb.rocket_data.recovery.telemetrum_armed);
-    ESP_LOGI(TAG, "telemetrum apogee detected: %d", gb.rocket_data.recovery.telemetrum_apogee_detected);
-    ESP_LOGI(TAG, "telemetrum first stage: %d", gb.rocket_data.recovery.telemetrum_first_stage);
-    ESP_LOGI(TAG, "telemetrum second stage: %d", gb.rocket_data.recovery.telemetrum_second_stage);
-    ESP_LOGI(TAG, "easymini armed: %d", gb.rocket_data.recovery.easymini_armed);
-    ESP_LOGI(TAG, "easymini apogee detected: %d", gb.rocket_data.recovery.easymini_apogee_detected);
-    ESP_LOGI(TAG, "easymini first stage: %d", gb.rocket_data.recovery.easymini_first_stage);
-    ESP_LOGI(TAG, "easymini second stage: %d", gb.rocket_data.recovery.easymini_second_stage);
-    ESP_LOGI(TAG, "separation one: %d", gb.rocket_data.recovery.separation_one);
-    ESP_LOGI(TAG, "separation two: %d", gb.rocket_data.recovery.separation_two);
-    ESP_LOGI(TAG, "continuity: %d", gb.rocket_data.recovery.continuity);
-
     memcpy(&gb.rocket_data.recovery, data, sizeof(gb.rocket_data.recovery));
     xSemaphoreGive(gb.data_mutex);
 }
