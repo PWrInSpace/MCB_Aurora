@@ -9,7 +9,7 @@
 #include "esp_log.h"
 #include "i2c.h"
 
-#define TAG "RECOVERY"
+static const char *TAG = "RECOVERY";
 
 static struct {
     basic_task_t task;
