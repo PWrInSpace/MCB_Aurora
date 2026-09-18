@@ -15,6 +15,7 @@ idf_component_register(SRCS "bmi08_wrapper.c"
                         "Fusion/Fusion/FusionCompass.c"
                         "Fusion/Fusion/FusionConvention.c"
                         "Fusion/Fusion/FusionRemap.c"
+                        "kalman.c"
                     INCLUDE_DIRS "." "BMP5-Sensor-API" "BMI08x-Sensor-API" "Fusion/Fusion"
                     REQUIRES cmock data sys)
 

@@ -12,14 +12,16 @@
 #include "mag_wrapper.h"
 #include "physics.h"
 #include "state_machine.h"
+#include "kalman.h"
 
 static const char *TAG = "SENSORS_CFG";
 
 static sensors_data_t sensors_data;
 static struct bmi08_sensor_data_f acc;
 static struct bmi08_sensor_data_f gyro;
-static FusionAhrs ahrs;
 static struct bmp5_sensor_data baro;
+static FusionAhrs ahrs;
+static kalman_t kf;
 static mmc5983_mag_t mag;
 
 static void calculate_base_pressure() {
@@ -86,6 +88,12 @@ static void sensors_process_data(void *data_buffer) {
     data->acc_y = fusion_data.acceleration.axis.y;
     data->acc_z = fusion_data.acceleration.axis.z;
     data->acc_vertical = fusion_data.acceleration_earth.axis.z;
+
+    kalman_predict(&kf, data->acc_vertical, data->dt);
+    kalman_update(&kf, data->altitude);
+
+    data->altitude = kf.alt;
+    data->velocity = kf.vel;
 }
 
 bool initialize_processing_task(void) {
@@ -111,6 +119,11 @@ bool initialize_processing_task(void) {
 
     if (fusion_wrapper_init(&ahrs) == false) {
         ESP_LOGE(TAG, "FUSION");
+        return false;
+    }
+
+    if (kalman_init(&kf, 0.1f, 0.5f) == false) {
+        ESP_LOGE(TAG, "KALMAN");
         return false;
     }
 

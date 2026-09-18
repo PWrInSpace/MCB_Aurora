@@ -8,7 +8,7 @@ float hypsometric_altitude(float pressure_hpa, float pressure0_hpa, float temper
     }
 
     float temperature_k = temperature_c + 273.15f;
-    float ratio = pressure_hpa / pressure0_hpa;
+    float ratio = pressure0_hpa / pressure_hpa;
 
-    return 29.271f * temperature_k * log(ratio);
+    return 29.271f * temperature_k * logf(ratio);
 }
