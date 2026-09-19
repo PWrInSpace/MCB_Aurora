@@ -14,7 +14,7 @@
 #include "state_machine.h"
 #include "kalman.h"
 
-static const char *TAG = "SENSORS_CFG";
+static const char *TAG = "";
 
 static sensors_data_t sensors_data;
 static struct bmi08_sensor_data_f acc;
@@ -33,7 +33,7 @@ static void calculate_base_pressure() {
         }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
-    sensors_data.pressure0 = pressure_sum / BMP5_CALIBRATE_NB_OF_MEAS;
+    sensors_data.pressure0 = BMP5_Pa_TO_hPa(pressure_sum / BMP5_CALIBRATE_NB_OF_MEAS);
 }
 
 static void sensors_read_data(void *data_buffer) {
@@ -94,6 +94,13 @@ static void sensors_process_data(void *data_buffer) {
 
     data->altitude = kf.alt;
     data->velocity = kf.vel;
+
+    ESP_LOGI(TAG, "=== SENSOR DATA ========================================");
+    ESP_LOGI(TAG, "MAG  | X: %8.2f | Y: %8.2f | Z: %8.2f |", data->mag_x, data->mag_y, data->mag_z);
+    ESP_LOGI(TAG, "ACC  | X: %8.2f | Y: %8.2f | Z: %8.2f |", data->acc_x, data->acc_y, data->acc_z);
+    ESP_LOGI(TAG, "GYR  | X: %8.2f | Y: %8.2f | Z: %8.2f |", data->gyr_x, data->gyr_y, data->gyr_z);
+    ESP_LOGI(TAG, "BARO | P: %8.2f | P0:%8.2f | T: %8.2f |", data->pressure, data->pressure0, data->temperature);
+    ESP_LOGI(TAG, "FLGT | A: %8.2f | V: %8.2f | aV:%8.2f |", data->altitude, data->velocity, data->acc_vertical);
 }
 
 bool initialize_processing_task(void) {
@@ -127,10 +134,12 @@ bool initialize_processing_task(void) {
         return false;
     }
 
-    sensors_task_cfg_t cfg = {.sensors_read_fnc = sensors_read_data,
-                              .sensors_process_fnc = sensors_process_data,
-                              .data_size = sizeof(sensors_data_t),
-                              .data_buffer = &sensors_data};
+    sensors_task_cfg_t cfg = {
+        .sensors_read_fnc = sensors_read_data,
+        .sensors_process_fnc = sensors_process_data,
+        .data_size = sizeof(sensors_data_t),
+        .data_buffer = &sensors_data
+    };
     calculate_base_pressure();
 
     return sensors_create_task(&cfg);

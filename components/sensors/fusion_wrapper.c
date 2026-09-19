@@ -68,7 +68,7 @@ fusion_data_t fusion_wrapper_get_data(FusionAhrs *ahrs) {
     fusion_data_t data;
     data.quaternion = FusionAhrsGetQuaternion(ahrs);
     data.acceleration = FusionAhrsGetLinearAcceleration(ahrs);
-    data.acceleration = FusionAhrsGetEarthAcceleration(ahrs);
+    data.acceleration_earth = FusionAhrsGetEarthAcceleration(ahrs);
     return data;
 }
 

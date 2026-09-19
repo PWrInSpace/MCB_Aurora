@@ -32,18 +32,12 @@ static void bmi08_delay(uint32_t period, void *intf_ptr) {
     vTaskDelay(pdMS_TO_TICKS(period / 1000));
 }
 
-static float lsb_to_mps2(int16_t val, float g_range, uint8_t bit_width) {
-    double power = 2;
-
-    float half_scale = (float)(pow(power, bit_width) / 2.0f);
-
-    return GRAVITY_EARTH * val * g_range / half_scale;
+static float lsb_to_g(int16_t val, float g_range) {
+    return (float)val * g_range / 32768.0f;
 }
 
 static float lsb_to_dps(int16_t val, float dps, uint8_t bit_width) {
-    float half_scale = powf(2.0f, bit_width);
-
-    return dps / half_scale * (float)val;
+    return (float)val / 32767.0f * dps;
 }
 
 bool bmi08_wrapper_init(void) {
@@ -85,7 +79,7 @@ bool bmi08_wrapper_init(void) {
     gb.dev.accel_cfg.range = BMI088_MM_ACCEL_RANGE_24G;
     gb.dev.accel_cfg.odr = BMI08_ACCEL_ODR_100_HZ;
     gb.dev.accel_cfg.bw = BMI08_ACCEL_BW_NORMAL;
-    gb.dev.gyro_cfg.range = BMI08_GYRO_RANGE_125_DPS;
+    gb.dev.gyro_cfg.range = BMI08_GYRO_RANGE_2000_DPS;
     gb.dev.gyro_cfg.odr = BMI08_GYRO_BW_32_ODR_100_HZ;
     gb.dev.gyro_cfg.bw = BMI08_GYRO_BW_32_ODR_100_HZ;
     gb.dev.gyro_cfg.power = BMI08_GYRO_PM_NORMAL;
@@ -102,7 +96,7 @@ bool bmi08_acc_data_ready(void) {
         return false;
     }
 
-    return (status & BMI08_ACCEL_DATA_READY_INT);
+    return status & BMI08_ACCEL_DATA_READY_INT;
 }
 
 bool bmi08_gyro_data_ready(void) {
@@ -111,7 +105,7 @@ bool bmi08_gyro_data_ready(void) {
         return false;
     }
 
-    return (status & BMI08_GYRO_DATA_READY_INT);
+    return status & BMI08_GYRO_DATA_READY_INT;
 }
 
 bool bmi08_get_acc_data(struct bmi08_sensor_data_f *acc) {
@@ -120,9 +114,9 @@ bool bmi08_get_acc_data(struct bmi08_sensor_data_f *acc) {
         return false;
     }
 
-    acc->x = lsb_to_mps2(data.x, (float)24, 16);
-    acc->y = lsb_to_mps2(data.y, (float)24, 16);
-    acc->z = lsb_to_mps2(data.z, (float)24, 16);
+    acc->x = lsb_to_g(data.x, (float)24);
+    acc->y = lsb_to_g(data.y, (float)24);
+    acc->z = lsb_to_g(data.z, (float)24);
 
     return true;
 }
@@ -133,9 +127,9 @@ bool bmi08_get_gyro_data(struct bmi08_sensor_data_f *gyro) {
         return false;
     }
 
-    gyro->x = lsb_to_dps(data.x, (float)125, 16);
-    gyro->y = lsb_to_dps(data.y, (float)125, 16);
-    gyro->z = lsb_to_dps(data.z, (float)125, 16);
+    gyro->x = lsb_to_dps(data.x, (float)2000, 16);
+    gyro->y = lsb_to_dps(data.y, (float)2000, 16);
+    gyro->z = lsb_to_dps(data.z, (float)2000, 16);
 
     return true;
 }

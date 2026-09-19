@@ -78,8 +78,8 @@ static void TASK_init(void *arg) {
     // CHECK_RESULT_BOOL(
     //     uart_init_logical(UART_LOGICAL_TELEMETRY, LORA_UART_PORT, LORA_UART_TX, LORA_UART_RX, LORA_UART_BAUDRATE),
     //     "UART LORA");
-    CHECK_RESULT_BOOL(gpioexp_init(), "GPIO Expander");
-    CHECK_RESULT_BOOL(gpioexp_led_set_color(WHITE), "GPIO Expander change color");
+    // CHECK_RESULT_BOOL(gpioexp_init(), "GPIO Expander");
+    // CHECK_RESULT_BOOL(gpioexp_led_set_color(WHITE), "GPIO Expander change color");
 
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
     CHECK_RESULT_BOOL(initialize_esp_now(), "ESP_NOW");
@@ -97,8 +97,8 @@ static void TASK_init(void *arg) {
 
     CHECK_RESULT_BOOL(initialize_lora(settings.loraFreq_KHz, settings.lora_transmit_ms), "LORA");
 
-    CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 1000, TIMER_TYPE_PERIODIC), "SD TIMER");
+    // CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
+    // CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 1000, TIMER_TYPE_PERIODIC), "SD TIMER");
     CHECK_RESULT_ESP(init_console(), "CLI");
     // esp_log_level_set("*", ESP_LOG_DEBUG);
 

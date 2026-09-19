@@ -142,6 +142,7 @@ bool sensors_create_task(sensors_task_cfg_t *cfg) {
     gb.sensors_read_fnc = cfg->sensors_read_fnc;
     gb.sensors_process_fnc = cfg->sensors_process_fnc;
     gb.data_buffer_size = cfg->data_size;
+    gb.data_buffer = cfg->data_buffer;
 
     if (gb.data_buffer == NULL) {
         ESP_LOGE(TAG, "Data buffer");
