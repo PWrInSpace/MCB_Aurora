@@ -99,8 +99,8 @@ static void debug_data(void *arg) {
 }
 
 static void on_cameras_off_timer(void *arg) {
-    // TODO:EXPANDER gpio_exp_sd_camera_turn_off();
-    // TODO:EXPANDER gpio_exp_live_camera_turn_off();
+    gpio_exp_sd_camera_turn_off();
+    gpio_exp_live_camera_turn_off();
 }
 
 bool initialize_timers(void) {
