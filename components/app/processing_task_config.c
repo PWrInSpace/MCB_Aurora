@@ -122,7 +122,7 @@ bool initialize_processing_task(void) {
         return false;
     }
 
-    if (kalman_init(&kf, 0.1f, 0.5f) == false) {
+    if (kalman_init(&kf, 0.5f, 4.0f) == false) {
         ESP_LOGE(TAG, "KALMAN");
         return false;
     }
