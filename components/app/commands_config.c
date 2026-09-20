@@ -276,10 +276,6 @@ static void mcb_live_camera_off(uint32_t command, int32_t payload, bool privileg
     gpio_exp_live_camera_turn_off();
 }
 
-static void mcb_calibrate_barometer(uint32_t command, int32_t payload, bool privilege) {
-    bmp5_calculate_altitude_offset();
-}
-
 static cmd_command_t mcb_commands[] = {
     {MCB_STATE_CHANGE, mcb_state_change},
     {MCB_ABORT, mcb_abort},
