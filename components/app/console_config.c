@@ -15,6 +15,9 @@
 #include "state_machine_config.h"
 #include "system_timer_config.h"
 #include "rocket_data.h"
+#include "bmp5_wrapper.h"
+#include "processing_task_config.h"
+
 #define TAG "CONSOLE_CONFIG"
 
 #include "buzzer_pwm.h"
@@ -404,10 +407,8 @@ static esp_console_cmd_t cmd[] = {
     {"settings_init", "init settings default", NULL, cli_settings_init_default, NULL, NULL, NULL},
     {"settings_ignit", "change ignition time", NULL, cli_change_ignition_time, NULL, NULL, NULL},
     {"settings_cdwn", "change countdown time", NULL, cli_change_countdown_time, NULL, NULL, NULL},
-    {"lora_period", "change lora transmit period ms", NULL,
-     cli_change_lora_transmiting_period, NULL, NULL, NULL},
-    {"lora_frequency", "change lora frerquency ms", NULL,
-     cli_change_lora_frequency, NULL, NULL, NULL},
+    {"lora_period", "change lora transmit period ms", NULL,cli_change_lora_transmiting_period, NULL, NULL, NULL},
+    {"lora_frequency", "change lora frerquency ms", NULL,cli_change_lora_frequency, NULL, NULL, NULL},
     {"recov_force_first", "force first stage separation", NULL, recovery_force_first_stage, NULL, NULL, NULL},
     {"recov_force_second", "force second stage separation", NULL, recovery_force_second_stage, NULL, NULL, NULL},
     {"recov_easymini_arm", "arm easymini recovery", NULL, recovery_easymini_arm, NULL, NULL, NULL},
@@ -415,6 +416,7 @@ static esp_console_cmd_t cmd[] = {
     {"recov_telemetrum_arm", "arm telemetrum recovery", NULL, recovery_telemetrum_arm, NULL, NULL, NULL},
     {"recov_telemetrum_disarm", "disarm telemetrum recovery", NULL, recovery_telemetrum_disarm, NULL, NULL, NULL},
     {"get_data", "get mcb data", NULL, get_data, NULL, NULL, NULL},
+   // todo dodać tutaj komende bo jestem debilem
     {"cameras_on", "turn on cameras", NULL, cameras_on, NULL, NULL, NULL},
     {"cameras_off", "turn off cameras", NULL, cameras_off, NULL, NULL, NULL},
     {"auto_vent_off", "turn off auto vent", NULL, auto_vent_off, NULL, NULL, NULL},
