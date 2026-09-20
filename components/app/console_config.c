@@ -351,6 +351,42 @@ int cameras_off(int argc, char **argv) {
     return 0;
 }
 
+int sd_cameras_on(int argc, char **argv) {
+    cmd_message_t command = cmd_create_message(MCB_SD_CAMERAS_ON, 0);
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int sd_cameras_off(int argc, char **argv) {
+    cmd_message_t command = cmd_create_message(MCB_SD_CAMERAS_OFF, 0);
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int live_cameras_on(int argc, char **argv) {
+    cmd_message_t command = cmd_create_message(MCB_LIVE_CAMERA_ON, 0);
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int live_cameras_off(int argc, char **argv) {
+    cmd_message_t command = cmd_create_message(MCB_LIVE_CAMERA_OFF, 0);
+    if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_MCB, &command) == false) {
+        return -1;
+    }
+
+    return 0;
+}
+
 int auto_vent_off(int argc, char **argv) {
     cmd_message_t command = cmd_create_message(OX_VENT_AUTO_VENT_OFF, 0);
     if (lora_cmd_process_command(LORA_DEV_ID, DEVICE_OX_VENT_ETH_MAIN_VALVES, &command) == false) {
@@ -415,6 +451,10 @@ static esp_console_cmd_t cmd[] = {
     {"get_data", "get mcb data", NULL, get_data, NULL, NULL, NULL},
     {"cameras_on", "turn on cameras", NULL, cameras_on, NULL, NULL, NULL},
     {"cameras_off", "turn off cameras", NULL, cameras_off, NULL, NULL, NULL},
+    {"sd_cameras_on", "turn off cameras", NULL, sd_cameras_on, NULL, NULL, NULL},
+    {"sd_cameras_off", "turn off cameras", NULL, sd_cameras_off, NULL, NULL, NULL},
+    {"live_cameras_on", "turn off cameras", NULL, live_cameras_on, NULL, NULL, NULL},
+    {"live_cameras_off", "turn off cameras", NULL, live_cameras_off, NULL, NULL, NULL},
     {"auto_vent_off", "turn off auto vent", NULL, auto_vent_off, NULL, NULL, NULL},
     {"auto_vent_set", "set auto vent value", NULL, auto_vent_set, NULL, NULL, NULL},
     {"buzzer_on", "turn on buzzer", NULL, buzzer_on, NULL, NULL, NULL},
