@@ -12,7 +12,7 @@ bool fusion_wrapper_init(FusionAhrs *ahrs) {
         .sampleRate = 50.0f,
         .convention = FusionConventionNed,
         .gain = 0.1f,
-        .gyroscopeRange = 2000.0f,
+        .gyroscopeRange = 250.0f,
         .accelerationRejection = 10.0f,
         .magneticRejection = 10.0f,
         .rejectionTimeout = 8.0f,
