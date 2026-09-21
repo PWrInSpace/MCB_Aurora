@@ -61,8 +61,8 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
         uint32_t recovery_flags = 0;
         recovery_flags |= data.recovery.separation_one ? 1u << 0 : 0u;
         recovery_flags |= data.recovery.separation_two ? 1u << 1 : 0u;
-        recovery_flags |= data.recovery.easymini_first_stage || data.recovery.telemetrum_first_stage ? 1u << 2 : 0u;
-        recovery_flags |= data.recovery.easymini_second_stage || data.recovery.telemetrum_second_stage ? 1u << 3 : 0u;
+        recovery_flags |= data.recovery.first_stage ? 1u << 2 : 0u;
+        recovery_flags |= data.recovery.second_stage ? 1u << 3 : 0u;
         recovery_flags |= data.recovery.telemetrum_first_stage ? 1u << 4 : 0u;
         recovery_flags |= data.recovery.telemetrum_second_stage ? 1u << 5 : 0u;
         recovery_flags |= data.recovery.easymini_first_stage ? 1u << 6 : 0u;

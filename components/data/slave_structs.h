@@ -95,6 +95,8 @@ typedef struct {
     bool separation_one: 1;
     bool separation_two: 1;
     bool continuity: 1;
+    bool first_stage: 1;
+    bool second_stage: 1;
 } recovery_data_t;
 
 typedef struct {
