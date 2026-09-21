@@ -50,4 +50,6 @@ bool gpio_exp_live_camera_turn_off(void);
 
 bool gpio_exp_reset_lora(void);
 
+bool gpio_exp_reset_gps(void);
+
 #endif

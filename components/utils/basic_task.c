@@ -24,7 +24,7 @@ bool basic_task_create(basic_task_cfg_t *cfg, basic_task_t *task) {
 
     xTaskCreatePinnedToCore(
         basic_task,
-        "GPS",
+        "TASK",
         cfg->stack_depth,
         &task->task_info,
         cfg->priority,
