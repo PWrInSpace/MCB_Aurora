@@ -53,6 +53,8 @@ static bool recovery_read_data(recovery_data_t* message, size_t len) {
     gb.recovery_data.separation_one = leftRecoveryData.separation_one;
     gb.recovery_data.separation_two = leftRecoveryData.separation_two;
     gb.recovery_data.continuity = leftRecoveryData.continuity;
+    gb.recovery_data.first_stage = leftRecoveryData.first_stage;
+    gb.recovery_data.second_stage = leftRecoveryData.second_stage;
 
     return leftStatus;
 }
