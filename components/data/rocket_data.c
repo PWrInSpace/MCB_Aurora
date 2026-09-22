@@ -8,7 +8,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "freertos/timers.h"
-#define TAG "DATA"
+
+static const char *TAG = "DATA";
 
 static struct {
     rocket_data_t rocket_data;

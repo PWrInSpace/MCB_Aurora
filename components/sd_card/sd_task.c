@@ -87,7 +87,6 @@ static void prepare_data_file_and_save(void) {
     }
 
     int received_data_counter = 0;
-    // ESP_LOGI(TAG, "Saving to sd");
     while (uxQueueMessagesWaiting(mem.data_queue) > 0) {
         get_data_from_queue_and_save(data_file);
 
@@ -323,18 +322,25 @@ static void write_headers(sd_task_cfg_t *task_cfg) {
     mem.get_sd_header_size_fnc = task_cfg->get_sd_header_size_fnc;
     mem.create_sd_header_fnc = task_cfg->create_sd_header_fnc;
 
-    char *buffer = malloc(mem.get_sd_header_size_fnc());
-    mem.create_sd_header_fnc(buffer, mem.get_sd_header_size_fnc(), NULL, 0);
+    size_t header_size = mem.get_sd_header_size_fnc();
 
+    char buffer[header_size + 1];
+    mem.create_sd_header_fnc(buffer, header_size + 1, NULL, 0);
+
+    xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
     FILE *data_file = fopen(mem.data_path, "a");
+    xSemaphoreGive(mem.spi_mutex);
 
     if (data_file == NULL) {
         report_error(SD_WRITE);
         return;
     }
 
-    write_to_sd(data_file, buffer, mem.get_sd_header_size_fnc());
+    write_to_sd(data_file, buffer, header_size);
+    
+    xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
     fclose(data_file);
+    xSemaphoreGive(mem.spi_mutex);
 }
 
 bool SDT_init(sd_task_cfg_t *task_cfg) {
@@ -346,7 +352,7 @@ bool SDT_init(sd_task_cfg_t *task_cfg) {
     }
 
     // creating headers
-    // write_headers(task_cfg);
+    write_headers(task_cfg);
 
     if (initialize_task(task_cfg) == false) {
         ESP_LOGE(TAG, "Unable to initialize sd task");
