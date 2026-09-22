@@ -71,7 +71,7 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
         recovery_flags |= data.recovery.easymini_armed ? 1u << 9 : 0u;
         recovery_flags |= data.recovery.continuity ? 1u << 10 : 0u;
         recovery_flags |= data.recovery.telemetrum_apogee_detected ? 1u << 11 : 0u;
-        recovery_flags |= data.recovery.telemetrum_apogee_detected ? 1u << 12 : 0u;
+        recovery_flags |= data.recovery.easymini_apogee_detected ? 1u << 12 : 0u;
         frame->recovery_flags.is_present = true;
         frame->recovery_flags.value = recovery_flags;
     }
