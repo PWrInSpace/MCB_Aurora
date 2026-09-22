@@ -21,12 +21,12 @@
 static void on_init(void *arg) { ESP_LOGI(TAG, "ON INIT"); }
 
 static void on_idle(void *arg) {
-    // gpio_exp_led_set_color(GREEN);
+    // TODO:EXPANDER gpio_exp_led_set_color(GREEN);
     ESP_LOGI(TAG, "ON IDLE");
 }
 
 static void on_recovery_arm(void *arg) {
-    // gpio_exp_led_set_color(YELLOW);
+    // TODO:EXPANDER gpio_exp_led_set_color(YELLOW);
     if (recovery_send_cmd(RECOV_EASYMINI_ARM, 0x00) == false) {
         errors_add(ERROR_TYPE_RECOVERY, ERROR_RECOV_TRANSMIT, 100);
         ESP_LOGE(TAG, "Recovery send error :C");
@@ -43,12 +43,12 @@ static void on_recovery_arm(void *arg) {
 }
 
 static void on_fueling(void *arg) {
-    // gpio_exp_led_set_color(YELLOW);
+    // TODO:EXPANDER gpio_exp_led_set_color(YELLOW);
     cmd_message_t cmd = cmd_create_message(OX_MAIN_CLOSE, 0x00);
     ENA_send(&esp_now_ox_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_MAIN_CLOSE, 0x00);
-    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(OX_VENT_CLOSE, 0x00);
     ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
@@ -57,13 +57,13 @@ static void on_fueling(void *arg) {
     ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_VENT_CLOSE, 0x00);
-    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
 
     ESP_LOGI(TAG, "ON FUELING");
 }
 
 static void on_pressurizing(void *arg) {
-    // gpio_exp_led_set_color(CYAN);
+    // TODO:EXPANDER gpio_exp_led_set_color(CYAN);
 
     cmd_message_t cmd = cmd_create_message(N2_MAIN_CLOSE, 0x00);
     ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
@@ -71,25 +71,25 @@ static void on_pressurizing(void *arg) {
     cmd = cmd_create_message(N2_VENT_CLOSE, 0x00);
     ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
 
-    gpio_exp_live_camera_turn_on();
+    // TODO:EXPANDER gpio_exp_live_camera_turn_on();
 
     ESP_LOGI(TAG, "ON PRESSURIZING");
 }
 
 static void on_armed_to_launch(void *arg) {
-    // gpio_exp_led_set_color(YELLOW);
+    // TODO:EXPANDER gpio_exp_led_set_color(YELLOW);
 
     // po całej procedurze tankowania wprowadzamy kalibrację, (płytka powinna się już nagrzać)
     ESP_LOGI(TAG, "CALIBRATING");
     bmp5_calculate_altitude_offset();
 
-    gpio_exp_sd_camera_turn_on();
+    // TODO:EXPANDER gpio_exp_sd_camera_turn_on();
 
     ESP_LOGI(TAG, "ON ARMED TO LAUNCH");
 }
 
 static void on_ready_to_lauch(void *arg) {
-    // gpio_exp_led_set_color(PURPLE);
+    // TODO:EXPANDER gpio_exp_led_set_color(PURPLE);
     ESP_LOGI(TAG, "ON READY_TO_LAUNCH");
     Settings settings = settings_get_all();
 
@@ -119,7 +119,7 @@ static void on_countdown(void *arg) {
     sys_timer_start(TIMER_CAMERAS_OFF, camera_countdown, TIMER_TYPE_ONE_SHOT);
     ESP_LOGI(TAG, "Cameras will turn off in %d seconds", camera_countdown / 1000);
 
-    // gpio_exp_led_set_color(RED);
+    // TODO:EXPANDER gpio_exp_led_set_color(RED);
     return;
 
 abort_countdown:
@@ -202,7 +202,7 @@ static void on_flight(void *arg) {
     ESP_LOGI(TAG, "----> ON FLIGHT <----");
 
     sensors_remove_process_function(1000);
-    // gpio_exp_led_set_color(RED);
+    // TODO:EXPANDER gpio_exp_led_set_color(RED);
 }
 
 static void recovery_second_stage_process(recovery_data_t *data) {
@@ -267,7 +267,7 @@ static void on_second_stage_recovery(void *arg) {
     ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_VENT_OPEN, 0x00);
-    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
 }
 
 static void on_ground(void *arg) {
@@ -283,10 +283,10 @@ static void on_ground(void *arg) {
         ESP_LOGE(TAG, "Unable to delete flash data timer");
     }
 
-    gpio_exp_sd_camera_turn_off();
-    gpio_exp_live_camera_turn_off();
+    // TODO:EXPANDER gpio_exp_sd_camera_turn_off();
+    // TODO:EXPANDER gpio_exp_live_camera_turn_off();
     ESP_LOGI(TAG, "ON GROUND");
-    // gpio_exp_led_set_color(CYAN);
+    // TODO:EXPANDER gpio_exp_led_set_color(CYAN);
 }
 
 static void close_valves(void) {
@@ -294,7 +294,7 @@ static void close_valves(void) {
     ENA_send(&esp_now_ox_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_MAIN_CLOSE, 0x00);
-    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(ETH_MAIN_CLOSE, 0x00);
     ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
@@ -306,7 +306,7 @@ static void close_valves(void) {
     ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_VENT_CLOSE, 0x00);
-    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
 }
 
 static void close_valves_on_lift_off(void) {
@@ -317,7 +317,7 @@ static void close_valves_on_lift_off(void) {
     ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_VENT_CLOSE, 0x00);
-    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
 }
 
 static void on_hold(void *arg) {
@@ -338,7 +338,7 @@ static void on_hold(void *arg) {
         ESP_LOGE(TAG, "Unable to restart disconnect timer");
     }
 
-    // gpio_exp_led_set_color(BLUE);
+    // TODO:EXPANDER gpio_exp_led_set_color(BLUE);
 }
 
 static void on_abort(void *arg) {
@@ -365,8 +365,8 @@ static void on_abort(void *arg) {
         close_valves();
     }
 
-    if (sys_timer_delete(TIMER_DISCONNECT) == false) {
-        ESP_LOGE(TAG, "Unable to delete disconnect timer");
+    if (sys_timer_stop(TIMER_DISCONNECT) == false) {
+        ESP_LOGE(TAG, "Unable to stop disconnect timer");
     }
 
     // disarm recovery module
@@ -382,7 +382,7 @@ static void on_abort(void *arg) {
         ESP_LOGE(TAG, "Recovery send error :C");
     }
 
-    // gpio_exp_led_set_color(NONE);
+    // TODO:EXPANDER gpio_exp_led_set_color(NONE);
 }
 
 static state_config_t states_cfg[] = {
