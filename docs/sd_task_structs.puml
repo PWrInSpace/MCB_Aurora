@@ -1,0 +1,68 @@
+@startuml
+scale 1920 width
+scale 1080 height 
+
+struct sd_config_t {
+    spi_host_device_t spi_host;
+    uint8_t cs_pin;
+    char *data_path;
+    size_t data_path_size;
+    char *log_path;
+    size_t log_path_size;
+    size_t data_size;
+
+    uint32_t stack_depth;
+    BaseType_t core_id;
+    UBaseType_t priority;
+    SemaphoreHandle_t spi_mutex;
+
+    error_handler error_handler_fnc;
+    create_sd_frame create_sd_frame_fnc;
+}
+
+struct sd_task_t {
+    sd_card_t sd_card;
+
+    TaskHandle_t sd_task;
+    QueueHandle_t data_queue;
+    QueueHandle_t log_queue;
+    // prevent race condition during path changing
+    SemaphoreHandle_t data_write_mutex;
+    SemaphoreHandle_t spi_mutex;
+
+    void *data_from_queue;
+    size_t data_from_queue_size;
+    char data_buffer[SD_DATA_BUFFER_MAX_SIZE];
+    char log_buffer[SD_LOG_BUFFER_MAX_SIZE];
+
+    char data_path[SD_PATH_SIZE];
+    char log_path[SD_PATH_SIZE];
+
+    uint32_t try_to_mount_counter;
+
+    error_handler error_handler_fnc;
+    create_sd_frame create_sd_frame_fnc;
+}
+
+
+struct state_config_t {
+    state_id id
+    function state_transition
+    void* callback_arg
+}
+
+enum SM_Response {
+    SM_OK
+    SM_STATES_ERROR
+    SM_STATES_NUMBER_ERROR
+    SM_STATE_CHANGE_ERROR
+    SM_NO_MORE_STATES
+    SM_INVALID_STATE
+    SM_RUN_ERROR
+    SM_NULL_FUNCTION
+}
+
+state_machine <-- state_config_t
+state_machine <-- SM_Response
+
+@enduml

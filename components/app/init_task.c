@@ -60,7 +60,6 @@ static void TASK_init(void *arg) {
     size_t free_heap = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
     ESP_LOGI(TAG, "Free heap at init: %u bytes", (unsigned)free_heap);
 
-        // CHECK_RESULT_ESP(settings_init(), "Change state");
     settings_init_default();
     Settings settings = settings_get_all();
 
@@ -79,7 +78,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
     CHECK_RESULT_BOOL(initialize_esp_now(), "ESP_NOW");
     CHECK_RESULT_BOOL(initialize_flash_memory(), "FLASH");
-    CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
+    // CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
     CHECK_RESULT_BOOL(initialize_gps(), "Gps task");
     CHECK_RESULT_BOOL(initialize_recovery(), "Recovery task");
 
@@ -95,16 +94,18 @@ static void TASK_init(void *arg) {
     // CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
     // CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 1000, TIMER_TYPE_PERIODIC), "SD TIMER");
     CHECK_RESULT_ESP(init_console(), "CLI");
-    // esp_log_level_set("*", ESP_LOG_DEBUG);
 
     CHECK_RESULT_ESP(SM_change_state(IDLE), "Change state to idle");
-
-    // buzzer_turn_on();
 
     {
         UBaseType_t high = uxTaskGetStackHighWaterMark(NULL);
         ESP_LOGI(TAG, "Init task stack high water mark: %u", (unsigned)high);
     }
+
+    buzzer_turn_on();
+    vTaskDelay(pdMS_TO_TICKS(1500));
+    buzzer_turn_off();
+
     vTaskDelete(NULL);
 }
 

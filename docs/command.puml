@@ -1,0 +1,18 @@
+' @startuml
+' skinparam titleFontSize 48
+' title
+'  | Name || LoRa dev id    | Module dev id | Command | Payload |
+'  | Type || uint32      | uint32 | uint32 | int32 |
+' end title
+' @enduml
+
+@startuml
+hide time-axis
+concise "Komenda sterująca" as WU
+
+WU is Absent
+
+@WU
+0 is Waiting
++500 is ok
+@enduml

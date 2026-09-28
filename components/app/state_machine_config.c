@@ -48,7 +48,7 @@ static void on_fueling(void *arg) {
     ENA_send(&esp_now_ox_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_MAIN_CLOSE, 0x00);
-    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(OX_VENT_CLOSE, 0x00);
     ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
@@ -57,7 +57,7 @@ static void on_fueling(void *arg) {
     ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_VENT_CLOSE, 0x00);
-    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
 
     ESP_LOGI(TAG, "ON FUELING");
 }
@@ -129,8 +129,9 @@ static void recovery_first_stage_process(recovery_data_t *data) {
         return;
     }
 
-    ESP_LOGI(TAG, "Recovery first stage process, firstStageDone: %d", data->firstStageDone);
-    if (data->firstStageDone == true) {
+    bool first_stage = data->first_stage;
+    ESP_LOGI(TAG, "Recovery first stage process, firstStageDone: %d", first_stage);
+    if (first_stage == true) {
         if (SM_change_state(FIRST_STAGE_RECOVERY) != SM_OK) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
         }
@@ -206,7 +207,8 @@ static void recovery_second_stage_process(recovery_data_t *data) {
         return;
     }
 
-    if (data->secondStageDone == true) {
+    bool second_stage = data->second_stage;
+    if (second_stage == true) {
         if (SM_change_state(SECOND_STAGE_RECOVERY) != SM_OK) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
         }
@@ -263,7 +265,7 @@ static void on_second_stage_recovery(void *arg) {
     ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_VENT_OPEN, 0x00);
-    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
 }
 
 static void on_ground(void *arg) {
@@ -290,7 +292,7 @@ static void close_valves(void) {
     ENA_send(&esp_now_ox_main_valve, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_MAIN_CLOSE, 0x00);
-    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(ETH_MAIN_CLOSE, 0x00);
     ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
@@ -302,7 +304,7 @@ static void close_valves(void) {
     ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_VENT_CLOSE, 0x00);
-    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
 }
 
 static void close_valves_on_lift_off(void) {
@@ -313,7 +315,7 @@ static void close_valves_on_lift_off(void) {
     ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_VENT_CLOSE, 0x00);
-    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
 }
 
 static void on_hold(void *arg) {
@@ -361,8 +363,8 @@ static void on_abort(void *arg) {
         close_valves();
     }
 
-    if (sys_timer_delete(TIMER_DISCONNECT) == false) {
-        ESP_LOGE(TAG, "Unable to delete disconnect timer");
+    if (sys_timer_stop(TIMER_DISCONNECT) == false) {
+        ESP_LOGE(TAG, "Unable to stop disconnect timer");
     }
 
     // disarm recovery module

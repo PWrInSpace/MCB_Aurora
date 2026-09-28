@@ -9,6 +9,7 @@
 #include "esp_now_config.h"
 #include "flash_task.h"
 #include "gpio_expander.h"
+#include "lora_task.h"
 #include "lora_task_config.h"
 #include "mission_timer_config.h"
 #include "recovery_task_config.h"
@@ -26,7 +27,7 @@
 static bool state_change_check_countdown(void) {
     recovery_data_t data = rocket_data_get_recovery();
     tanwa_data_t tanwa = rocket_data_get_tanwa();
-    if (data.isArmed == false || data.isTeleActive == false || tanwa.soft_arm == false) {
+    if (data.telemetrum_armed == false || data.easymini_armed == false || tanwa.soft_arm == false) {
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_NOT_ARMED, 100);
         return false;
     }
@@ -73,7 +74,7 @@ static void mcb_abort(uint32_t command, int32_t payload, bool privilege) {
         return;
     }
 
-    if (state > FLIGHT) {
+    if (state > FLIGHT && state != HOLD) {
         return;
     }
 
@@ -276,6 +277,19 @@ static void mcb_live_camera_off(uint32_t command, int32_t payload, bool privileg
     gpio_exp_live_camera_turn_off();
 }
 
+static void mcb_lora_sync(uint32_t command, int32_t payload, bool privilege) {
+    // ESP_LOGI(TAG, "LoRa sync (0xBA) - request MCB frame TX");
+    lora_task_request_mcb_frame_tx();
+}
+
+static void mcb_next_state(uint32_t command, int32_t payload, bool privilege) {
+    if (SM_get_current_state() >= RDY_TO_LAUNCH) {
+        return;
+    }
+
+    SM_force_change_state(SM_get_current_state() + 1);
+}
+
 static cmd_command_t mcb_commands[] = {
     {MCB_STATE_CHANGE, mcb_state_change},
     {MCB_ABORT, mcb_abort},
@@ -297,7 +311,9 @@ static cmd_command_t mcb_commands[] = {
     {MCB_LIVE_CAMERA_ON, mcb_live_camera_on},
     {MCB_LIVE_CAMERA_OFF, mcb_live_camera_off},
     {MCB_RESET_DEV, mcb_reset_dev},
+    {MCB_LORA_SYNC, mcb_lora_sync},
     {MCB_RESET_DISCONNECT_TIMER, mcb_reset_disconnect_timer},
+    {MCB_NEXT_STATE, mcb_next_state},
 };
 
 // TANWA
