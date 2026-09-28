@@ -41,6 +41,7 @@ static void process_gps_data(void) {
         if (gb.read_error_counter > 7) {
             errors_add(ERROR_TYPE_SENSORS, ERROR_SENSOR_GPS, 100);
         }
+        ESP_LOGE(TAG, "Failed to read GPS data");
         return;
     }
 
@@ -92,6 +93,7 @@ bool initialize_gps(void) {
     gb.ubx.delay_fnc = gps_delay_ms;
 
     gpio_exp_reset_gps();
+    vTaskDelay(pdMS_TO_TICKS(1000));
 
     if (ublox_m10_init(&gb.ubx) == false) {
         return false;
