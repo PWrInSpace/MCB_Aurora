@@ -95,12 +95,12 @@ static void sensors_process_data(void *data_buffer) {
     data->altitude = kf.alt;
     data->velocity = kf.vel;
 
-    ESP_LOGI(TAG, "=== SENSOR DATA ========================================");
-    ESP_LOGI(TAG, "MAG  | X: %8.2f | Y: %8.2f | Z: %8.2f |", data->mag_x, data->mag_y, data->mag_z);
-    ESP_LOGI(TAG, "ACC  | X: %8.2f | Y: %8.2f | Z: %8.2f |", data->acc_x, data->acc_y, data->acc_z);
-    ESP_LOGI(TAG, "GYR  | X: %8.2f | Y: %8.2f | Z: %8.2f |", data->gyr_x, data->gyr_y, data->gyr_z);
-    ESP_LOGI(TAG, "BARO | P: %8.2f | P0:%8.2f | T: %8.2f |", data->pressure, data->pressure0, data->temperature);
-    ESP_LOGI(TAG, "FLGT | A: %8.2f | V: %8.2f | aV:%8.2f |", data->altitude, data->velocity, data->acc_vertical);
+    // ESP_LOGI(TAG, "=== SENSOR DATA ========================================");
+    // ESP_LOGI(TAG, "MAG  | X: %8.2f | Y: %8.2f | Z: %8.2f |", data->mag_x, data->mag_y, data->mag_z);
+    // ESP_LOGI(TAG, "ACC  | X: %8.2f | Y: %8.2f | Z: %8.2f |", data->acc_x, data->acc_y, data->acc_z);
+    // ESP_LOGI(TAG, "GYR  | X: %8.2f | Y: %8.2f | Z: %8.2f |", data->gyr_x, data->gyr_y, data->gyr_z);
+    // ESP_LOGI(TAG, "BARO | P: %8.2f | P0:%8.2f | T: %8.2f |", data->pressure, data->pressure0, data->temperature);
+    // ESP_LOGI(TAG, "FLGT | A: %8.2f | V: %8.2f | aV:%8.2f |", data->altitude, data->velocity, data->acc_vertical);
 }
 
 bool initialize_processing_task(void) {

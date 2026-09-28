@@ -18,6 +18,13 @@ bool PCAL6408A_init(PCAL6408A_t *pca) {
     return true;
 }
 
+bool PCAL6408A_get_reg(PCAL6408A_t *pca, uint8_t reg_addr, uint8_t *reg_value) {
+    if (pca->i2c_read_fnc(pca->dev_address, reg_addr, reg_value, 1) == false) {
+        return false;
+    }
+    return true;
+}
+
 bool PCAL6408A_set_mode(PCAL6408A_t *pca, PCAL6408A_pin_mode_t mode) {
     uint8_t reg;
 
@@ -49,12 +56,13 @@ bool PCAL6408A_set_mode(PCAL6408A_t *pca, PCAL6408A_pin_mode_t mode) {
 }
 
 bool PCAL6408A_set_mode_pin(PCAL6408A_t *pca, PCAL6408A_pin_mode_t mode, uint8_t pin) {
-    if (7 < pin || pin < 0) {
+    if (7 < pin) {
         ESP_LOGE(TAG, "Invalid pin number");
         return false;
     }
 
     uint8_t reg = 0x00;
+    PCAL6408A_get_reg(pca, PCAL6408A_CONFIGURATION_REG, &reg);
 
     switch (mode) {
         case PCAL6408A_OUTPUT:
@@ -98,12 +106,13 @@ bool PCAL6408A_set_level(PCAL6408A_t *pca, PCAL6408A_pin_level_t level) {
 }
 
 bool PCAL6408A_set_level_pin(PCAL6408A_t *pca, PCAL6408A_pin_level_t level, uint8_t pin) {
-    if (7 < pin || pin < 0) {
+    if (7 < pin) {
         ESP_LOGE(TAG, "Invalid pin number");
         return false;
     }
 
     uint8_t reg = 0x00;
+    PCAL6408A_get_reg(pca, PCAL6408A_OUTPUT_PORT_REG, &reg);
 
     switch (level) {
         case PCAL6408A_LOW:
@@ -117,6 +126,7 @@ bool PCAL6408A_set_level_pin(PCAL6408A_t *pca, PCAL6408A_pin_level_t level, uint
             return false;
     }
 
+    ESP_LOGI(TAG, "Setting reg: 0x%02X for pin %d to level %d", reg, pin, level);
     if (pca->i2c_write_fnc(pca->dev_address, PCAL6408A_OUTPUT_PORT_REG, &reg, 1) == false) {
         return false;
     }

@@ -7,6 +7,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
+#include "gpio_expander.h"
 #include "uart.h"
 #include "ublox_m10.h"
 
@@ -53,6 +54,7 @@ static void process_gps_data(void) {
     gb.position.fix_type = pvt.fix_type;
     xSemaphoreGive(gb.data_mutex);
 
+    ESP_LOGI(TAG, "Lat: %f, Lon: %f, Alt: %f, Sats: %d, Fix: %d", gb.position.latitude, gb.position.longitude, gb.position.altitude, gb.position.sats_in_view, gb.position.fix_type);
     xSemaphoreTake(gb.processing_mutex, portMAX_DELAY);
     if (gb.process_fnc != NULL) {
         gb.process_fnc(&gb.position);
@@ -88,6 +90,8 @@ bool initialize_gps(void) {
     gb.ubx.uart_read_fnc = uart_ublox_read;
     gb.ubx.uart_write_fnc = uart_ublox_write;
     gb.ubx.delay_fnc = gps_delay_ms;
+
+    gpio_exp_reset_gps();
 
     if (ublox_m10_init(&gb.ubx) == false) {
         return false;

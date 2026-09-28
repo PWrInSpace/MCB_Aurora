@@ -94,8 +94,8 @@ bool ublox_m10_init(ublox_m10_t *ubx) {
     ubx->delay_fnc(50);
     ubx->uart_write_fnc(setRocketMode4G, sizeof(setRocketMode4G));
     ubx->delay_fnc(50);
-    ubx->uart_write_fnc(enableNavPvt, sizeof(enableNavPvt));
-    ubx->delay_fnc(50);
+    // ubx->uart_write_fnc(enableNavPvt, sizeof(enableNavPvt));
+    // ubx->delay_fnc(50);
     ubx->uart_write_fnc(setRate1Hz_M10, sizeof(setRate1Hz_M10));
     ubx->delay_fnc(100);
     return true;
@@ -123,54 +123,3 @@ bool ublox_m10_get_PVT(ublox_m10_t *ubx, ublox_m10_pvt_t *pvt) {
 
     return true;
 }
-
-// bool ublox_m8_set_dynamic_model(ublox_m8_t *ubx, ublox_m8_dynamic_model_t dyn_model) {
-//     uint8_t message_size = create_request_message(
-//         ubx->send_buffer, UBX_CLASS_CFG, UBX_CFG_ID_NAV5);
-//     ubx->read_data_size = ubx->uart_read_fnc(ubx->read_buffer, sizeof(ubx->read_buffer));
-//     if (ubx->uart_write_fnc(ubx->send_buffer, message_size) != message_size) {
-//         return false;
-//     }
-
-//     ubx->read_data_size = ubx->uart_read_fnc(ubx->read_buffer, sizeof(ubx->read_buffer));
-
-//     if (check_received_message(ubx->read_buffer, ubx->read_data_size) == false) {
-//         ESP_LOGE(TAG, "Receive error");
-//         return false;
-//     }
-//     ESP_LOGI(TAG, "DYNAMIC MODEL %d", ubx->read_buffer[8]);
-//     ubx->read_buffer[8] = dyn_model;
-
-//     if (ubx->uart_write_fnc(ubx->read_buffer, ubx->read_data_size) != message_size) {
-//         return false;
-//     }
-
-//     return true;
-// }
-
-// bool ublox_m8_get_ESFALG(ublox_m8_t *ubx, ublox_m8_esfalg_t *esfalg) {
-//     uint8_t message_size = create_request_message(
-//         ubx->send_buffer, UBX_CLASS_CFG, UBX_CFG_ID_ESFLAG);
-
-//     if (ubx->uart_write_fnc(ubx->send_buffer, message_size) != message_size) {
-//         return false;
-//     }
-
-//     ubx->read_data_size = ubx->uart_read_fnc(ubx->read_buffer, sizeof(ubx->read_buffer));
-
-//     if (ubx->read_data_size < 1) {
-//         return false;
-//     }
-
-//     if (check_received_message(ubx->read_buffer, ubx->read_data_size) == false) {
-//         return false;
-//     }
-
-//     memcpy(esfalg->yaw.raw, &ubx->read_buffer[10], sizeof(esfalg->yaw));
-//     memcpy(esfalg->pitch.raw, &ubx->read_buffer[14], sizeof(esfalg->pitch));
-//     memcpy(esfalg->roll.raw, &ubx->read_buffer[16], sizeof(esfalg->roll));
-//     ESP_LOGI(TAG, "YAW %d", esfalg->yaw.data);
-//     ESP_LOGI(TAG, "PITCH %d", esfalg->pitch.data);
-//     ESP_LOGI(TAG, "ROLL %d", esfalg->roll.data);
-//     return true;
-// }
