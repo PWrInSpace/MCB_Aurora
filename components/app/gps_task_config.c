@@ -41,7 +41,6 @@ static void process_gps_data(void) {
         if (gb.read_error_counter > 7) {
             errors_add(ERROR_TYPE_SENSORS, ERROR_SENSOR_GPS, 100);
         }
-        ESP_LOGE(TAG, "Failed to read GPS data");
         return;
     }
 
@@ -55,7 +54,7 @@ static void process_gps_data(void) {
     gb.position.fix_type = pvt.fix_type;
     xSemaphoreGive(gb.data_mutex);
 
-    ESP_LOGI(TAG, "Lat: %f, Lon: %f, Alt: %f, Sats: %d, Fix: %d", gb.position.latitude, gb.position.longitude, gb.position.altitude, gb.position.sats_in_view, gb.position.fix_type);
+    // ESP_LOGI(TAG, "Lat: %f, Lon: %f, Alt: %f, Sats: %d, Fix: %d", gb.position.latitude, gb.position.longitude, gb.position.altitude, gb.position.sats_in_view, gb.position.fix_type);
     xSemaphoreTake(gb.processing_mutex, portMAX_DELAY);
     if (gb.process_fnc != NULL) {
         gb.process_fnc(&gb.position);

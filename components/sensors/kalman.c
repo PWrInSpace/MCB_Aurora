@@ -16,8 +16,10 @@ bool kalman_init(kalman_t *kf, float q_accel, float r_baro) {
 }
 
 bool kalman_predict(kalman_t *kf, float accel_z, float dt) {
-    kf->alt += kf->vel * dt + 0.5f * accel_z * dt * dt;
-    kf->vel += accel_z * dt;
+    float accel_z_mps2 = accel_z * 9.80665f; // Convert g to m/s^2
+
+    kf->alt += kf->vel * dt + 0.5f * accel_z_mps2 * dt * dt;
+    kf->vel += accel_z_mps2 * dt;
 
     float dt2 = dt * dt;
     float dt3 = dt2 * dt;

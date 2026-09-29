@@ -49,7 +49,6 @@ static bool write_to_sd(FILE *file, char *data, size_t size) {
     xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
     fwrite(data, 1, size, file);
     fflush(file);
-    fsync(fileno(file));
     xSemaphoreGive(mem.spi_mutex);
 
     return true;
@@ -74,7 +73,7 @@ static void get_data_from_queue_and_save(FILE * data_file) {
 static void prepare_data_file_and_save(void) {
     xSemaphoreTake(mem.spi_mutex, portMAX_DELAY);
     FILE *data_file = fopen(mem.data_path, "a");
-     if (data_file == NULL) {
+    if (data_file == NULL) {
         ESP_LOGE(TAG, "Can not open the file %s", mem.data_path);
         // return;
     }

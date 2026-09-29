@@ -10,7 +10,7 @@ bool fusion_wrapper_init(FusionAhrs *ahrs) {
 
     const FusionAhrsSettings settings = {
         .sampleRate = 50.0f,
-        .convention = FusionConventionNed,
+        .convention = FusionConventionNwu,
         .gain = 0.1f,
         .gyroscopeRange = 250.0f,
         .accelerationRejection = 10.0f,
