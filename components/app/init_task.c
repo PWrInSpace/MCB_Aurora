@@ -104,7 +104,7 @@ static void TASK_init(void *arg) {
         ESP_LOGI(TAG, "Init task stack high water mark: %u", (unsigned)high);
     }
     
-    buzzer_play_notes(dlugosc_dzwieku_samotnosci, sizeof(dlugosc_dzwieku_samotnosci) / sizeof(dlugosc_dzwieku_samotnosci[0]));
+    buzzer_play_notes(skoczna_fanfara_c_dur, sizeof(skoczna_fanfara_c_dur) / sizeof(skoczna_fanfara_c_dur[0]));
 
     vTaskDelete(NULL);
 }
