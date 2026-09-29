@@ -11,12 +11,11 @@
 #include "mission_timer_config.h"
 #include "processing_task_config.h"
 #include "recovery_task_config.h"
-#include "rocket_data.h"
 #include "sdkconfig.h"
 #include "settings_mem.h"
 #include "system_timer_config.h"
 
-#define TAG "SMC"
+static const char *TAG = "SMC";
 
 static void on_init(void *arg) { ESP_LOGI(TAG, "ON INIT"); }
 
@@ -146,10 +145,7 @@ static void lift_off_process(void *data_buffer) {
     static uint8_t liftoff_counter = 0;
     sensors_data_t *data = data_buffer;
 
-    ESP_LOGI(TAG, "Lift off process altitude: %.2f, acc_vertical: %.2f", data->altitude,
-             data->acc_vertical);
-
-    if (data->altitude > 10.0f) {
+    if (data->acc_vertical > 3.0f) {
         liftoff_counter += 1;
     } else {
         liftoff_counter = 0;
