@@ -124,9 +124,8 @@ bool initialize_gps(void) {
 }
 
 gps_positioning_t gps_get_positioning(void) {
-    gps_positioning_t pos;
     xSemaphoreTake(gb.data_mutex, portMAX_DELAY);
-    pos = gb.position;
+    gps_positioning_t pos = gb.position;
     xSemaphoreGive(gb.data_mutex);
 
     return pos;
