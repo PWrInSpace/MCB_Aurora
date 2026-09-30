@@ -2,7 +2,9 @@
 #define BUZZER_CONFIG_H
 
 #include <stddef.h>
+
 #include "buzzer_pwm.h"
+#include "esp_err.h"
 
 #define NOTE_A3  220
 #define NOTE_C4  261
@@ -97,5 +99,7 @@ static const note_t skoczna_fanfara_c_dur[] = {
 };
 
 bool buzzer_play_notes(const note_t *notes, size_t num_notes);
+
+static esp_err_t start_recovery_music(void);
 
 #endif
