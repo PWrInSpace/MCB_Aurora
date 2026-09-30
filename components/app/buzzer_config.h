@@ -7,12 +7,16 @@
 #include "esp_err.h"
 
 #define NOTE_A3  220
+#define NOTE_B3  247
 #define NOTE_C4  261
 #define NOTE_D4  293
 #define NOTE_E4  329
 #define NOTE_F4  349
 #define NOTE_G4  392
+#define NOTE_GS4 415
+#define NOTE_B4  494
 #define NOTE_A4  440
+#define NOTE_C5  532
 #define NOTE_CS7 2217
 #define NOTE_DS7 2489
 #define NOTE_E7  2637
@@ -38,9 +42,11 @@
 #define EIGHTH_NOTE (QUARTER_NOTE / 2)
 #define EIGHTH_NOTE_DOT (SIXTEENTH_NOTE * 3)
 
+#define PP {NOTE_B7, 20}, {NOTE_C7, 20}
+
 typedef struct {
     uint16_t freq;
-    uint16_t period;
+    float period;
 } note_t;
 
 static const note_t dlugosc_dzwieku_samotnosci[] = {
@@ -55,9 +61,6 @@ static const note_t dlugosc_dzwieku_samotnosci[] = {
     {NOTE_F4, EIGHTH_NOTE}, {NOTE_D4, HALF_NOTE_DOT}
 };
 
-#define PP {NOTE_B7, 20}, {NOTE_C7, 20}
-
-/* Łącznie dokładnie 3000 ms */
 static const note_t skoczna_fanfara_c_dur[] = {
     /* A: chaos, skoki tryton/septymy: 16 x 45 = 720 ms */
     {NOTE_C7, 45},  {NOTE_FS7, 45}, {NOTE_D7, 45},  {NOTE_GS7, 45},
@@ -96,6 +99,27 @@ static const note_t skoczna_fanfara_c_dur[] = {
 
     /* I: cios: 150 + 250 = 400 ms */
     {NOTE_C7, 150}, {NOTE_C8, 250}
+};
+
+static const note_t hava_nagila[] = {
+    {NOTE_E4, 428.57}, {NOTE_E4, 428.57}, {NOTE_E4, 214.28}, {NOTE_GS4, 214.28}, {NOTE_F4, 214.28}, {NOTE_E4, 214.28},
+    {NOTE_GS4, 428.57}, {NOTE_GS4, 428.57}, {NOTE_GS4, 214.28}, {NOTE_B4, 214.28}, {NOTE_A4, 214.28}, {NOTE_GS4, 214.28},
+    {NOTE_A4, 428.57}, {NOTE_A4, 428.57}, {NOTE_A4, 214.28}, {NOTE_C5, 214.28}, {NOTE_B4, 214.28}, {NOTE_A4, 214.28},
+    {NOTE_GS4, 428.57}, {NOTE_F4, 214.28}, {NOTE_E4, 214.28}, {NOTE_E4, 214.28}, {NOTE_GS4, 857.14},
+    {NOTE_GS4, 214.28}, {NOTE_GS4, 428.57}, {NOTE_F4, 214.28}, {NOTE_E4, 214.28}, {NOTE_E4, 214.28}, {NOTE_E4, 428.57},
+    {NOTE_F4, 214.28}, {NOTE_F4, 428.57}, {NOTE_E4, 214.28}, {NOTE_D4, 214.28}, {NOTE_D4, 214.28}, {NOTE_D4, 428.57},
+    {NOTE_D4, 428.57}, {NOTE_F4, 321.42}, {NOTE_E4, 107.14}, {NOTE_D4, 214.28}, {NOTE_D4, 214.28}, {NOTE_A4, 428.57}
+};
+
+static const note_t krakowiaczek[] = {
+    {NOTE_B3, 450}, {NOTE_D4, 150}, {NOTE_F4, 300}, {NOTE_A4, 300},
+    {NOTE_G4, 300}, {NOTE_E4, 600}, {REST, 600},
+    {NOTE_G4, 450}, {NOTE_G4, 150}, {NOTE_F4, 300}, {NOTE_D4, 300},
+    {NOTE_C4, 300}, {NOTE_E4, 600}, {REST, 600},
+    {NOTE_B3, 450}, {NOTE_D4, 150}, {NOTE_F4, 300}, {NOTE_A4, 300},
+    {NOTE_G4, 300}, {NOTE_E4, 600}, {REST, 600},
+    {NOTE_G4, 450}, {NOTE_G4, 150}, {NOTE_F4, 300}, {NOTE_D4, 300},
+    {NOTE_C4, 600}, {NOTE_C4, 300}, {REST, 600}
 };
 
 bool buzzer_play_notes(const note_t *notes, size_t num_notes);

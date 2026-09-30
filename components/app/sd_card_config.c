@@ -1,16 +1,16 @@
 #include "sd_card_config.h"
-#include "sdkconfig.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/timers.h"
+
+#include "buzzer_config.h"
 #include "errors_config.h"
-#include "sd_task.h"
 #include "esp_log.h"
-#include "init_task.h"
-#include "gen_pysd.h"
 #include "esp_timer.h"
+#include "freertos/FreeRTOS.h"
+#include "gen_pysd.h"
+#include "sd_task.h"
+#include "sdkconfig.h"
 #include "spi.h"
 
-#define TAG "SD_C"
+static const char *TAG = "SD_C";
 
 extern SemaphoreHandle_t mutex_spi;
 
@@ -60,5 +60,9 @@ bool initialize_sd_card(void) {
         .spi_mutex = mutex_spi,
     };
 
-    return SDT_init(&cfg);
+    bool res = SDT_init(&cfg);
+    if (!res) {
+        buzzer_play_notes(hava_nagila, sizeof(hava_nagila) / sizeof(note_t));
+    }
+    return res;
 }

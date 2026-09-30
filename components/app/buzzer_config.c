@@ -16,14 +16,19 @@ bool buzzer_play_notes(const note_t *notes, size_t num_notes) {
             buzzer_turn_on();
         }
         vTaskDelay(pdMS_TO_TICKS(notes[i].period));
+
+        buzzer_turn_off();
+        vTaskDelay(pdMS_TO_TICKS(10));  // Short delay between notes
     }
     buzzer_turn_off();
     return true;
 }
 
 static void recovery_music_task(void *arg) {
-    buzzer_play_notes(dlugosc_dzwieku_samotnosci, sizeof(dlugosc_dzwieku_samotnosci) / sizeof(note_t));
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    while (true) {
+        buzzer_play_notes(dlugosc_dzwieku_samotnosci, sizeof(dlugosc_dzwieku_samotnosci) / sizeof(note_t));
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
 }
 
 esp_err_t start_recovery_music(void) {
