@@ -89,3 +89,11 @@ bool gpio_exp_reset_lora(void) {
     vTaskDelay(pdMS_TO_TICKS(10));
     return PCAL6408A_set_level_pin(&gb.pca, PCAL6408A_HIGH, EXPANDER_LORA_RESET_PIN);
 }
+
+bool gpio_exp_reset_gps(void) {
+    if (!PCAL6408A_set_level_pin(&gb.pca, PCAL6408A_LOW, EXPANDER_GPS_RESET_PIN)) {
+        return false;
+    }
+    vTaskDelay(pdMS_TO_TICKS(10));
+    return PCAL6408A_set_level_pin(&gb.pca, PCAL6408A_HIGH, EXPANDER_GPS_RESET_PIN);
+}

@@ -6,10 +6,13 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define SENSORS_TASK_PERIOD_MS CONFIG_SENSORS_TASK_PERIOD_MS
-#define SENSORS_TASK_PRIORITY CONFIG_SENSORS_TASK_PRIORITY
-#define SENSORS_TASK_DEPTH CONFIG_SENSORS_TASK_DEPTH
-#define SENSORS_TASK_CPU CONFIG_SENSORS_TASK_CPU
+#define SENSORS_TASK_PERIOD_MS 20
+#define SENSORS_TASK_PRIORITY 2
+#define SENSORS_TASK_DEPTH 4096
+#define SENSORS_TASK_CPU 1
+
+#define BMP5_CALIBRATE_NB_OF_MEAS 10
+
 /**
  * @brief data_buffer should be cast to user struct and overwrite by sensor data
  *
@@ -25,6 +28,7 @@ typedef struct {
     sensors_read sensors_read_fnc;
     sensors_process sensors_process_fnc;
     size_t data_size;
+    void *data_buffer;
 } sensors_task_cfg_t;
 
 /**

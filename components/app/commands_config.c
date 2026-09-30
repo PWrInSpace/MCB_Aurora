@@ -277,10 +277,6 @@ static void mcb_live_camera_off(uint32_t command, int32_t payload, bool privileg
     gpio_exp_live_camera_turn_off();
 }
 
-static void mcb_calibrate_barometer(uint32_t command, int32_t payload, bool privilege) {
-    // bmp5_calculate_altitude_offset();
-}
-
 static void mcb_lora_sync(uint32_t command, int32_t payload, bool privilege) {
     // ESP_LOGI(TAG, "LoRa sync (0xBA) - request MCB frame TX");
     lora_task_request_mcb_frame_tx();
@@ -317,7 +313,6 @@ static cmd_command_t mcb_commands[] = {
     {MCB_RESET_DEV, mcb_reset_dev},
     {MCB_LORA_SYNC, mcb_lora_sync},
     {MCB_RESET_DISCONNECT_TIMER, mcb_reset_disconnect_timer},
-    {MCB_CALIBRATE_BAROMETER, mcb_calibrate_barometer},
     {MCB_NEXT_STATE, mcb_next_state},
 };
 

@@ -8,3 +8,6 @@
 [submodule "components/sensors/BMI08x-Sensor-API"]
 	path = components/sensors/BMI08x-Sensor-API
 	url = https://github.com/boschsensortec/BMI08x-Sensor-API.git
+[submodule "components/sensors/Fusion"]
+	path = components/sensors/Fusion
+	url = https://github.com/xioTechnologies/Fusion.git
