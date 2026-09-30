@@ -1,6 +1,5 @@
 // Copyright 2022 PWrInSpace, Kuba
 #include "state_machine_config.h"
-
 #include "bmp5_wrapper.h"
 #include "buzzer_config.h"
 #include "commands_config.h"
@@ -12,7 +11,6 @@
 #include "mission_timer_config.h"
 #include "processing_task_config.h"
 #include "recovery_task_config.h"
-#include "rocket_data.h"
 #include "sdkconfig.h"
 #include "settings_mem.h"
 #include "system_timer_config.h"

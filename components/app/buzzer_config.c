@@ -26,7 +26,7 @@ static void recovery_music_task(void *arg) {
     vTaskDelay(pdMS_TO_TICKS(1000));
 }
 
-static esp_err_t start_recovery_music() {
+esp_err_t start_recovery_music(void) {
     if (xTaskCreatePinnedToCore(
         recovery_music_task,
         "recovery_music_task",

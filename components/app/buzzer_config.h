@@ -100,6 +100,6 @@ static const note_t skoczna_fanfara_c_dur[] = {
 
 bool buzzer_play_notes(const note_t *notes, size_t num_notes);
 
-static esp_err_t start_recovery_music(void);
+esp_err_t start_recovery_music(void);
 
 #endif
