@@ -11,12 +11,11 @@
 #include "mission_timer_config.h"
 #include "processing_task_config.h"
 #include "recovery_task_config.h"
-#include "rocket_data.h"
 #include "sdkconfig.h"
 #include "settings_mem.h"
 #include "system_timer_config.h"
 
-#define TAG "SMC"
+static const char *TAG = "SMC";
 
 static void on_init(void *arg) { ESP_LOGI(TAG, "ON INIT"); }
 
@@ -128,14 +127,21 @@ abort_countdown:
 }
 
 static void recovery_first_stage_process(recovery_data_t *data) {
+    static uint8_t first_stage_counter = 0;
+
     if (data == NULL) {
         ESP_LOGE(TAG, "Recovery data is NULL");
         return;
     }
 
     bool first_stage = data->first_stage;
-    ESP_LOGI(TAG, "Recovery first stage process, firstStageDone: %d", first_stage);
     if (first_stage == true) {
+        first_stage_counter += 1;
+    } else {
+        first_stage_counter = 0;
+    }
+
+    if (first_stage_counter >= 5) {
         if (SM_change_state(FIRST_STAGE_RECOVERY) != SM_OK) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
         }
@@ -146,10 +152,7 @@ static void lift_off_process(void *data_buffer) {
     static uint8_t liftoff_counter = 0;
     sensors_data_t *data = data_buffer;
 
-    ESP_LOGI(TAG, "Lift off process altitude: %.2f, acc_vertical: %.2f", data->altitude,
-             data->acc_vertical);
-
-    if (data->altitude > 10.0f) {
+    if (data->acc_vertical > 3.0f) {
         liftoff_counter += 1;
     } else {
         liftoff_counter = 0;
@@ -179,7 +182,7 @@ static void burn_process(void *data_buffer) {
     static uint8_t burn_counter = 0;
     sensors_data_t *data = data_buffer;
 
-    if (data->altitude > 50.0f && data->acc_vertical < -8.5f) {
+    if (data->altitude > 50.0f && data->acc_vertical > -1.0f && data->acc_vertical < 1.0f) {
         burn_counter += 1;
     } else {
         burn_counter = 0;
@@ -207,12 +210,20 @@ static void on_flight(void *arg) {
 }
 
 static void recovery_second_stage_process(recovery_data_t *data) {
+    static uint8_t second_stage_counter = 0;
+
     if (data == NULL) {
         return;
     }
 
     bool second_stage = data->second_stage;
     if (second_stage == true) {
+        second_stage_counter += 1;
+    } else {
+        second_stage_counter = 0;
+    }
+
+    if (second_stage_counter >= 5) {
         if (SM_change_state(SECOND_STAGE_RECOVERY) != SM_OK) {
             errors_add(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_STATE_CHANGE, 1000);
         }
@@ -224,17 +235,14 @@ static void on_first_stage_recovery(void *arg) {
     if (recovery_change_process_fnc(recovery_second_stage_process) == false) {
         ESP_LOGE(TAG, "Unable to change to second stage recovery process fnc");
     }
-
-    if (recovery_send_cmd(RECOV_FORCE_FIRST_STAGE, 0) == false) {
-        ESP_LOGE(TAG, "Unable to send first stage recov");
-    }
 }
 
 static void on_ground_sensors_process(void *data_buffer) {
     static uint8_t ground_counter = 0;
     sensors_data_t *data = data_buffer;
 
-    if (data->altitude < 50) {
+    if (data->altitude < 50 && data->acc_vertical > -1.0f && data->acc_vertical < 1.0f &&
+        data->velocity > -1.0f && data->velocity < 1.0f) {
         ground_counter += 1;
     } else {
         ground_counter = 0;
@@ -256,10 +264,6 @@ static void on_second_stage_recovery(void *arg) {
 
     if (sensors_change_process_function(on_ground_sensors_process, 1000) == false) {
         ESP_LOGE(TAG, "Unable to add process function");
-    }
-
-    if (recovery_send_cmd(RECOV_FORCE_SECOND_STAGE, 0) == false) {
-        ESP_LOGE(TAG, "Unable to send first stage recov");
     }
 
     cmd_message_t cmd = cmd_create_message(ETH_VENT_OPEN, 0x00);
