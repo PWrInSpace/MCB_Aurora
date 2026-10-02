@@ -61,7 +61,6 @@ static void TASK_init(void *arg) {
     size_t free_heap = heap_caps_get_free_size(MALLOC_CAP_DEFAULT);
     ESP_LOGI(TAG, "Free heap at init: %u bytes", (unsigned)free_heap);
 
-        // CHECK_RESULT_ESP(settings_init(), "Change state");
     settings_init_default();
     Settings settings = settings_get_all();
 
@@ -94,7 +93,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_lora(settings.loraFreq_KHz, settings.lora_transmit_ms), "LORA");
 
     if (initialize_sd_card()) {
-        CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 1000, TIMER_TYPE_PERIODIC), "SD TIMER");
+        CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 20, TIMER_TYPE_PERIODIC), "SD TIMER");
     }
 
     CHECK_RESULT_ESP(init_console(), "CLI");

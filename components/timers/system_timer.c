@@ -85,6 +85,11 @@ bool sys_timer_start(sys_timer_id_t id, uint32_t miliseconds, sys_timer_type_t t
         return false;
     }
 
+    if (gb.timers[index].timer_handle == NULL) {
+        ESP_LOGE(TAG, "Timer %u handle is NULL (deleted?)", (unsigned)id);
+        return false;
+    }
+
     if (gb.timers[index].timer_callback_fnc == NULL) {
         ESP_LOGE(TAG, "Callback is NULL");
         return false;
@@ -109,6 +114,10 @@ bool sys_timer_stop(sys_timer_id_t id) {
         return false;
     }
 
+    if (gb.timers[index].timer_handle == NULL) {
+        return false;
+    }
+
     if (esp_timer_stop(gb.timers[index].timer_handle) != ESP_OK) {
         ESP_LOGW(TAG, "TIMER WAS NOT RUNNING");
     }
@@ -121,9 +130,12 @@ bool sys_timer_delete(sys_timer_id_t id) {
         return false;
     }
 
+    if (gb.timers[index].timer_handle == NULL) {
+        return false;
+    }
+
     if (esp_timer_stop(gb.timers[index].timer_handle) != ESP_OK) {
         ESP_LOGW(TAG, "TIMER stop error");
-        return false;
     }
 
     if (esp_timer_delete(gb.timers[index].timer_handle) != ESP_OK) {
@@ -131,6 +143,7 @@ bool sys_timer_delete(sys_timer_id_t id) {
         return false;
     }
 
+    gb.timers[index].timer_handle = NULL;
     return true;
 }
 
@@ -140,6 +153,15 @@ bool sys_timer_restart(sys_timer_id_t id, uint64_t timeout) {
         return false;
     }
 
+    if (gb.timers[index].timer_handle == NULL) {
+        ESP_LOGE(TAG, "Timer %u handle is NULL (deleted?)", (unsigned)id);
+        return false;
+    }
+
+    /* esp_timer_restart requires an armed timer; if stopped, start one-shot. */
+    if (!esp_timer_is_active(gb.timers[index].timer_handle)) {
+        return esp_timer_start_once(gb.timers[index].timer_handle, MS_TO_MICRO(timeout)) == ESP_OK;
+    }
 
     if (esp_timer_restart(gb.timers[index].timer_handle, MS_TO_MICRO(timeout)) != ESP_OK) {
         ESP_LOGW(TAG, "Timer restart error");
@@ -155,6 +177,11 @@ bool sys_timer_get_expiry_time(sys_timer_id_t id, uint64_t *expiry) {
         ESP_LOGE(TAG, "Invalid timer id");
         return false;
     }
+
+    if (gb.timers[index].timer_handle == NULL) {
+        return false;
+    }
+
     ESP_LOGD(TAG, "sys_timer_get_expiry_time: index=%u handle=%p expiry_ptr=%p", (unsigned)index, (void*)gb.timers[index].timer_handle, (void*)expiry);
 
     if (esp_timer_is_active(gb.timers[index].timer_handle) == false) {

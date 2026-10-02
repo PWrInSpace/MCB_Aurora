@@ -65,6 +65,7 @@ typedef enum {
     MCB_LORA_SYNC = 0XBA,
     MCB_RESET_DISCONNECT_TIMER = 0xFF,
     MCB_CALIBRATE_BAROMETER = 0xAA,
+    MCB_NEXT_STATE = 0xC8,
 } mcb_commands_t;
 
 typedef enum {

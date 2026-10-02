@@ -2,8 +2,9 @@
 #define RECOVERY_TASK_CONFIG_H
 
 #include <stdbool.h>
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
+
 #include "rocket_data.h"
 
 #define RECOVERY_ADDRESS 0x00

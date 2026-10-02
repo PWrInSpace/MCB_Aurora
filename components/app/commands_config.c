@@ -27,7 +27,7 @@
 static bool state_change_check_countdown(void) {
     recovery_data_t data = rocket_data_get_recovery();
     tanwa_data_t tanwa = rocket_data_get_tanwa();
-    if (data.isArmed == false || data.isTeleActive == false || tanwa.soft_arm == false) {
+    if (data.telemetrum_armed == false || data.easymini_armed == false || tanwa.soft_arm == false) {
         errors_set(ERROR_TYPE_LAST_EXCEPTION, ERROR_EXCP_NOT_ARMED, 100);
         return false;
     }
@@ -278,12 +278,20 @@ static void mcb_live_camera_off(uint32_t command, int32_t payload, bool privileg
 }
 
 static void mcb_calibrate_barometer(uint32_t command, int32_t payload, bool privilege) {
-    bmp5_calculate_altitude_offset();
+    // bmp5_calculate_altitude_offset();
 }
 
 static void mcb_lora_sync(uint32_t command, int32_t payload, bool privilege) {
     // ESP_LOGI(TAG, "LoRa sync (0xBA) - request MCB frame TX");
     lora_task_request_mcb_frame_tx();
+}
+
+static void mcb_next_state(uint32_t command, int32_t payload, bool privilege) {
+    if (SM_get_current_state() >= RDY_TO_LAUNCH) {
+        return;
+    }
+
+    SM_force_change_state(SM_get_current_state() + 1);
 }
 
 static cmd_command_t mcb_commands[] = {
@@ -310,6 +318,7 @@ static cmd_command_t mcb_commands[] = {
     {MCB_LORA_SYNC, mcb_lora_sync},
     {MCB_RESET_DISCONNECT_TIMER, mcb_reset_disconnect_timer},
     {MCB_CALIBRATE_BAROMETER, mcb_calibrate_barometer},
+    {MCB_NEXT_STATE, mcb_next_state},
 };
 
 // TANWA
