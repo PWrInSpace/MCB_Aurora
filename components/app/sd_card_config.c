@@ -60,9 +60,5 @@ bool initialize_sd_card(void) {
         .spi_mutex = mutex_spi,
     };
 
-    bool res = SDT_init(&cfg);
-    if (!res) {
-        buzzer_play_notes(hava_nagila, sizeof(hava_nagila) / sizeof(note_t));
-    }
-    return res;
+    return SDT_init(&cfg);
 }

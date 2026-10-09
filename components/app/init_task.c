@@ -79,7 +79,7 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
     CHECK_RESULT_BOOL(initialize_esp_now(), "ESP_NOW");
     CHECK_RESULT_BOOL(initialize_flash_memory(), "FLASH");
-    CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
+//    CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
     CHECK_RESULT_BOOL(initialize_gps(), "Gps task");
     CHECK_RESULT_BOOL(initialize_recovery(), "Recovery task");
 
@@ -91,7 +91,8 @@ static void TASK_init(void *arg) {
 
     CHECK_RESULT_BOOL(initialize_lora(settings.loraFreq_KHz, settings.lora_transmit_ms), "LORA");
 
-    if (initialize_sd_card()) {
+    esp_err_t res = initialize_sd_card();
+    if (res) {
         CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 20, TIMER_TYPE_PERIODIC), "SD TIMER");
     }
 
@@ -104,7 +105,11 @@ static void TASK_init(void *arg) {
         ESP_LOGI(TAG, "Init task stack high water mark: %u", (unsigned)high);
     }
     
-    buzzer_play_notes(skoczna_fanfara_c_dur, sizeof(skoczna_fanfara_c_dur) / sizeof(skoczna_fanfara_c_dur[0]));
+    if (res) {
+   	 buzzer_play_notes(skoczna_fanfara_c_dur, sizeof(skoczna_fanfara_c_dur) / sizeof(skoczna_fanfara_c_dur[0]));
+    } else {
+        buzzer_play_notes(hava_nagila, sizeof(hava_nagila) / sizeof(note_t));
+    }
 
     vTaskDelete(NULL);
 }
