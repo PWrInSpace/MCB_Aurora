@@ -25,7 +25,8 @@ static bool uart_setup_port(uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, in
     };
     int intr_alloc_flags = 0;
 
-    if (uart_driver_install(port, BUF_SIZE * 2, BUF_SIZE * 2, 0, NULL, intr_alloc_flags) != ESP_OK) {
+    if (uart_driver_install(port, BUF_SIZE * 2, BUF_SIZE * 2, 0, NULL, intr_alloc_flags) !=
+        ESP_OK) {
         return false;
     }
 
@@ -44,11 +45,8 @@ bool uart_init(uart_port_t port, uint8_t tx_pin, uint8_t rx_pin, int baudrate) {
     return uart_init_logical(UART_LOGICAL_GPS, port, tx_pin, rx_pin, baudrate);
 }
 
-bool uart_init_logical(uart_logical_port_t logical_port,
-                       uart_port_t port,
-                       uint8_t tx_pin,
-                       uint8_t rx_pin,
-                       int baudrate) {
+bool uart_init_logical(uart_logical_port_t logical_port, uart_port_t port, uint8_t tx_pin,
+                       uint8_t rx_pin, int baudrate) {
     if (!uart_is_valid_logical_port(logical_port)) {
         return false;
     }
@@ -63,18 +61,18 @@ bool uart_init_logical(uart_logical_port_t logical_port,
 }
 
 int uart_write_logical(uart_logical_port_t logical_port, const uint8_t *data, size_t data_size) {
-    if (!uart_is_valid_logical_port(logical_port) || !gb.ready[logical_port] || data == NULL || data_size == 0) {
+    if (!uart_is_valid_logical_port(logical_port) || !gb.ready[logical_port] || data == NULL ||
+        data_size == 0) {
         return -1;
     }
 
-    return uart_write_bytes(gb.port[logical_port], (const char *) data, data_size);
+    return uart_write_bytes(gb.port[logical_port], (const char *)data, data_size);
 }
 
-int uart_read_logical(uart_logical_port_t logical_port,
-                      uint8_t *data,
-                      size_t data_size,
+int uart_read_logical(uart_logical_port_t logical_port, uint8_t *data, size_t data_size,
                       TickType_t timeout_ticks) {
-    if (!uart_is_valid_logical_port(logical_port) || !gb.ready[logical_port] || data == NULL || data_size == 0) {
+    if (!uart_is_valid_logical_port(logical_port) || !gb.ready[logical_port] || data == NULL ||
+        data_size == 0) {
         return -1;
     }
 
@@ -105,10 +103,6 @@ int uart_ublox_read(uint8_t *data, uint8_t data_size) {
     return uart_read_logical(UART_LOGICAL_GPS, data, data_size, pdMS_TO_TICKS(500));
 }
 
-int uart_flush_rx(void) {
-    return uart_flush_rx_logical(UART_LOGICAL_GPS);
-}
+int uart_flush_rx(void) { return uart_flush_rx_logical(UART_LOGICAL_GPS); }
 
-int uart_flush_tx(void) {
-    return uart_flush_tx_logical(UART_LOGICAL_GPS);
-}
+int uart_flush_tx(void) { return uart_flush_tx_logical(UART_LOGICAL_GPS); }
