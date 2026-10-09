@@ -79,14 +79,13 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_state_machine(), "STATE_MACHINE");
     CHECK_RESULT_BOOL(initialize_esp_now(), "ESP_NOW");
     CHECK_RESULT_BOOL(initialize_flash_memory(), "FLASH");
-    // CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
+    CHECK_RESULT_BOOL(initialize_processing_task(), "PROCESSING TASK");
     CHECK_RESULT_BOOL(initialize_gps(), "Gps task");
     CHECK_RESULT_BOOL(initialize_recovery(), "Recovery task");
 
     CHECK_RESULT_BOOL(initialize_timers(), "TIMERS");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_ESP_NOW_BROADCAST, 500, TIMER_TYPE_PERIODIC), "ESP_NOW_TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT), "DC TIMER");
-    // CHECK_RESULT_BOOL(sys_timer_start(TIMER_BUZZER, 2000, TIMER_TYPE_PERIODIC), "BUZZER TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_CONNECTED_DEV, 40000, TIMER_TYPE_PERIODIC), "CONNECTED TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_DEBUG, 1000, TIMER_TYPE_PERIODIC), "DEBUG TIMER");
 

@@ -27,7 +27,7 @@ bool buzzer_play_notes(const note_t *notes, size_t num_notes) {
 static void recovery_music_task(void *arg) {
     while (true) {
         buzzer_play_notes(dlugosc_dzwieku_samotnosci, sizeof(dlugosc_dzwieku_samotnosci) / sizeof(note_t));
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(60000)); // Wait for 60 seconds before playing the music again
     }
 }
 
