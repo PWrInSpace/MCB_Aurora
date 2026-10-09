@@ -1,6 +1,7 @@
 // Copyright 2022 PWrInSpace, Kuba
 #include "init_task.h"
 
+#include "buzzer_config.h"
 #include "buzzer_pwm.h"
 #include "console_config.h"
 #include "errors_config.h"
@@ -85,14 +86,15 @@ static void TASK_init(void *arg) {
     CHECK_RESULT_BOOL(initialize_timers(), "TIMERS");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_ESP_NOW_BROADCAST, 500, TIMER_TYPE_PERIODIC), "ESP_NOW_TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_DISCONNECT, DISCONNECT_TIMER_PERIOD_MS, TIMER_TYPE_ONE_SHOT), "DC TIMER");
-    // CHECK_RESULT_BOOL(sys_timer_start(TIMER_BUZZER, 2000, TIMER_TYPE_PERIODIC), "BUZZER TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_CONNECTED_DEV, 40000, TIMER_TYPE_PERIODIC), "CONNECTED TIMER");
     CHECK_RESULT_BOOL(sys_timer_start(TIMER_DEBUG, 1000, TIMER_TYPE_PERIODIC), "DEBUG TIMER");
 
     CHECK_RESULT_BOOL(initialize_lora(settings.loraFreq_KHz, settings.lora_transmit_ms), "LORA");
 
-    CHECK_RESULT_BOOL(initialize_sd_card(), "SD CARD");
-    CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 20, TIMER_TYPE_PERIODIC), "SD TIMER");
+    if (initialize_sd_card()) {
+        CHECK_RESULT_BOOL(sys_timer_start(TIMER_SD_DATA, 20, TIMER_TYPE_PERIODIC), "SD TIMER");
+    }
+
     CHECK_RESULT_ESP(init_console(), "CLI");
 
     CHECK_RESULT_ESP(SM_change_state(IDLE), "Change state to idle");
@@ -101,10 +103,8 @@ static void TASK_init(void *arg) {
         UBaseType_t high = uxTaskGetStackHighWaterMark(NULL);
         ESP_LOGI(TAG, "Init task stack high water mark: %u", (unsigned)high);
     }
-
-    buzzer_turn_on();
-    vTaskDelay(pdMS_TO_TICKS(1500));
-    buzzer_turn_off();
+    
+    buzzer_play_notes(skoczna_fanfara_c_dur, sizeof(skoczna_fanfara_c_dur) / sizeof(skoczna_fanfara_c_dur[0]));
 
     vTaskDelete(NULL);
 }

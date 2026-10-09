@@ -1,7 +1,7 @@
 // Copyright 2022 PWrInSpace, Kuba
 #include "state_machine_config.h"
-
 #include "bmp5_wrapper.h"
+#include "buzzer_config.h"
 #include "commands_config.h"
 #include "errors_config.h"
 #include "esp_log.h"
@@ -283,6 +283,10 @@ static void on_ground(void *arg) {
 
     if (sys_timer_delete(TIMER_FLASH_DATA) == false) {
         ESP_LOGE(TAG, "Unable to delete flash data timer");
+    }
+
+    if (start_recovery_music() != ESP_OK) {
+        ESP_LOGE(TAG, "Unable to start recovery music");
     }
 
     gpio_exp_sd_camera_turn_off();
