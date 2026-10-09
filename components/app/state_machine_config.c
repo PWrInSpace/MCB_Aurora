@@ -172,6 +172,10 @@ static void on_lift_off(void *arg) {
 
     cmd_message_t cmd = cmd_create_message(VALVE_DZIDA, 0x00);
     ENA_send(&esp_now_broadcast, cmd.raw, sizeof(cmd.raw), 5);
+    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 5);
+    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 5);
+    ENA_send(&esp_now_ox_main_valve, cmd.raw, sizeof(cmd.raw), 5);
+    ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 5);
 }
 
 static void burn_process(void *data_buffer) {
