@@ -34,16 +34,15 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
     frame->gps_long.is_present = true;
     frame->gps_long.value = data.mcb.longitude;
 
-    // todo do skasowania
     // gps_sat in proto is a bool — set true if number of satellites > 0
     frame->gps_sat_ok.is_present = true;
     frame->gps_sat_ok.value = data.mcb.satellites_in_view > 0;
 
     frame->altitude_m.is_present = true;
-    frame->altitude_m.value = (int32_t)data.mcb.altitude;
+    frame->altitude_m.value = (int32_t)(data.mcb.altitude * 100.0f);
 
     frame->velocity_m_s.is_present = true;
-    frame->velocity_m_s.value = (int32_t)data.mcb.velocity;
+    frame->velocity_m_s.value = (int32_t)(data.mcb.velocity * 100.0f);
 
     // todo do dodania w apce
     frame->mcb_temperature.is_present = true;

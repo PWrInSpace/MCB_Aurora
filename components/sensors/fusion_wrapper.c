@@ -72,3 +72,6 @@ fusion_data_t fusion_wrapper_get_data(FusionAhrs *ahrs) {
     return data;
 }
 
+FusionEuler fusion_wrapper_get_euler(FusionQuaternion *quaternion) {
+    return FusionQuaternionToEuler(*quaternion);
+}

@@ -88,6 +88,10 @@ static void sensors_process_data(void *data_buffer) {
     data->acc_y = fusion_data.acceleration.axis.y;
     data->acc_z = fusion_data.acceleration.axis.z;
     data->acc_vertical = fusion_data.acceleration_earth.axis.z;
+    FusionEuler euler = fusion_wrapper_get_euler(&fusion_data.quaternion);
+    data->pitch = euler.angle.pitch;
+    data->roll = euler.angle.roll;
+    data->yaw = euler.angle.yaw;
 
     kalman_predict(&kf, data->acc_vertical, data->dt);
     kalman_update(&kf, data->altitude);
@@ -122,7 +126,7 @@ bool initialize_processing_task(void) {
         return false;
     }
 
-    if (kalman_init(&kf, 0.5f, 4.0f) == false) {
+    if (kalman_init(&kf, 0.5f, 2.0f) == false) {
         ESP_LOGE(TAG, "KALMAN");
         return false;
     }
