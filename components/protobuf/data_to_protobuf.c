@@ -39,11 +39,12 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
     frame->gps_sat_ok.value = data.mcb.satellites_in_view > 0;
 
     frame->altitude_m.is_present = true;
-    frame->altitude_m.value = (int32_t)data.mcb.altitude;
+    frame->altitude_m.value = (int32_t)(data.mcb.altitude * 100.0f);
 
     frame->velocity_m_s.is_present = true;
-    frame->velocity_m_s.value = (int32_t)data.mcb.velocity;
+    frame->velocity_m_s.value = (int32_t)(data.mcb.velocity * 100.0f);
 
+    // todo do dodania w apce
     frame->mcb_temperature.is_present = true;
     frame->mcb_temperature.value = (int32_t)data.mcb.temperature;
 
@@ -61,17 +62,15 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
         uint32_t recovery_flags = 0;
         recovery_flags |= data.recovery.separation_one ? 1u << 0 : 0u;
         recovery_flags |= data.recovery.separation_two ? 1u << 1 : 0u;
-        recovery_flags |= data.recovery.first_stage ? 1u << 2 : 0u;
-        recovery_flags |= data.recovery.second_stage ? 1u << 3 : 0u;
-        recovery_flags |= data.recovery.telemetrum_first_stage ? 1u << 4 : 0u;
-        recovery_flags |= data.recovery.telemetrum_second_stage ? 1u << 5 : 0u;
-        recovery_flags |= data.recovery.easymini_first_stage ? 1u << 6 : 0u;
-        recovery_flags |= data.recovery.easymini_second_stage ? 1u << 7 : 0u;
+        recovery_flags |= data.recovery.recovery_first_stage ? 1u << 2 : 0u;
+        recovery_flags |= data.recovery.recovery_second_stage ? 1u << 3 : 0u;
+        recovery_flags |= data.recovery.telemetrum_apogee_detected ? 1u << 4 : 0u;
+        recovery_flags |= data.recovery.telemetrum_main_deployed ? 1u << 5 : 0u;
+        recovery_flags |= data.recovery.bluejay_apogee_detected ? 1u << 6 : 0u;
+        recovery_flags |= data.recovery.bluejay_main_deployed ? 1u << 7 : 0u;
         recovery_flags |= data.recovery.telemetrum_armed ? 1u << 8 : 0u;
-        recovery_flags |= data.recovery.easymini_armed ? 1u << 9 : 0u;
+        recovery_flags |= data.recovery.bluejay_armed ? 1u << 9 : 0u;
         recovery_flags |= data.recovery.continuity ? 1u << 10 : 0u;
-        recovery_flags |= data.recovery.telemetrum_apogee_detected ? 1u << 11 : 0u;
-        recovery_flags |= data.recovery.easymini_apogee_detected ? 1u << 12 : 0u;
         frame->recovery_flags.is_present = true;
         frame->recovery_flags.value = recovery_flags;
     }
@@ -80,6 +79,7 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
     frame->pitot_battery.is_present = true;
     frame->pitot_battery.value = (uint32_t)(data.pitot.vbat * 100.0f);
 
+    // todo do wywalenia
     frame->pitot_altitude.is_present = true;
     frame->pitot_altitude.value = (int32_t)data.pitot.alt;
 
@@ -226,6 +226,7 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
         frame->esp_now_connected_flags.value = conn;
     }
 
+    // todo do wywalenia
     {
         uint32_t wk = 0;
         wk |= data.payload.waken_up ? 1u << 0 : 0u;
