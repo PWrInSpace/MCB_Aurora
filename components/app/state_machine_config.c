@@ -130,8 +130,7 @@ static void recovery_first_stage_process(recovery_data_t *data) {
         return;
     }
 
-    bool first_stage = data->first_stage;
-    if (first_stage == true) {
+    if (data->recovery_first_stage == true) {
         first_stage_counter += 1;
     } else {
         first_stage_counter = 0;
@@ -216,8 +215,7 @@ static void recovery_second_stage_process(recovery_data_t *data) {
         return;
     }
 
-    bool second_stage = data->second_stage;
-    if (second_stage == true) {
+    if (data->recovery_second_stage == true) {
         second_stage_counter += 1;
     } else {
         second_stage_counter = 0;
