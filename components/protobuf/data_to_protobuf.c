@@ -34,28 +34,14 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
     frame->gps_long.is_present = true;
     frame->gps_long.value = data.mcb.longitude;
 
-    // gps_sat in proto is a bool — set true if number of satellites > 0
-    frame->gps_sat_ok.is_present = true;
-    frame->gps_sat_ok.value = data.mcb.satellites_in_view > 0;
-
     frame->altitude_m.is_present = true;
     frame->altitude_m.value = (int32_t)(data.mcb.altitude * 100.0f);
 
     frame->velocity_m_s.is_present = true;
     frame->velocity_m_s.value = (int32_t)(data.mcb.velocity * 100.0f);
 
-    // todo do dodania w apce
     frame->mcb_temperature.is_present = true;
     frame->mcb_temperature.value = (int32_t)data.mcb.temperature;
-
-    frame->euler_psi.is_present = true;
-    frame->euler_psi.value = data.mcb.pitch;
-
-    frame->euler_theta.is_present = true;
-    frame->euler_theta.value = data.mcb.roll;
-
-    frame->euler_fi.is_present = true;
-    frame->euler_fi.value = data.mcb.yaw;
 
     // recovery - pack various boolean fields into a single fixed32 recovery_flags
     {
@@ -78,13 +64,6 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
     // pitot
     frame->pitot_battery.is_present = true;
     frame->pitot_battery.value = (uint32_t)(data.pitot.vbat * 100.0f);
-
-    // todo do wywalenia
-    frame->pitot_altitude.is_present = true;
-    frame->pitot_altitude.value = (int32_t)data.pitot.alt;
-
-    frame->pitot_velocity.is_present = true;
-    frame->pitot_velocity.value = (int32_t)data.pitot.speed;
 
     frame->pitot_temperature.is_present = true;
     frame->pitot_temperature.value = (int32_t)data.pitot.temperature;
@@ -224,19 +203,6 @@ void create_protobuf_data_frame(struct obc_mcb_frame_t *frame) {
         conn |= data.connected_dev.pitot ? 1u << 6 : 0u;
         frame->esp_now_connected_flags.is_present = true;
         frame->esp_now_connected_flags.value = conn;
-    }
-
-    // todo do wywalenia
-    {
-        uint32_t wk = 0;
-        wk |= data.payload.waken_up ? 1u << 0 : 0u;
-        wk |= data.eth_vent_n2_main_valves.waken_up ? 1u << 1 : 0u;
-        wk |= data.ox_main_valve.waken_up ? 1u << 2 : 0u;
-        wk |= data.ox_vent_eth_main_valves.waken_up ? 1u << 3 : 0u;
-        wk |= data.n2_vent_valve.waken_up ? 1u << 4 : 0u;
-        wk |= data.pitot.waken_up ? 1u << 5 : 0u;
-        frame->esp_now_wkup_flags.is_present = true;
-        frame->esp_now_wkup_flags.value = wk;
     }
 
     // errors - pack into single uint32 value as before
