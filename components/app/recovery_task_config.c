@@ -36,7 +36,7 @@ bool recovery_send_cmd(uint32_t command, int32_t payload) {
 }
 
 static bool recovery_read_data(recovery_data_t* message, size_t len) {
-    recovery_data_t leftRecoveryData;
+    recovery_data_t leftRecoveryData = {0};
     bool leftStatus = true;
     if (i2c_com_only_read(RECOVERY_ADDRESS_LEFT, (uint8_t*)&leftRecoveryData, len) == false) {
         memset(&leftRecoveryData,0,sizeof(leftRecoveryData));
