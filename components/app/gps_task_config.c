@@ -114,7 +114,7 @@ bool initialize_gps(void) {
     basic_task_cfg_t task_cfg = {
         .process_fnc = process_gps_data,
         .priority = GPS_TASK_PRIORITY,
-        .core_id = GPS_TASK_CPU,
+        .core_id = GPS_TASK_CORE_ID,
         .stack_depth = CONFIG_GPS_TASK_DEPTH,
         .task_delay = CONFIG_GPS_TASK_PERIOD_MS,
     };
