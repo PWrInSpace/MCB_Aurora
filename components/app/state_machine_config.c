@@ -17,6 +17,9 @@
 
 static const char *TAG = "SMC";
 
+#define SM_TASK_CORE_ID 1
+#define SM_TASK_PRIORITY 5
+
 static void on_init(void *arg) { ESP_LOGI(TAG, "ON INIT"); }
 
 static void on_idle(void *arg) {
@@ -416,8 +419,8 @@ bool initialize_state_machine(void) {
     ESP_LOGI(TAG, "Initializing state machine");
     state_machine_task_cfg_t task_cfg = {
         .stack_depth = CONFIG_SM_TASK_STACK_DEPTH,
-        .core_id = CONFIG_SM_TASK_CORE_ID,
-        .priority = CONFIG_SM_TASK_PRIORITY,
+        .core_id = SM_TASK_CORE_ID,
+        .priority = SM_TASK_PRIORITY,
     };
 
     SM_Response status = SM_OK;

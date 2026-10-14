@@ -37,7 +37,7 @@ esp_err_t start_recovery_music(void) {
         "recovery_music_task",
         2048,
         NULL,
-        2,
+        1,
         &recovery_music_task_handle,
         1) != pdPASS) {
         ESP_LOGI(TAG, "Failed to create recovery music task");

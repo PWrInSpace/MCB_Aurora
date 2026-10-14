@@ -12,6 +12,9 @@
 
 static const char *TAG = "SD_C";
 
+#define SD_TASK_PRIORITY 1
+#define SD_TASK_CORE_ID 0
+
 extern SemaphoreHandle_t mutex_spi;
 
 static size_t convert_data_to_frame(char *buf, size_t buf_size, void* data, size_t size) {
@@ -50,8 +53,8 @@ bool initialize_sd_card(void) {
         .log_path = "log",
         .log_path_size = 5,
         .stack_depth = CONFIG_SD_TASK_STACK_DEPTH,
-        .priority = CONFIG_SD_TASK_PRIORITY,
-        .core_id = CONFIG_SD_TASK_CORE_ID,
+        .priority = SD_TASK_PRIORITY,
+        .core_id = SD_TASK_CORE_ID,
         .error_handler_fnc = on_error,
         .data_size = sizeof(rocket_data_t),
         .create_sd_frame_fnc = convert_data_to_frame,

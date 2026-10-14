@@ -13,6 +13,9 @@
 
 static const char *TAG = "GPS";
 
+#define GPS_TASK_PRIORITY 3
+#define GPS_TASK_CORE_ID 1
+
 static struct {
     ublox_m10_t ubx;
     gps_positioning_t position;
@@ -110,8 +113,8 @@ bool initialize_gps(void) {
 
     basic_task_cfg_t task_cfg = {
         .process_fnc = process_gps_data,
-        .priority = CONFIG_GPS_TASK_PRIORITY,
-        .core_id = CONFIG_GPS_TASK_CPU,
+        .priority = GPS_TASK_PRIORITY,
+        .core_id = GPS_TASK_CPU,
         .stack_depth = CONFIG_GPS_TASK_DEPTH,
         .task_delay = CONFIG_GPS_TASK_PERIOD_MS,
     };

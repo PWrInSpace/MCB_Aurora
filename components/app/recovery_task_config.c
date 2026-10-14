@@ -11,6 +11,9 @@
 
 static const char *TAG = "RECOVERY";
 
+#define RECOVERY_TASK_PRIORITY 3
+#define RECOVERY_TASK_CORE_ID 1
+
 static struct {
     basic_task_t task;
     recovery_data_t recovery_data;
@@ -112,8 +115,8 @@ bool initialize_recovery(void) {
 
     basic_task_cfg_t task_cfg = {
         .process_fnc = recovery_process_data,
-        .priority = CONFIG_RECOVERY_TASK_PRIORITY,
-        .core_id = CONFIG_RECOVERY_TASK_CPU,
+        .priority = RECOVERY_TASK_PRIORITY,
+        .core_id = RECOVERY_TASK_CPU,
         .stack_depth = CONFIG_RECOVERY_TASK_DEPTH,
         .task_delay = CONFIG_RECOVERY_TASK_PERIOD_MS,
     };
