@@ -5,6 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "gpio_expander.h"
+
 #define PCAL6408A_DEV_ADDRESS 0x20
 
 #define PCAL6408A_INPUT_PORT_REG 0x00
@@ -89,5 +91,7 @@ bool PCAL6408A_set_level(PCAL6408A_t *pca, PCAL6408A_pin_level_t level);
  * @return false :C
  */
 bool PCAL6408A_set_level_pin(PCAL6408A_t *pca, PCAL6408A_pin_level_t level, uint8_t pin);
+
+bool PCAL6408A_set_diode_color(PCAL6408A_t *pca, gpio_exp_led_colors_t color);
 
 #endif

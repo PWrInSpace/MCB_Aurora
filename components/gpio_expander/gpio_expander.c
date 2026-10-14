@@ -33,18 +33,7 @@ bool gpio_exp_led_set_color(gpio_exp_led_colors_t color) {
         return false;
     }
 
-    // red
-    if (PCAL6408A_set_level_pin(&gb.pca, color & 0x01, EXPANDER_LED_PIN_RED) == false) {
-        return false;
-    }
-
-    // green
-    if (PCAL6408A_set_level_pin(&gb.pca, (color >> 1) & 0x01, EXPANDER_LED_PIN_GREEN) == false) {
-        return false;
-    }
-
-    // blue
-    if (PCAL6408A_set_level_pin(&gb.pca, (color >> 2) & 0x01, EXPANDER_LED_PIN_BLUE) == false) {
+    if (PCAL6408A_set_diode_color(&gb.pca, color) == false) {
         return false;
     }
 
