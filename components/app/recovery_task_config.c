@@ -116,7 +116,7 @@ bool initialize_recovery(void) {
     basic_task_cfg_t task_cfg = {
         .process_fnc = recovery_process_data,
         .priority = RECOVERY_TASK_PRIORITY,
-        .core_id = RECOVERY_TASK_CPU,
+        .core_id = RECOVERY_TASK_CORE_ID,
         .stack_depth = CONFIG_RECOVERY_TASK_DEPTH,
         .task_delay = CONFIG_RECOVERY_TASK_PERIOD_MS,
     };
