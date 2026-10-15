@@ -92,6 +92,4 @@ bool PCAL6408A_set_level(PCAL6408A_t *pca, PCAL6408A_pin_level_t level);
  */
 bool PCAL6408A_set_level_pin(PCAL6408A_t *pca, PCAL6408A_pin_level_t level, uint8_t pin);
 
-bool PCAL6408A_set_diode_color(PCAL6408A_t *pca, gpio_exp_led_colors_t color);
-
 #endif
