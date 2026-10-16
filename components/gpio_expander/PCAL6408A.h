@@ -5,6 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "gpio_expander.h"
+
 #define PCAL6408A_DEV_ADDRESS 0x20
 
 #define PCAL6408A_INPUT_PORT_REG 0x00

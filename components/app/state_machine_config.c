@@ -17,6 +17,9 @@
 
 static const char *TAG = "SMC";
 
+#define SM_TASK_CORE_ID 1
+#define SM_TASK_PRIORITY 5
+
 static void on_init(void *arg) { ESP_LOGI(TAG, "ON INIT"); }
 
 static void on_idle(void *arg) {
@@ -130,8 +133,7 @@ static void recovery_first_stage_process(recovery_data_t *data) {
         return;
     }
 
-    bool first_stage = data->first_stage;
-    if (first_stage == true) {
+    if (data->recovery_first_stage == true) {
         first_stage_counter += 1;
     } else {
         first_stage_counter = 0;
@@ -172,6 +174,10 @@ static void on_lift_off(void *arg) {
 
     cmd_message_t cmd = cmd_create_message(VALVE_DZIDA, 0x00);
     ENA_send(&esp_now_broadcast, cmd.raw, sizeof(cmd.raw), 5);
+    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 5);
+    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 5);
+    ENA_send(&esp_now_ox_main_valve, cmd.raw, sizeof(cmd.raw), 5);
+    ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 5);
 }
 
 static void burn_process(void *data_buffer) {
@@ -212,8 +218,7 @@ static void recovery_second_stage_process(recovery_data_t *data) {
         return;
     }
 
-    bool second_stage = data->second_stage;
-    if (second_stage == true) {
+    if (data->recovery_second_stage == true) {
         second_stage_counter += 1;
     } else {
         second_stage_counter = 0;
@@ -414,8 +419,8 @@ bool initialize_state_machine(void) {
     ESP_LOGI(TAG, "Initializing state machine");
     state_machine_task_cfg_t task_cfg = {
         .stack_depth = CONFIG_SM_TASK_STACK_DEPTH,
-        .core_id = CONFIG_SM_TASK_CORE_ID,
-        .priority = CONFIG_SM_TASK_PRIORITY,
+        .core_id = SM_TASK_CORE_ID,
+        .priority = SM_TASK_PRIORITY,
     };
 
     SM_Response status = SM_OK;

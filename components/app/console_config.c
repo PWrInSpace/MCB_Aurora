@@ -452,7 +452,6 @@ static esp_console_cmd_t cmd[] = {
     {"recov_telemetrum_arm", "arm telemetrum recovery", NULL, recovery_telemetrum_arm, NULL, NULL, NULL},
     {"recov_telemetrum_disarm", "disarm telemetrum recovery", NULL, recovery_telemetrum_disarm, NULL, NULL, NULL},
     {"get_data", "get mcb data", NULL, get_data, NULL, NULL, NULL},
-   // todo dodać tutaj komende bo jestem debilem
     {"cameras_on", "turn on cameras", NULL, cameras_on, NULL, NULL, NULL},
     {"cameras_off", "turn off cameras", NULL, cameras_off, NULL, NULL, NULL},
     {"sd_cameras_on", "turn off cameras", NULL, sd_cameras_on, NULL, NULL, NULL},

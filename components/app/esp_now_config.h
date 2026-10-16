@@ -21,8 +21,8 @@
 #define PAYLOAD_MAC {0x7C, 0x87, 0xCE, 0x28, 0x04, 0x28}
 
 #define ESP_NOW_TASK_STACK_DEPTH CONFIG_ESP_NOW_TASK_STACK_DEPTH
-#define ESP_NOW_TASK_PRIORITY CONFIG_ESP_NOW_TASK_PRIORITY
-#define ESP_NOW_TASK_CORE_ID CONFIG_ESP_NOW_TASK_CORE_ID
+#define ESP_NOW_TASK_PRIORITY 3
+#define ESP_NOW_TASK_CORE_ID 0
 
 extern const ENA_device_t esp_now_broadcast;       // :CCC
 extern const ENA_device_t esp_now_pitot;           // :CCC

@@ -18,4 +18,6 @@ bool fusion_wrapper_update(FusionAhrs *ahrs, float gx, float gy, float gz, float
 
 fusion_data_t fusion_wrapper_get_data(FusionAhrs *ahrs);
 
+FusionEuler fusion_wrapper_get_euler(FusionQuaternion *quaternion);
+
 #endif

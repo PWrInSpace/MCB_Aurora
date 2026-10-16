@@ -11,6 +11,9 @@
 
 static const char *TAG = "RECOVERY";
 
+#define RECOVERY_TASK_PRIORITY 3
+#define RECOVERY_TASK_CORE_ID 1
+
 static struct {
     basic_task_t task;
     recovery_data_t recovery_data;
@@ -36,7 +39,7 @@ bool recovery_send_cmd(uint32_t command, int32_t payload) {
 }
 
 static bool recovery_read_data(recovery_data_t* message, size_t len) {
-    recovery_data_t leftRecoveryData;
+    recovery_data_t leftRecoveryData = {0};
     bool leftStatus = true;
     if (i2c_com_only_read(RECOVERY_ADDRESS_LEFT, (uint8_t*)&leftRecoveryData, len) == false) {
         memset(&leftRecoveryData,0,sizeof(leftRecoveryData));
@@ -44,17 +47,16 @@ static bool recovery_read_data(recovery_data_t* message, size_t len) {
     }
     gb.recovery_data.telemetrum_armed = leftRecoveryData.telemetrum_armed;
     gb.recovery_data.telemetrum_apogee_detected = leftRecoveryData.telemetrum_apogee_detected;
-    gb.recovery_data.telemetrum_first_stage = leftRecoveryData.telemetrum_first_stage;
-    gb.recovery_data.telemetrum_second_stage = leftRecoveryData.telemetrum_second_stage;
-    gb.recovery_data.easymini_armed = leftRecoveryData.easymini_armed;
-    gb.recovery_data.easymini_apogee_detected = leftRecoveryData.easymini_apogee_detected;
-    gb.recovery_data.easymini_first_stage = leftRecoveryData.easymini_first_stage;
-    gb.recovery_data.easymini_second_stage = leftRecoveryData.easymini_second_stage;
+    gb.recovery_data.telemetrum_main_deployed = leftRecoveryData.telemetrum_main_deployed;
+    gb.recovery_data.bluejay_armed = leftRecoveryData.bluejay_armed;
+    gb.recovery_data.bluejay_apogee_detected = leftRecoveryData.bluejay_apogee_detected;
+    gb.recovery_data.bluejay_main_deployed = leftRecoveryData.bluejay_main_deployed;
     gb.recovery_data.separation_one = leftRecoveryData.separation_one;
     gb.recovery_data.separation_two = leftRecoveryData.separation_two;
     gb.recovery_data.continuity = leftRecoveryData.continuity;
-    gb.recovery_data.first_stage = leftRecoveryData.first_stage;
-    gb.recovery_data.second_stage = leftRecoveryData.second_stage;
+    gb.recovery_data.wire_on = leftRecoveryData.wire_on;
+    gb.recovery_data.recovery_first_stage = leftRecoveryData.recovery_first_stage;
+    gb.recovery_data.recovery_second_stage = leftRecoveryData.recovery_second_stage;
 
     return leftStatus;
 }
@@ -113,8 +115,8 @@ bool initialize_recovery(void) {
 
     basic_task_cfg_t task_cfg = {
         .process_fnc = recovery_process_data,
-        .priority = CONFIG_RECOVERY_TASK_PRIORITY,
-        .core_id = CONFIG_RECOVERY_TASK_CPU,
+        .priority = RECOVERY_TASK_PRIORITY,
+        .core_id = RECOVERY_TASK_CORE_ID,
         .stack_depth = CONFIG_RECOVERY_TASK_DEPTH,
         .task_delay = CONFIG_RECOVERY_TASK_PERIOD_MS,
     };

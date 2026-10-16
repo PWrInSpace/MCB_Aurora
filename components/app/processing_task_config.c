@@ -88,19 +88,16 @@ static void sensors_process_data(void *data_buffer) {
     data->acc_y = fusion_data.acceleration.axis.y;
     data->acc_z = fusion_data.acceleration.axis.z;
     data->acc_vertical = fusion_data.acceleration_earth.axis.z;
+    FusionEuler euler = fusion_wrapper_get_euler(&fusion_data.quaternion);
+    data->pitch = euler.angle.pitch;
+    data->roll = euler.angle.roll;
+    data->yaw = euler.angle.yaw;
 
     kalman_predict(&kf, data->acc_vertical, data->dt);
     kalman_update(&kf, data->altitude);
 
     data->altitude = kf.alt;
     data->velocity = kf.vel;
-
-    // ESP_LOGI(TAG, "=== SENSOR DATA ========================================");
-    // ESP_LOGI(TAG, "MAG  | X: %8.2f | Y: %8.2f | Z: %8.2f |", data->mag_x, data->mag_y, data->mag_z);
-    // ESP_LOGI(TAG, "ACC  | X: %8.2f | Y: %8.2f | Z: %8.2f |", data->acc_x, data->acc_y, data->acc_z);
-    // ESP_LOGI(TAG, "GYR  | X: %8.2f | Y: %8.2f | Z: %8.2f |", data->gyr_x, data->gyr_y, data->gyr_z);
-    // ESP_LOGI(TAG, "BARO | P: %8.2f | P0:%8.2f | T: %8.2f |", data->pressure, data->pressure0, data->temperature);
-    ESP_LOGI(TAG, "FLGT | A: %8.2f | V: %8.2f | aV:%8.2f |", data->altitude, data->velocity, data->acc_vertical);
 }
 
 bool initialize_processing_task(void) {
@@ -129,7 +126,7 @@ bool initialize_processing_task(void) {
         return false;
     }
 
-    if (kalman_init(&kf, 0.5f, 4.0f) == false) {
+    if (kalman_init(&kf, 0.5f, 2.0f) == false) {
         ESP_LOGE(TAG, "KALMAN");
         return false;
     }
