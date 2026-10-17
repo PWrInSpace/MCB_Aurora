@@ -7,7 +7,7 @@
 #include <stddef.h>
 
 #define SENSORS_TASK_PERIOD_MS 20
-#define SENSORS_TASK_PRIORITY 2
+#define SENSORS_TASK_PRIORITY 4
 #define SENSORS_TASK_DEPTH 4096
 #define SENSORS_TASK_CPU 1
 

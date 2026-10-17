@@ -25,38 +25,6 @@ bool I2C_master_init(i2c_t *i2c, i2c_port_t port, uint8_t sda, uint8_t scl, uint
     return res == ESP_OK;
 }
 
-
-// bool I2C_master_read(i2c_port_t port, uint8_t dev_addr, uint8_t reg_addr, uint8_t *data,
-//                           size_t len) {
-//     if (i2c_master_write_read_device(port, dev_addr, &reg_addr, 1, data, len,
-//                                    pdMS_TO_TICKS(100)) == ESP_OK) {
-//         return true;
-//     }
-//     return false;
-// }
-
-// bool I2C_master_write(i2c_port_t port, uint8_t dev_addr, uint8_t reg_addr, uint8_t *data,
-//                            size_t len) {
-//     if (len <= 0) {
-//         return false;
-//     }
-
-//     uint8_t *tmp = (uint8_t *)malloc(sizeof(uint8_t) * len);
-//     tmp[0] = reg_addr;
-//     for (int i = 1; i < len; ++i) {  // TO DO: Change to memcpy
-//         tmp[i] = data[i];
-//     }
-//     if (i2c_master_write_to_device(port, dev_addr, tmp, sizeof(tmp),
-//                                  pdMS_TO_TICKS(100)) == ESP_OK) {
-//         free(tmp);
-//         return true;
-//     }
-
-//     free(tmp);
-//     return false;
-// }
-
-
 bool I2C_master_write(i2c_port_t port, uint8_t dev_addr, uint8_t reg_addr, const uint8_t *data, 
                                 size_t len) {
     esp_err_t res;
@@ -69,7 +37,7 @@ bool I2C_master_write(i2c_port_t port, uint8_t dev_addr, uint8_t reg_addr, const
     i2c_master_write(cmd, data, len, true);
     i2c_master_stop(cmd);
 
-    res = i2c_master_cmd_begin(port, cmd, pdMS_TO_TICKS(10));
+    res = i2c_master_cmd_begin(port, cmd, pdMS_TO_TICKS(50));
     i2c_cmd_link_delete(cmd);
 
     return res == ESP_OK;
@@ -81,7 +49,9 @@ bool I2C_master_read(i2c_port_t port, uint8_t dev_addr, uint8_t reg_addr, uint8_
     uint8_t buffer[200] = { 0 };
 
     i2c_cmd_handle_t cmd = i2c_cmd_link_create_static(buffer, sizeof(buffer));
-    assert (cmd != NULL);
+    if (cmd == NULL) {
+        return false;
+    }
 
     i2c_master_start(cmd);
     i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_WRITE, true);
@@ -92,19 +62,18 @@ bool I2C_master_read(i2c_port_t port, uint8_t dev_addr, uint8_t reg_addr, uint8_
 
     res = i2c_master_read(cmd, data, len, I2C_MASTER_LAST_NACK);
     if (res != ESP_OK) {
-        ESP_LOGE(TAG, "CHUJ");
+        i2c_cmd_link_delete(cmd);
         return false;
     }
     i2c_master_stop(cmd);
 
-    i2c_master_cmd_begin(port, cmd, pdMS_TO_TICKS(10));
+    res = i2c_master_cmd_begin(port, cmd, pdMS_TO_TICKS(50));
     i2c_cmd_link_delete(cmd);
 
     return res == ESP_OK;
 }
 
-
-
+// wczytać się w to bo wychodzi na to że my jednak nadajemy coś po i2c jak czytamy
 static bool I2C_master_only_read(i2c_port_t port, uint8_t dev_addr, uint8_t *data,
                           size_t len) {
     esp_err_t res;
@@ -143,23 +112,6 @@ bool I2C_master_write_to_slave(i2c_port_t port, uint8_t dev_addr, uint8_t *data,
     esp_err_t ret;
     ret = i2c_master_write_to_device(port, dev_addr, data, 8, pdMS_TO_TICKS(5000));
     ESP_LOGE(TAG, "Error in i2c_master_write: %s", esp_err_to_name(ret));
-    // i2c_cmd_handle_t cmd = i2c_cmd_link_create();    
-    // i2c_master_start(cmd);
-    // ESP_ERROR_CHECK(i2c_master_write_byte(cmd, (dev_addr << 1) | I2C_MASTER_WRITE, true));
-    // ret = i2c_master_write(cmd, data, len, true);
-    // if (ret != ESP_OK) {
-    //     ESP_LOGE(TAG, "Error in i2c_master_write: %s", esp_err_to_name(ret));
-    //     if (ret == ESP_ERR_TIMEOUT) {
-    //         ESP_LOGE(TAG, "I2C write timeout occurred");
-    //     } else if (ret == ESP_FAIL) {
-    //         ESP_LOGE(TAG, "I2C write failure");
-    //     } else {
-    //         ESP_LOGE(TAG, "I2C write returned unexpected error: %d", ret);
-    //     }
-    // }
-    // i2c_master_stop(cmd);
-    // ESP_ERROR_CHECK(i2c_master_cmd_begin(port, cmd, pdMS_TO_TICKS(100)));
-    // i2c_cmd_link_delete(cmd);
     return ret;
 }
 
