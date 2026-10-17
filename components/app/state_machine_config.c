@@ -300,6 +300,26 @@ static void on_ground(void *arg) {
     gpio_exp_led_set_color(CYAN);
 }
 
+static void state_machine_abort(void) {
+    cmd_message_t cmd = cmd_create_message(OX_MAIN_CLOSE, 0x00);
+    ENA_send(&esp_now_ox_main_valve, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(N2_MAIN_CLOSE, 0x00);
+    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(ETH_MAIN_CLOSE, 0x00);
+    ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(OX_VENT_OPEN, 0x00);
+    ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(ETH_VENT_OPEN, 0x00);
+    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
+
+    cmd = cmd_create_message(N2_VENT_OPEN, 0x00);
+    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
+}
+
 static void close_valves(void) {
     cmd_message_t cmd = cmd_create_message(OX_MAIN_CLOSE, 0x00);
     ENA_send(&esp_now_ox_main_valve, cmd.raw, sizeof(cmd.raw), 3);
@@ -315,17 +335,6 @@ static void close_valves(void) {
 
     cmd = cmd_create_message(ETH_VENT_CLOSE, 0x00);
     ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
-
-    cmd = cmd_create_message(N2_VENT_CLOSE, 0x00);
-    ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
-}
-
-static void close_valves_on_lift_off(void) {
-    cmd_message_t cmd = cmd_create_message(ETH_VENT_CLOSE, 0x00);
-    ENA_send(&esp_now_eth_vent_n2_main_valves, cmd.raw, sizeof(cmd.raw), 3);
-
-    cmd = cmd_create_message(OX_VENT_CLOSE, 0x00);
-    ENA_send(&esp_now_ox_vent_eth_main_valves, cmd.raw, sizeof(cmd.raw), 3);
 
     cmd = cmd_create_message(N2_VENT_CLOSE, 0x00);
     ENA_send(&esp_now_n2_vent_valve, cmd.raw, sizeof(cmd.raw), 3);
@@ -366,15 +375,7 @@ static void on_abort(void *arg) {
         ESP_LOGE(TAG, "Unable to stop flash data timer");
     }
 
-    if (current_state == LIFT_OFF) {
-        ESP_LOGI(TAG, "Abort during LIFT_OFF");
-
-        // in case of not lifting off close vents
-        close_valves_on_lift_off();
-    } else {
-        // in case of general abort close all valves
-        close_valves();
-    }
+    state_machine_abort();
 
     if (sys_timer_stop(TIMER_DISCONNECT) == false) {
         ESP_LOGE(TAG, "Unable to stop disconnect timer");
